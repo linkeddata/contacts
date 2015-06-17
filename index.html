@@ -17,13 +17,13 @@
   <div class="row card">
     <div class="toolbar" flex-container="row">
       <div class="toolbar__left">
-        <button class="btn btn--l btn--black btn--icon" lx-ripple>
+        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom">
           <span class="mdi mdi-account-plus"></span>
         </button>
       </div>
 
-      <div class="toolbar__left">
-        <lx-search-filter closed theme="light" model="searchContacts"></lx-search-filter>
+      <div class="toolbar__left" aria-label="Filter contacts" lx-tooltip="Filter contacts" tooltip-position="bottom">
+        <lx-search-filter closed theme="light" model="filterContacts"></lx-search-filter>
       </div>
 
       <div class="toolbar__right toolbar__label" ng-if="loggedIn">
@@ -32,7 +32,7 @@
           <img class="mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" />
         </div>
         <lx-dropdown position="right" from-top>
-          <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle>
+          <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Menu">
             <span class="mdi mdi-dots-vertical"></span>
           </button>
           <lx-dropdown-menu>
@@ -47,7 +47,7 @@
 
       <div class="toolbar__right toolbar__label" ng-if="!loggedIn">
         <span class="fs-title">Login</span>
-        <button class="btn btn--l btn--black btn--icon" ng-click="viewLogin()" lx-ripple lx-tooltip="Login" tooltip-position="bottom">
+        <button class="btn btn--l btn--black btn--icon" ng-click="viewLogin()" aria-label="Login" lx-ripple lx-tooltip="Login" tooltip-position="bottom">
           <span class="mdi mdi-login"></span>
         </button>
       </div>
@@ -56,38 +56,57 @@
 
 
   <div class="contacts">
-    <div class="row contact card list-row list-row--multi-line mb" ng-repeat="contact in contacts|filter: searchContacts">
-          <div class="list-row__primary">
-              <img ng-show="contact.picture" ng-src="contact.picture" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round">
-              <img ng-hide="contact.picture" src="images/generic_photo.png" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round" />
+    <div class="row contact mb" ng-repeat="contact in contacts|filter: filterContacts">
+      <div class="card list-row list-row--multi-line" ng-class="{ 'selected':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
+        <div class="list-row__primary">
+          <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" lx-tooltip="Toggle favorite" tooltip-position="bottom">
+            <span class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
+          </button>
+        </div>
+        <div class="list-row__primary">
+          <div ng-show="contact.showcheckbox">
+            <div class="checkbox">
+              <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked">
+              <label for="cb-{{$index}}" class="checkbox__label"></label>
+            </div>
           </div>
+          <div ng-hide="contact.hidepic">
+            <img ng-show="contact.picture" ng-src="{{contact.picture}}" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round">
+            <img ng-hide="contact.picture" src="images/generic_photo.png" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round" />
+          </div>
+        </div>
 
-          <div class="list-row__content">
-              <div class="display-block">
-                <span>{{contact.name}}</span>
-                <span class="icon icon--xs icon--flat mdi mdi-bookmark" ng-class="contact.bookmarked?'icon--green':'icon--grey'"></span>
-              </div>
-              <div class="display-block fs-body-1 tc-black-2">
-                <span><a href="mailto:{{contact.email}}">{{contact.email}}</a></span>
-              </div>
-              <div class="display-block fs-body-1 tc-black-2">
-                <span>{{contact.phone}}</span>
-              </div>
-          </div>
+        <div class="list-row__content">
+            <div class="display-block">
+              {{contact.name}}
+            </div>
+            <div class="display-block fs-body-1 tc-black-2">
+              <a href="mailto:{{contact.email}}">{{contact.email}}</a>
+            </div>
+            <div class="display-block fs-body-1 tc-black-2">
+              {{contact.phone}}
+            </div>
+        </div>
 
-          <div class="list-row__secondary">
-              <i class="icon icon--s icon--grey icon--flat mdi mdi-chevron-double-down"></i>
-          </div>
+        <div class="list-row__secondary">
+          <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="More contact info" lx-tooltip="Show more" tooltip-position="bottom">
+            <span class="icon icon--s icon--grey icon--flat mdi mdi-chevron-double-down"></span>
+          </button>
+        </div>
       </div>
+      <!-- More info -->
+      <div class="more">
+        
+      </div>
+    </div>
   </div>
 
 
   <!-- Deps -->
-  <script src="bower_components/jquery/dist/jquery.js"></script>
-  <script src="bower_components/velocity/velocity.js"></script>
-  <script src="bower_components/moment/min/moment-with-locales.js"></script>
-  <script src="bower_components/angular/angular.js"></script>
-  <script src="bower_components/lumx/dist/lumx.js"></script>
+  <script src="bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="bower_components/velocity/velocity.min.js"></script>
+  <script src="bower_components/angular/angular.min.js"></script>
+  <script src="bower_components/lumx/dist/lumx.min.js"></script>
   <script src="vendor/rdflib.min.js"></script>
   <!-- App -->
   <script src="app/app.js"></script>

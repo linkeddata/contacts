@@ -11,6 +11,10 @@
   src: local('Roboto'), local('Roboto-Regular'), url(css/fonts/roboto-regular.ttf) format('truetype');
 }
 
+a {
+  text-decoration: none;
+}
+
 .contacts {
   padding: 20px;
 }
@@ -36,4 +40,12 @@
 .search-filter__input {
   padding: 0 10px 0 10px;
   border: 1px solid #ccc;
+}
+
+.checkbox__label {
+  margin: 10px 0px 0px 7px;
+}
+
+.selected {
+  background-color: #e1f5fe;
 }
