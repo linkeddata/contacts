@@ -16,7 +16,7 @@ a {
 }
 
 .contacts {
-  padding: 20px;
+  padding: 10px;
 }
 
 .center {
@@ -40,12 +40,25 @@ a {
 .search-filter__input {
   padding: 0 10px 0 10px;
   border: 1px solid #ccc;
+  background-color: #fff;
+  color: #000!important;
 }
 
 .checkbox__label {
   margin: 10px 0px 0px 7px;
 }
 
-.selected {
-  background-color: #e1f5fe;
+*::-webkit-input-placeholder { /* WebKit browsers */
+  color:    #ccc!important;
+}
+*:-moz-placeholder { /* Mozilla Firefox 4 to 18 */
+   color:    #ccc!important;
+   opacity:  1;
+}
+*::-moz-placeholder { /* Mozilla Firefox 19+ */
+   color:    #ccc!important;
+   opacity:  1;
+}
+*:-ms-input-placeholder { /* Internet Explorer 10+ */
+   color:    #ccc!important;
 }

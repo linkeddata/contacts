@@ -14,16 +14,16 @@
 </head>
 
 <body ng-controller="Main">
-  <div class="row card">
-    <div class="toolbar" flex-container="row">
+  <div class="row">
+    <div class="toolbar bgc-indigo-500" flex-container="row">
       <div class="toolbar__left">
         <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom">
-          <span class="mdi mdi-account-plus"></span>
+          <span class="mdi mdi-account-plus tc-white-1"></span>
         </button>
       </div>
 
       <div class="toolbar__left" aria-label="Filter contacts" lx-tooltip="Filter contacts" tooltip-position="bottom">
-        <lx-search-filter closed theme="light" model="filterContacts"></lx-search-filter>
+        <lx-search-filter closed theme="dark" filter-width="100%" placeholder="Filter contacts" model="filterContacts"></lx-search-filter>
       </div>
 
       <div class="toolbar__right toolbar__label" ng-if="loggedIn">
@@ -33,7 +33,7 @@
         </div>
         <lx-dropdown position="right" from-top>
           <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Menu">
-            <span class="mdi mdi-dots-vertical"></span>
+            <span class="mdi mdi-dots-vertical tc-white-1"></span>
           </button>
           <lx-dropdown-menu>
             <ul>
@@ -46,9 +46,9 @@
       </div>
 
       <div class="toolbar__right toolbar__label" ng-if="!loggedIn">
-        <span class="fs-title">Login</span>
+        <span class="fs-title tc-white-1">Login</span>
         <button class="btn btn--l btn--black btn--icon" ng-click="viewLogin()" aria-label="Login" lx-ripple lx-tooltip="Login" tooltip-position="bottom">
-          <span class="mdi mdi-login"></span>
+          <span class="mdi mdi-login tc-white-1"></span>
         </button>
       </div>
     </div>
@@ -57,7 +57,7 @@
 
   <div class="contacts">
     <div class="row contact mb" ng-repeat="contact in contacts|filter: filterContacts">
-      <div class="card list-row list-row--multi-line" ng-class="{ 'selected':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
+      <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
         <div class="list-row__primary">
           <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" lx-tooltip="Toggle favorite" tooltip-position="bottom">
             <span class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>

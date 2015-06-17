@@ -39,21 +39,15 @@ Contacts.controller('Main', function($scope) {
             if ($scope.contacts[i].checked) {
                 $scope.contacts[i].showcheckbox = true;
                 $scope.contacts[i].hidepic = true;
-                console.log("Checkbox checked");
             } else {
-                console.log("Checkbox not checked");
                 if (hover) {
-                    console.log("Hovering");
                     $scope.contacts[i].showcheckbox = true;
                     $scope.contacts[i].hidepic = true;
                 } else {
-                    console.log("No hovering");
                     $scope.contacts[i].showcheckbox = false;
                     $scope.contacts[i].hidepic = false;
                 }
             }
-            console.log("checked: " + $scope.contacts[i].checked + " / showcheckbox: "+$scope.contacts[i].showcheckbox + " / hidepic: " + $scope.contacts[i].hidepic + "\n--------");
-            // $scope.contacts[i].showpic = ($scope.contacts[i].checked && !hover)?false:true;
         }
     };
 
