@@ -1,0 +1,24 @@
+{
+  "name": "Contacts",
+  "version": "0.0.1",
+  "homepage": "https://github.com/linkeddata/contacts",
+  "authors": [
+    "Andrei Sambra <andrei@w3.org>"
+  ],
+  "description": "Address book-like application to manage contact information",
+  "license": "MIT",
+  "keywords": "webid, linked data, contacts, address book",
+  "private": false,
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "components",
+    "test",
+    "tests"
+  ],
+  "dependencies": {
+    "angular-material": "~0.10.0",
+    "lumx": "~0.3.39"
+  }
+}

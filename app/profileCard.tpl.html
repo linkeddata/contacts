@@ -1,0 +1,10 @@
+<div layout="row" layout-align="start" class="profile-card grad-bg" ng-click="view()">
+  <div layout="column" layout-align="center center">
+    <img ng-show="my.picture" ng-src="{{my.picture}}" alt="Picture of {{my.name}}" />
+    <img ng-hide="my.picture" src="images/generic_photo.png" alt="Picture of {{my.name}}" />
+  </div>
+  <div layout="column" layout-align="center">
+    <div layout="row" layout-align="start" class="md-body-2">{{my.name}}</div>
+    <div layout="row" layout-align="start" class="md-body-1">{{my.email}}</div>
+  </div>
+</div>
