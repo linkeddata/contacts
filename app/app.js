@@ -1,12 +1,15 @@
 var Contacts = angular.module('Contacts', ['lumx']);
 
 
-Contacts.controller('Main', function($scope) {
+Contacts.controller('Main', function($scope, LxDialogService) {
     $scope.loggedIn = true;
     $scope.my = {
         name: "Andrei Vlad Sambra",
-        email: "andrei@w3.org"
+        email: "andrei@w3.org",
+        picture: "https://deiu.me/public/avatar.jpg"
     };
+
+    $scope.selectedContacts = [];
 
     $scope.contacts = [
         {
@@ -34,24 +37,58 @@ Contacts.controller('Main', function($scope) {
         $scope.loggedIn = false;
     };
 
-    $scope.hoverContact = function(i, hover) {
-        if ($scope.contacts) {
-            if ($scope.contacts[i].checked) {
-                $scope.contacts[i].showcheckbox = true;
-                $scope.contacts[i].hidepic = true;
+    $scope.hoverContact = function(id, hover) {
+        if ($scope.contacts[id].checked) {
+            $scope.contacts[id].showcheckbox = true;
+            $scope.contacts[id].hidepic = true;
+        } else {
+            if (hover) {
+                $scope.contacts[id].showcheckbox = true;
+                $scope.contacts[id].hidepic = true;
             } else {
-                if (hover) {
-                    $scope.contacts[i].showcheckbox = true;
-                    $scope.contacts[i].hidepic = true;
-                } else {
-                    $scope.contacts[i].showcheckbox = false;
-                    $scope.contacts[i].hidepic = false;
-                }
+                $scope.contacts[id].showcheckbox = false;
+                $scope.contacts[id].hidepic = false;
             }
         }
     };
 
-    
+    $scope.manageSelection = function(id) {
+        if ($scope.contacts[id].checked) {
+            // add to selected list
+            console.log("New state: "+$scope.contacts[id].checked);
+            $scope.selectedContacts.push(id);
+        } else {
+            for(var i = $scope.selectedContacts.length - 1; i >= 0; i--) {
+                if ($scope.selectedContacts[i] === id) {
+                   $scope.selectedContacts.splice(i, 1);
+                }
+            }
+        }
+        console.log($scope.selectedContacts);
+    };
+
+    $scope.selectAll = function() {
+        $scope.selectedContacts = [];
+        for (var i = $scope.contacts.length - 1; i >= 0; i--) {
+           $scope.contacts[i].checked = true;
+           $scope.contacts[i].showcheckbox = true;
+           $scope.contacts[i].hidepic = true;
+           $scope.selectedContacts.push(i);
+        }
+    };
+
+    $scope.selectNone = function() {
+        for (var i = $scope.contacts.length - 1; i >= 0; i--) {
+           $scope.contacts[i].checked = false;
+           $scope.contacts[i].showcheckbox = false;
+           $scope.contacts[i].hidepic = false;
+        }
+        $scope.selectedContacts = [];
+    };
+
+    $scope.opendAddDialog = function() {
+        LxDialogService.open('addcontact');
+    };
 });
 
 Contacts.directive('profileCard',function(){

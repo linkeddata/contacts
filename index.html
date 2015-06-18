@@ -16,8 +16,8 @@
 <body ng-controller="Main">
   <div class="row">
     <div class="toolbar bgc-indigo-500" flex-container="row">
-      <div class="toolbar__left">
-        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom">
+      <div class="toolbar__left mr">
+        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="opendAddDialog()">
           <span class="mdi mdi-account-plus tc-white-1"></span>
         </button>
       </div>
@@ -27,7 +27,7 @@
       </div>
 
       <div class="toolbar__right toolbar__label" ng-if="loggedIn">
-        <div class="toolbar__right fs-title" ng-show="loggedIn" lx-tooltip="{{my.name}}" tooltip-position="bottom">
+        <div class="toolbar__right fs-title mr" ng-show="loggedIn" lx-tooltip="{{my.name}}" tooltip-position="bottom">
           <img class="mr" ng-show="my.picture" ng-src="{{my.picture}}" alt="Photo of {{my.name}}"/>
           <img class="mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" />
         </div>
@@ -37,9 +37,11 @@
           </button>
           <lx-dropdown-menu>
             <ul>
-              <li><a class="dropdown-link">Settings</a></li>
+              <li><a class="dropdown-link"><span class="mdi mdi-cloud-download mr"></span>Import vCards</a></li>
+              <li><a class="dropdown-link"><span class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
+              <li><a class="dropdown-link"><span class="mdi mdi-settings mr"></span>Preferences</a></li>
               <li class="dropdown-divider"></li>
-              <li><a class="dropdown-link" ng-click="logOut()">Logout</a></li>
+              <li><a class="dropdown-link" ng-click="logOut()"><span class="mdi mdi-exit-to-app mr"></span>Logout</a></li>
             </ul>
           </lx-dropdown-menu>
         </lx-dropdown>
@@ -51,6 +53,44 @@
           <span class="mdi mdi-login tc-white-1"></span>
         </button>
       </div>
+    </div>
+  </div>
+
+  <div class="toolbar bgc-blue-100 tc-grey-800" ng-if="selectedContacts.length > 0">
+    <div class="toolbar__left toolbar__label mr">
+      <span>{{selectedContacts.length}} selected</span>
+      <lx-dropdown>
+        <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Selection menu">
+          <span class="mdi mdi-chevron-down tc-grey-800"></span>
+        </button>
+        <lx-dropdown-menu>
+          <ul>
+            <li><a class="dropdown-link" ng-click="selectAll()"><span class="mdi mdi-checkbox-marked-outline mr"></span>select all</a></li>
+            <li><a class="dropdown-link" ng-click="selectNone()"><span class="mdi mdi-checkbox-blank-outline mr"></span>select none</a></li>
+          </ul>
+        </lx-dropdown-menu>
+      </lx-dropdown>
+    </div>
+    <div class="toolbar__right">
+      <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Merge contacts" lx-tooltip="Merge" tooltip-position="bottom" ng-click="mergeSelected()">
+        <span class="mdi mdi-account-multiple tc-grey-800"></span>
+      </button>
+      <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Delete contacts" lx-tooltip="Delete" tooltip-position="bottom" ng-click="deleteSelected()">
+        <span class="mdi mdi-delete tc-grey-800"></span>
+      </button>
+    </div>
+    <div class="toolbar__right">
+      <lx-dropdown position="right" from-top>
+        <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Multiple contacts menu">
+          <span class="mdi mdi-dots-vertical tc-grey-800"></span>
+        </button>
+        <lx-dropdown-menu>
+          <ul>
+            <li><a class="dropdown-link"><span class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
+            <li><a class="dropdown-link"><span class="mdi mdi-account-multiple-plus mr"></span>Add to group</a></li>
+          </ul>
+        </lx-dropdown-menu>
+      </lx-dropdown>
     </div>
   </div>
 
@@ -66,7 +106,7 @@
         <div class="list-row__primary">
           <div ng-show="contact.showcheckbox">
             <div class="checkbox">
-              <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked">
+              <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection($index)">
               <label for="cb-{{$index}}" class="checkbox__label"></label>
             </div>
           </div>
@@ -101,6 +141,23 @@
     </div>
   </div>
 
+
+  <lx-dialog class="dialog dialog--l" id="addcontact">
+    <div class="dialog__header">
+      <div class="toolbar bgc-light-blue-500 pl++">
+        <span class="toolbar__label tc-white fs-title">
+          Add new contact
+        </span>
+      </div>
+    </div>
+    <div class="dialog__content">
+        
+    </div>
+    <div class="dialog__actions">
+        <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>
+        <button class="btn btn--m btn--black btn--flat" lx-ripple>Add</button>
+    </div>
+  </lx-dialog>
 
   <!-- Deps -->
   <script src="bower_components/jquery/dist/jquery.min.js"></script>

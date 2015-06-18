@@ -15,6 +15,10 @@ a {
   text-decoration: none;
 }
 
+li {
+  line-height: 40px
+}
+
 .contacts {
   padding: 10px;
 }
@@ -35,6 +39,14 @@ a {
   margin-right: auto;
   vertical-align: middle;
   border-radius: 3px;
+}
+
+.dropdown-link {
+  line-height: 40px;
+  height: 40px;
+  width: 100%;
+  font-size: 1rem;
+  font-weight: 300;
 }
 
 .search-filter__input {
