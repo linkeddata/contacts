@@ -2,7 +2,7 @@ var Contacts = angular.module('Contacts', ['lumx']);
 
 
 Contacts.controller('Main', function($scope, LxDialogService) {
-    $scope.loggedIn = false;
+    $scope.loggedIn = true;
 
     $scope.my = {
         name: "Andrei Vlad Sambra",
@@ -14,14 +14,14 @@ Contacts.controller('Main', function($scope, LxDialogService) {
 
     $scope.contacts = [
         {
-            name: "First contact",
+            name: "John Doe",
             email: "first@email.com",
             picture: 'https://lh4.googleusercontent.com/-dPvV6bpyaik/U_VfpkP5nnI/AAAAAAAAFHQ/6TKGdHRHFSU/w960-h962-no/1306d2a9-ea03-45e2-bdcd-ef48119c965b',
             favorite: '',
             checked: false
         },
         {
-            name: "Second contact",
+            name: "Jane Smith",
             email: "second@example.org",
             phone: "+1-231-114-1231",
             picture: "https://lh6.googleusercontent.com/-yqYqI3T_KRs/VYKVXGXWW_I/AAAAAAAAAwU/Bd84tPHEcoM/s500-no/Untitled-61142014104414PM.jpg",
@@ -64,11 +64,15 @@ Contacts.controller('Main', function($scope, LxDialogService) {
         if ($scope.contacts[id].checked) {
             // add to selection list
             $scope.selectedContacts.push(id);
+            $scope.contacts[id].showcheckbox = true;
+            $scope.contacts[id].hidepic = true;
         } else {
             // remove from selection list
             for(var i = $scope.selectedContacts.length - 1; i >= 0; i--) {
                 if ($scope.selectedContacts[i] === id) {
-                   $scope.selectedContacts.splice(i, 1);
+                    $scope.selectedContacts.splice(i, 1);
+                    $scope.contacts[i].showcheckbox = false;
+                    $scope.contacts[i].hidepic = false;
                 }
             }
         }
@@ -94,8 +98,13 @@ Contacts.controller('Main', function($scope, LxDialogService) {
         $scope.selectedContacts = [];
     };
 
+    // Dialogues
+
     $scope.opendAddDialog = function() {
         LxDialogService.open('addcontact');
+    };
+    $scope.opendAboutDialog = function() {
+        LxDialogService.open('about');
     };
 });
 

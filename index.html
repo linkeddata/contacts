@@ -22,20 +22,17 @@
   <!-- Welcome page -->
 
   <div class="welcome row grad-bg" ng-if="!loggedIn">
-    <div class="absolute-center">
-      <div class="tc-white-1">
-        <div class="welcome-title">
-          <span class="icon icon--xl icon--flat mdi mdi-account-location tc-light-blue-300"></span>
-          <span class="app-name fs-display-2">CONTACTS</span>
-        </div>
-        <div class="mt fs-subhead"> -- A personal address book manager</div>
-        <button class="mt++ btn btn--l btn--black bgc-light-blue-300" lx-ripple aria-label="Login to manage your contacts" lx-tooltip="Login to manage your contacts" tooltip-position="bottom" ng-click="viewLogin()">
-            <span class="tc-white-1">Login</span>
-        </button>
-    
+    <div class="absolute-center tc-white-1">
+      <div class="welcome-title">
+        <span class="icon icon--xl icon--flat mdi mdi-account-location tc-light-blue-300"></span>
+        <span class="app-name fs-display-2">CONTACTS</span>
       </div>
-      <!-- <iframe id="signup" src="" sandbox="allow-same-origin allow-scripts allow-forms" frameborder="0"></iframe> -->
+      <div class="mt fs-subhead"> -- A personal address book manager</div>
+      <button class="mt++ btn btn--l btn--black bgc-light-blue-300" lx-ripple aria-label="Login to manage your contacts" lx-tooltip="Login to manage your contacts" tooltip-position="bottom" ng-click="viewLogin()">
+          <span class="tc-white-1">Login</span>
+      </button>
     </div>
+      <!-- <iframe id="signup" src="" sandbox="allow-same-origin allow-scripts allow-forms" frameborder="0"></iframe> -->
   </div>
 
   <!-- Authenticated user -->
@@ -46,19 +43,18 @@
 
     <div class="topbar">
       <div class="toolbar bgc-blue-A700">
-
-        <div class="toolbar__left mr">
+        <div class="toolbar__left">
           <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="opendAddDialog()">
             <span class="mdi mdi-account-plus tc-white-1"></span>
           </button>
         </div>
 
         <div class="toolbar__left" aria-label="Filter contacts" lx-tooltip="Filter contacts" tooltip-position="bottom">
-          <lx-search-filter closed theme="dark" filter-width="100%" placeholder="Filter contacts" model="filterContacts"></lx-search-filter>
+          <lx-search-filter closed theme="dark" filter-width="220px" placeholder="Filter contacts" model="filterContacts"></lx-search-filter>
         </div>
 
         <div class="toolbar__right toolbar__label">
-          <div class="toolbar__right fs-title mr" ng-show="loggedIn" lx-tooltip="{{my.name}}" tooltip-position="bottom">
+          <div class="toolbar__right fs-title" ng-show="loggedIn" lx-tooltip="{{my.name}}" tooltip-position="bottom">
             <img class="mr" ng-show="my.picture" ng-src="{{my.picture}}" alt="Photo of {{my.name}}"/>
             <img class="mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" />
           </div>
@@ -71,7 +67,7 @@
                 <li><a class="dropdown-link"><span class="mdi mdi-cloud-download mr"></span>Import vCards</a></li>
                 <li><a class="dropdown-link"><span class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
                 <li><a class="dropdown-link"><span class="mdi mdi-settings mr"></span>Preferences</a></li>
-                <li><a class="dropdown-link"><span class="mdi mdi-information-outline mr"></span>About</a></li>
+                <li><a class="dropdown-link" ng-click="opendAboutDialog()"><span class="mdi mdi-information-outline mr"></span>About</a></li>
                 <li class="dropdown-divider"></li>
                 <li><a class="dropdown-link" ng-click="logOut()"><span class="mdi mdi-exit-to-app mr"></span>Logout</a></li>
               </ul>
@@ -180,58 +176,76 @@
 
     <lx-dialog class="dialog dialog--l" id="addcontact">
       <div class="dialog__header">
-        <div class="toolbar bgc-light-blue-500 pl++">
+        <div class="toolbar bgc-blue-A700 pl++">
           <span class="toolbar__label tc-white fs-title">
             Add new contact
           </span>
+          <div class="toolbar__right">
+            <button class="btn btn--l btn--white btn--icon" lx-ripple lx-dialog-close>
+              <i class="mdi mdi-close"></i>
+            </button>
+          </div>
         </div>
       </div>
       <div class="dialog__content">
-        <div class="mt++" flex-container="row" flex-gutter="24">
-        <div flex-item>
+        <div class="p+" flex-container="row" flex-gutter="24">
+          <div flex-item="3">
             <form>
-                <lx-text-field label="First and last name" fixed-label="true" icon="account">
-                    <input type="text" ng-model="textFields.fixedFirstName">
+                
+            </form>
+          </div>
+
+          <div flex-item>
+            <form>
+                <lx-text-field label="Name" fixed-label="true" icon="account">
+                    <input type="text" ng-model="textFields.name">
                 </lx-text-field>
 
                 <lx-text-field label="Phone number" fixed-label="true" icon="phone">
-                    <input type="text" ng-model="textFields.fixedLastName">
+                    <input type="text" ng-model="textFields.phone">
+                </lx-text-field>
+
+                <lx-text-field label="Address" fixed-label="true" icon="city">
+                    <input type="text" ng-model="textFields.address">
                 </lx-text-field>
 
                 <lx-text-field label="Email address" fixed-label="true" icon="email">
-                    <input type="email" ng-model="textFields.fixedEmail">
+                    <input type="email" ng-model="textFields.email">
                 </lx-text-field>
 
-                <lx-text-field label="Location" fixed-label="true" icon="city">
-                    <input type="text" ng-model="textFields.fixedAdress">
+                <lx-text-field label="Homepage" fixed-label="true" icon="earth">
+                    <input type="email" ng-model="textFields.homepage">
                 </lx-text-field>
             </form>
+          </div>
         </div>
-
-        <div flex-item>
-            <form>
-                <lx-text-field label="First name" fixed-label="true">
-                    <input type="text" ng-model="textFields.fixedFirstName2">
-                </lx-text-field>
-
-                <lx-text-field label="Last name" fixed-label="true">
-                    <input type="text" ng-model="textFields.fixedLastName2">
-                </lx-text-field>
-
-                <lx-text-field label="Email" fixed-label="true">
-                    <input type="email" ng-model="textFields.fixedEmail2">
-                </lx-text-field>
-
-                <lx-text-field label="Address" fixed-label="true">
-                    <input type="text" ng-model="textFields.fixedAdress2">
-                </lx-text-field>
-            </form>
-        </div>
-    </div>
       </div>
       <div class="dialog__actions">
-          <button class="btn btn--m btn--black btn--flat" lx-ripple>Add</button>
-          <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>
+        <button class="btn btn--m btn--black btn--flat" lx-ripple>Add</button>
+        <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>
+      </div>
+    </lx-dialog>
+
+    <lx-dialog class="dialog dialog--l" id="about">
+      <div class="dialog__header">
+        <div class="toolbar bgc-blue-A700 pl+">
+          <span class="toolbar__label tc-white fs-title">
+            About Contacts
+          </span>
+          <div class="toolbar__right">
+            <button class="btn btn--l btn--white btn--icon" lx-ripple lx-dialog-close>
+              <i class="mdi mdi-close"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+      <div class="dialog__content p+">
+        <p>Contacts is a personal address book manager, that uses Linked Data to store your contacts on your personal online datastore.</p>
+        <br>
+        <p>This application follows the <a href="https://github.com/linkeddata/SoLiD/">SoLiD specifications</a> to ensure that your data stays private.</p>
+      </div>
+      <div class="dialog__actions">
+        <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Close</button>
       </div>
     </lx-dialog>
 
