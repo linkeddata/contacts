@@ -62,12 +62,18 @@ li {
 }
 
 .welcome-title {
+  position: relative;
   display: inline-block;
   width: 350px;
   height: 100px;
   padding-top: 20px;
+  top: -20px;
   border: 2px solid #fff;
   border-radius: 5px;
+}
+.app-name {
+  position: relative;
+  top: 5px;
 }
 
 .contacts {
