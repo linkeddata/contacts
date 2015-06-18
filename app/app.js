@@ -16,6 +16,7 @@ Contacts.controller('Main', function($scope, LxDialogService) {
         {
             name: "First contact",
             email: "first@email.com",
+            picture: 'https://lh4.googleusercontent.com/-dPvV6bpyaik/U_VfpkP5nnI/AAAAAAAAFHQ/6TKGdHRHFSU/w960-h962-no/1306d2a9-ea03-45e2-bdcd-ef48119c965b',
             favorite: '',
             checked: false
         },
@@ -23,6 +24,7 @@ Contacts.controller('Main', function($scope, LxDialogService) {
             name: "Second contact",
             email: "second@example.org",
             phone: "+1-231-114-1231",
+            picture: "https://lh6.googleusercontent.com/-yqYqI3T_KRs/VYKVXGXWW_I/AAAAAAAAAwU/Bd84tPHEcoM/s500-no/Untitled-61142014104414PM.jpg",
             favorite: 'favorite',
             checked: false
         }

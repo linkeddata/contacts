@@ -78,6 +78,10 @@ li {
   top: 65px;
 }
 
+.card {
+  min-height: 80px;
+}
+
 .toolbar img {
   min-width: 30px;
   min-height: 30px;
@@ -110,6 +114,15 @@ li {
 
 .checkbox__label {
   margin: 10px 0px 0px 7px;
+}
+
+.row__primary {
+  width: 50px;
+}
+
+.list-row__primary img {
+  width: 55px!important;
+  height: 55px!important;
 }
 
 .grad-bg {

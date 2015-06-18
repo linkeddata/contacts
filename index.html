@@ -134,13 +134,13 @@
       <div class="row contact mb" ng-repeat="contact in contacts | filter: filterContacts">
         <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
           <div class="list-row__primary">
-            <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" lx-tooltip="Toggle favorite" tooltip-position="bottom" ng-click="toggleFavorite($index)">
+            <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" lx-tooltip="Toggle favorite" tooltip-position="bottom" ng-click="toggleFavorite($index)">
               <span class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
             </button>
           </div>
-          <div class="list-row__primary">
+          <div class="list-row__primary mr+">
             <div ng-show="contact.showcheckbox">
-              <div class="checkbox">
+              <div class="checkbox mt+ ml">
                 <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection($index)">
                 <label for="cb-{{$index}}" class="checkbox__label"></label>
               </div>
