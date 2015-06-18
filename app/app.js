@@ -2,7 +2,8 @@ var Contacts = angular.module('Contacts', ['lumx']);
 
 
 Contacts.controller('Main', function($scope, LxDialogService) {
-    $scope.loggedIn = true;
+    $scope.loggedIn = false;
+
     $scope.my = {
         name: "Andrei Vlad Sambra",
         email: "andrei@w3.org",
@@ -30,11 +31,17 @@ Contacts.controller('Main', function($scope, LxDialogService) {
 
     $scope.viewLogin = function() {
         $scope.loggedIn = true;
-        $mdSidenav('leftnav').close();
     };
 
     $scope.logOut = function() {
         $scope.loggedIn = false;
+        $scope.my = {};
+        $scope.contacts = [];
+        $scope.selectedContacts = [];
+    };
+
+    $scope.toggleFavorite = function(id) {
+        $scope.contacts[id].favorite = ($scope.contacts[id].favorite === 'favorite')?'':'favorite';
     };
 
     $scope.hoverContact = function(id, hover) {
@@ -54,10 +61,10 @@ Contacts.controller('Main', function($scope, LxDialogService) {
 
     $scope.manageSelection = function(id) {
         if ($scope.contacts[id].checked) {
-            // add to selected list
-            console.log("New state: "+$scope.contacts[id].checked);
+            // add to selection list
             $scope.selectedContacts.push(id);
         } else {
+            // remove from selection list
             for(var i = $scope.selectedContacts.length - 1; i >= 0; i--) {
                 if ($scope.selectedContacts[i] === id) {
                    $scope.selectedContacts.splice(i, 1);

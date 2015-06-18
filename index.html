@@ -5,8 +5,12 @@
   <title>Contacts</title>
   <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
   <meta name="viewport" content="width=device-width, minimum-scale=1.0, initial-scale=1.0, user-scalable=yes">
-  <link rel='icon' href='data:;base64,iVBORw0KGgo='>
 
+  <style>
+    [ng\:cloak], [ng-cloak], [data-ng-cloak], [x-ng-cloak], .ng-cloak, .x-ng-cloak, .ng-hide {
+      display: none !important;
+    }
+  </style>
   <link rel="stylesheet" href="bower_components/lumx/dist/lumx.css">
   <link rel="stylesheet" href="bower_components/mdi/css/materialdesignicons.css">
   <link rel="stylesheet" href="css/style.css">
@@ -14,8 +18,26 @@
 </head>
 
 <body ng-controller="Main">
+  <div class="welcome row bgc-light-blue-500" ng-if="!loggedIn">
+    <div class="absolute-center">
+      <div class="tc-white-1">
+        <p>
+          <span class="icon icon--xl icon--flat mdi mdi-account-location tc-white-500"></span>
+          <span class="fs-display-2">CONTACTS</span>
+        </p>
+        <p class="fs-subhead"> -- A personal address book manager</p>
+        <button class="mt++ btn btn--l btn--black bgc-indigo-500" lx-ripple aria-label="Login to manage your contacts" lx-tooltip="Login to manage your contacts" tooltip-position="bottom" ng-click="viewLogin()">
+            <span class="tc-white-1">Login</span>
+        </button>
+    
+      </div>
+      <!-- <iframe id="signup" src="" sandbox="allow-same-origin allow-scripts allow-forms" frameborder="0"></iframe> -->
+    </div>
+  </div>
+
   <div class="row">
-    <div class="toolbar bgc-indigo-500" flex-container="row">
+    <div ng-if="loggedIn" class="toolbar bgc-indigo-500" flex-container="row">
+
       <div class="toolbar__left mr">
         <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="opendAddDialog()">
           <span class="mdi mdi-account-plus tc-white-1"></span>
@@ -26,7 +48,7 @@
         <lx-search-filter closed theme="dark" filter-width="100%" placeholder="Filter contacts" model="filterContacts"></lx-search-filter>
       </div>
 
-      <div class="toolbar__right toolbar__label" ng-if="loggedIn">
+      <div class="toolbar__right toolbar__label">
         <div class="toolbar__right fs-title mr" ng-show="loggedIn" lx-tooltip="{{my.name}}" tooltip-position="bottom">
           <img class="mr" ng-show="my.picture" ng-src="{{my.picture}}" alt="Photo of {{my.name}}"/>
           <img class="mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" />
@@ -46,15 +68,9 @@
           </lx-dropdown-menu>
         </lx-dropdown>
       </div>
-
-      <div class="toolbar__right toolbar__label" ng-if="!loggedIn">
-        <span class="fs-title tc-white-1">Login</span>
-        <button class="btn btn--l btn--black btn--icon" ng-click="viewLogin()" aria-label="Login" lx-ripple lx-tooltip="Login" tooltip-position="bottom">
-          <span class="mdi mdi-login tc-white-1"></span>
-        </button>
-      </div>
     </div>
   </div>
+
 
   <div class="toolbar bgc-blue-100 tc-grey-800" ng-if="selectedContacts.length > 0">
     <div class="toolbar__left toolbar__label mr">
@@ -94,12 +110,11 @@
     </div>
   </div>
 
-
-  <div class="contacts">
+  <div ng-if="loggedIn" class="contacts">
     <div class="row contact mb" ng-repeat="contact in contacts|filter: filterContacts">
       <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
         <div class="list-row__primary">
-          <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" lx-tooltip="Toggle favorite" tooltip-position="bottom">
+          <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" lx-tooltip="Toggle favorite" tooltip-position="bottom" ng-click="toggleFavorite($index)">
             <span class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
           </button>
         </div>
@@ -151,7 +166,47 @@
       </div>
     </div>
     <div class="dialog__content">
-        
+      <div class="mt++" flex-container="row" flex-gutter="24">
+      <div flex-item>
+          <form>
+              <lx-text-field label="First and last name" fixed-label="true" icon="account">
+                  <input type="text" ng-model="textFields.fixedFirstName">
+              </lx-text-field>
+
+              <lx-text-field label="Phone number" fixed-label="true" icon="phone">
+                  <input type="text" ng-model="textFields.fixedLastName">
+              </lx-text-field>
+
+              <lx-text-field label="Email address" fixed-label="true" icon="email">
+                  <input type="email" ng-model="textFields.fixedEmail">
+              </lx-text-field>
+
+              <lx-text-field label="Location" fixed-label="true" icon="city">
+                  <input type="text" ng-model="textFields.fixedAdress">
+              </lx-text-field>
+          </form>
+      </div>
+
+      <div flex-item>
+          <form>
+              <lx-text-field label="First name" fixed-label="true">
+                  <input type="text" ng-model="textFields.fixedFirstName2">
+              </lx-text-field>
+
+              <lx-text-field label="Last name" fixed-label="true">
+                  <input type="text" ng-model="textFields.fixedLastName2">
+              </lx-text-field>
+
+              <lx-text-field label="Email" fixed-label="true">
+                  <input type="email" ng-model="textFields.fixedEmail2">
+              </lx-text-field>
+
+              <lx-text-field label="Address" fixed-label="true">
+                  <input type="text" ng-model="textFields.fixedAdress2">
+              </lx-text-field>
+          </form>
+      </div>
+  </div>
     </div>
     <div class="dialog__actions">
         <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>

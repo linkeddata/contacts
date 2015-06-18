@@ -11,6 +11,10 @@
   src: local('Roboto'), local('Roboto-Regular'), url(css/fonts/roboto-regular.ttf) format('truetype');
 }
 
+body {
+  font-family: 'Roboto', sans-serif;
+}
+
 a {
   text-decoration: none;
 }
@@ -19,15 +23,32 @@ li {
   line-height: 40px
 }
 
-.contacts {
-  padding: 10px;
+.absolute-center {
+  position: fixed;
+  width: 80%;
+  height: 80%;
+  left: 10%;
+  top: 40%;
+  text-align: center;
 }
 
-.center {
-  text-align: center!important;
-  -webkit-justify-content: inherit!important;
-  -moz-justify-content: inherit!important;
-  justify-content: inherit!important;
+.welcome {
+  min-height: 100%;
+  min-height: 100%;
+  min-width: 1024px;
+  width: 100%;
+  height: auto;
+  position: fixed;
+  top: 0;
+  left: 0;
+
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.contacts {
+  padding: 10px;
 }
 
 .toolbar img {
@@ -54,6 +75,11 @@ li {
   border: 1px solid #ccc;
   background-color: #fff;
   color: #000!important;
+}
+
+.dialog__l {
+  width: 90%;
+  margin-left: -45%;
 }
 
 .checkbox__label {
