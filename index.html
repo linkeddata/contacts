@@ -24,11 +24,11 @@
   <div class="welcome row grad-bg" ng-if="!loggedIn">
     <div class="absolute-center">
       <div class="tc-white-1">
-        <div>
+        <div class="welcome-title">
           <span class="icon icon--xl icon--flat mdi mdi-account-location tc-light-blue-100"></span>
           <span class="fs-display-2">CONTACTS</span>
         </div>
-        <div class="fs-subhead"> -- A personal address book manager</div>
+        <div class="mt+ fs-subhead"> -- A personal address book manager</div>
         <button class="mt++ btn btn--l btn--black bgc-indigo-500" lx-ripple aria-label="Login to manage your contacts" lx-tooltip="Login to manage your contacts" tooltip-position="bottom" ng-click="viewLogin()">
             <span class="tc-white-1">Login</span>
         </button>
@@ -230,8 +230,8 @@
     </div>
       </div>
       <div class="dialog__actions">
-          <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>
           <button class="btn btn--m btn--black btn--flat" lx-ripple>Add</button>
+          <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>
       </div>
     </lx-dialog>
 

@@ -61,6 +61,15 @@ li {
   align-items: center;
 }
 
+.welcome-title {
+  display: inline-block;
+  width: 350px;
+  height: 100px;
+  padding-top: 20px;
+  border: 2px solid #fff;
+  border-radius: 5px;
+}
+
 .contacts {
   padding: 10px;
   display: inline-block;
