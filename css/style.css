@@ -11,9 +11,10 @@
   src: local('Roboto'), local('Roboto-Regular'), url(fonts/roboto-regular.ttf) format('truetype');
 }
 
-body {
+html, body {
   font-family: 'Roboto', sans-serif;
   position: relative;
+  height: 100%;
 }
 
 a {
@@ -29,8 +30,19 @@ li {
   width: 90%;
   height: 80%;
   left: 5%;
-  top: 40%;
+  top: 30%;
   text-align: center;
+}
+
+.align-center {
+  text-align: center!important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.main {
+  position: relative;
+  height: 100%;
 }
 
 .topbar {
@@ -80,6 +92,7 @@ li {
   display: inline-block;
   position: relative;
   width: 100%;
+  height: auto; min-height: 100%;
   top: 65px;
 }
 
@@ -147,6 +160,18 @@ li {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3F51B5', endColorstr='#03A9F4',GradientType=1 );
 }
 
+.newimg {
+  width: 180px;
+  height: 180px;
+}
+
+.footer {
+  margin-bottom: 10px;
+  z-index: 10;
+  bottom: 0;
+  width: 100%;
+}
+
 *::-webkit-input-placeholder { /* WebKit browsers */
   color:    #ccc!important;
 }
@@ -163,6 +188,7 @@ li {
 }
 
 @media (max-width: 600px) {
+  .welcome { overflow: auto; }
   .welcome-title {
     position: relative;
     display: inline-block;
@@ -182,5 +208,8 @@ li {
 
   .toolbar {
     padding: 7px 5px 12px 5px;
+  }
+  .myname {
+    display: none;
   }
 }

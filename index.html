@@ -13,11 +13,12 @@
   </style>
   <link rel="stylesheet" href="bower_components/lumx/dist/lumx.css">
   <link rel="stylesheet" href="bower_components/mdi/css/materialdesignicons.css">
+  <link rel="stylesheet" href="bower_components/ngImgCrop/compile/minified/ng-img-crop.css"/>
   <link rel="stylesheet" href="css/style.css">
   <link rel="shortcut icon" type="img/png" href="images/favicon.png">
 </head>
 
-<body ng-controller="Main" flex-container="column">
+<body ng-controller="Main" flow-prevent-drop flex-container="column">
 
   <!-- Welcome page -->
 
@@ -37,7 +38,7 @@
 
   <!-- Authenticated user -->
 
-  <div ng-if="loggedIn">
+  <div class="main" ng-if="loggedIn">
 
     <!-- Top menu bar -->
 
@@ -45,31 +46,32 @@
       <div class="toolbar bgc-blue-A700">
         <div class="toolbar__left">
           <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="opendAddDialog()">
-            <span class="mdi mdi-account-plus tc-white-1"></span>
+            <span aria-hidden="true" class="mdi mdi-account-plus tc-white-1"></span>
           </button>
         </div>
 
         <div class="toolbar__left" aria-label="Filter contacts" lx-tooltip="Filter contacts" tooltip-position="bottom">
-          <lx-search-filter closed theme="dark" filter-width="220px" placeholder="Filter contacts" model="filterContacts"></lx-search-filter>
+          <lx-search-filter closed theme="dark" filter-width="220px" placeholder="Filter..." model="filterContacts"></lx-search-filter>
         </div>
 
         <div class="toolbar__right toolbar__label">
           <div class="toolbar__right fs-title" ng-show="loggedIn" lx-tooltip="{{my.name}}" tooltip-position="bottom">
-            <img class="mr" ng-show="my.picture" ng-src="{{my.picture}}" alt="Photo of {{my.name}}"/>
-            <img class="mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" />
+            <img class="myimg mr" ng-show="my.picture" ng-src="{{my.picture}}" alt="Photo of {{my.name}}"/>
+            <img class="myimg mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" />
+            <span class="myname tc-white-1">{{my.name}}</span>
           </div>
           <lx-dropdown position="right" from-top>
             <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Menu">
-              <span class="mdi mdi-dots-vertical tc-white-1"></span>
+              <span aria-hidden="true" class="mdi mdi-dots-vertical tc-white-1"></span>
             </button>
             <lx-dropdown-menu>
               <ul>
-                <li><a class="dropdown-link"><span class="mdi mdi-cloud-download mr"></span>Import vCards</a></li>
-                <li><a class="dropdown-link"><span class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
-                <li><a class="dropdown-link"><span class="mdi mdi-settings mr"></span>Preferences</a></li>
-                <li><a class="dropdown-link" ng-click="opendAboutDialog()"><span class="mdi mdi-information-outline mr"></span>About</a></li>
+                <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-cloud-download mr"></span>Import vCards</a></li>
+                <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
+                <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-settings mr"></span>Preferences</a></li>
+                <li><a class="dropdown-link" ng-click="opendAboutDialog()"><span aria-hidden="true" class="mdi mdi-information-outline mr"></span>About</a></li>
                 <li class="dropdown-divider"></li>
-                <li><a class="dropdown-link" ng-click="logOut()"><span class="mdi mdi-exit-to-app mr"></span>Logout</a></li>
+                <li><a class="dropdown-link" ng-click="logOut()"><span aria-hidden="true" class="mdi mdi-exit-to-app mr"></span>Logout</a></li>
               </ul>
             </lx-dropdown-menu>
           </lx-dropdown>
@@ -82,7 +84,7 @@
     <div class="selectbar toolbar bgc-blue-100 tc-grey-800" ng-if="selectedContacts.length > 0">
       <div class="toolbar__left mr">
         <a class="btn btn--l" lx-ripple aria-label="Back" lx-tooltip="Back" tooltip-position="bottom" ng-click="selectNone()">
-          <span class="mdi mdi-arrow-left tc-grey-800"></span>
+          <span aria-hidden="true" class="mdi mdi-arrow-left tc-grey-800"></span>
           Back
         </a>
       </div>
@@ -91,33 +93,33 @@
         <lx-dropdown>
           <a class="btn btn--l btn--black" lx-ripple lx-dropdown-toggle aria-label="Selection menu">
             <span>{{selectedContacts.length}} selected</span>
-            <span class="mdi mdi-chevron-down tc-grey-800"></span>
+            <span aria-hidden="true" class="mdi mdi-chevron-down tc-grey-800"></span>
           </a>
           <lx-dropdown-menu>
             <ul>
-              <li><a class="dropdown-link" ng-click="selectAll()"><span class="mdi mdi-checkbox-marked-outline mr"></span>Select all</a></li>
-              <li><a class="dropdown-link" ng-click="selectNone()"><span class="mdi mdi-checkbox-blank-outline mr"></span>Select none</a></li>
+              <li><a class="dropdown-link" ng-click="selectAll()"><span aria-hidden="true" class="mdi mdi-checkbox-marked-outline mr"></span>Select all</a></li>
+              <li><a class="dropdown-link" ng-click="selectNone()"><span aria-hidden="true" class="mdi mdi-checkbox-blank-outline mr"></span>Select none</a></li>
             </ul>
           </lx-dropdown-menu>
         </lx-dropdown>
       </div>
       <div class="toolbar__right">
         <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Merge contacts" lx-tooltip="Merge" tooltip-position="bottom" ng-show="selectedContacts.length > 1" ng-click="mergeSelected()">
-          <span class="mdi mdi-numeric-1-box-multiple-outline tc-grey-800"></span>
+          <span aria-hidden="true" class="mdi mdi-numeric-1-box-multiple-outline tc-grey-800"></span>
         </button>
         <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Delete contacts" lx-tooltip="Delete" tooltip-position="bottom" ng-click="deleteSelected()">
-          <span class="mdi mdi-delete tc-grey-800"></span>
+          <span aria-hidden="true" class="mdi mdi-delete tc-grey-800"></span>
         </button>
       </div>
       <div class="toolbar__right">
         <lx-dropdown position="right" from-top>
           <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Multiple contacts menu">
-            <span class="mdi mdi-dots-vertical tc-grey-800"></span>
+            <span aria-hidden="true" class="mdi mdi-dots-vertical tc-grey-800"></span>
           </button>
           <lx-dropdown-menu>
             <ul>
-              <li><a class="dropdown-link"><span class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
-              <li><a class="dropdown-link"><span class="mdi mdi-account-multiple-plus mr"></span>Add to group</a></li>
+              <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
+              <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-account-multiple-plus mr"></span>Add to group</a></li>
             </ul>
           </lx-dropdown-menu>
         </lx-dropdown>
@@ -130,8 +132,8 @@
       <div class="row contact mb" ng-repeat="contact in contacts | filter: filterContacts">
         <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
           <div class="list-row__primary">
-            <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" lx-tooltip="Toggle favorite" tooltip-position="bottom" ng-click="toggleFavorite($index)">
-              <span class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
+            <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" ng-click="toggleFavorite($index)">
+              <span aria-hidden="true" class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
             </button>
           </div>
           <div class="list-row__primary mr+">
@@ -161,7 +163,7 @@
 
           <div class="list-row__secondary">
             <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="More contact info" lx-tooltip="Show more" tooltip-position="bottom">
-              <span class="icon icon--s icon--grey icon--flat mdi mdi-chevron-double-down"></span>
+              <span aria-hidden="true" class="icon icon--s icon--grey icon--flat mdi mdi-chevron-double-down"></span>
             </button>
           </div>
         </div>
@@ -182,7 +184,7 @@
           </span>
           <div class="toolbar__right">
             <button class="btn btn--l btn--white btn--icon" lx-ripple lx-dialog-close>
-              <i class="mdi mdi-close"></i>
+              <span aria-hidden="true" class="mdi mdi-close"></span>
             </button>
           </div>
         </div>
@@ -190,9 +192,11 @@
       <div class="dialog__content">
         <div class="p+" flex-container="row" flex-gutter="24">
           <div flex-item="3">
-            <form>
-                
-            </form>
+            <div>
+                <img ng-show="contact.picture" ng-src="{{contact.picture}}" alt="Photo of {{contact.name}}" width="40" height="40" class="newimg align-center img-round">
+                <img ng-hide="contact.picture" src="images/generic_photo.png" alt="Photo of {{contact.name}}" width="40" height="40" class="newimg align-center img-round" />
+            </div>
+            <lx-file-input label="Change picture"></lx-file-input>
           </div>
 
           <div flex-item>
@@ -234,7 +238,7 @@
           </span>
           <div class="toolbar__right">
             <button class="btn btn--l btn--white btn--icon" lx-ripple lx-dialog-close>
-              <i class="mdi mdi-close"></i>
+              <span aria-hidden="true" class="mdi mdi-close"></span>
             </button>
           </div>
         </div>
@@ -251,11 +255,19 @@
 
   </div>
 
+  <div class="align-center footer">
+      &copy; 2015
+      | <a href="https://github.com/linkeddata/contacts/issues" target="_blank"><span aria-hidden="true" class="mdi-action-info-outline"></span> Issue tracker</a>
+      | <a href="https://github.com/linkeddata/contacts" target="_blank">GitHub</a>
+  </div>
+
   <!-- Deps -->
   <script src="bower_components/jquery/dist/jquery.min.js"></script>
   <script src="bower_components/velocity/velocity.min.js"></script>
   <script src="bower_components/angular/angular.min.js"></script>
   <script src="bower_components/lumx/dist/lumx.min.js"></script>
+  <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
+  <script src="bower_components/ngImgCrop/compile/minified/ng-img-crop.js"></script>
   <script src="vendor/rdflib.min.js"></script>
   <!-- App -->
   <script src="app/app.js"></script>
