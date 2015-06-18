@@ -17,7 +17,7 @@
   <link rel="shortcut icon" type="img/png" href="images/favicon.png">
 </head>
 
-<body ng-controller="Main">
+<body ng-controller="Main" flex-container="column">
   <div class="welcome row grad-bg" ng-if="!loggedIn">
     <div class="absolute-center">
       <div class="tc-white-1">
@@ -35,8 +35,8 @@
     </div>
   </div>
 
-  <div class="row">
-    <div ng-if="loggedIn" class="toolbar bgc-indigo-500" flex-container="row">
+  <div class="topbar">
+    <div ng-if="loggedIn" class="toolbar bgc-blue-A700">
 
       <div class="toolbar__left mr">
         <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="opendAddDialog()">
@@ -62,6 +62,7 @@
               <li><a class="dropdown-link"><span class="mdi mdi-cloud-download mr"></span>Import vCards</a></li>
               <li><a class="dropdown-link"><span class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
               <li><a class="dropdown-link"><span class="mdi mdi-settings mr"></span>Preferences</a></li>
+              <li><a class="dropdown-link"><span class="mdi mdi-information-outline mr"></span>About</a></li>
               <li class="dropdown-divider"></li>
               <li><a class="dropdown-link" ng-click="logOut()"><span class="mdi mdi-exit-to-app mr"></span>Logout</a></li>
             </ul>
@@ -72,17 +73,24 @@
   </div>
 
 
-  <div class="toolbar bgc-blue-100 tc-grey-800" ng-if="selectedContacts.length > 0">
+  <div class="selectbar toolbar bgc-blue-100 tc-grey-800" ng-if="selectedContacts.length > 0">
+    <div class="toolbar__left mr">
+      <a class="btn btn--l" lx-ripple aria-label="Back" lx-tooltip="Back" tooltip-position="bottom" ng-click="selectNone()">
+        <span class="mdi mdi-arrow-left tc-grey-800"></span>
+        Back
+      </a>
+    </div>
     <div class="toolbar__left toolbar__label mr">
-      <span>{{selectedContacts.length}} selected</span>
+      
       <lx-dropdown>
-        <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Selection menu">
+        <a class="btn btn--l btn--black" lx-ripple lx-dropdown-toggle aria-label="Selection menu">
+          <span>{{selectedContacts.length}} selected</span>
           <span class="mdi mdi-chevron-down tc-grey-800"></span>
-        </button>
+        </a>
         <lx-dropdown-menu>
           <ul>
-            <li><a class="dropdown-link" ng-click="selectAll()"><span class="mdi mdi-checkbox-marked-outline mr"></span>select all</a></li>
-            <li><a class="dropdown-link" ng-click="selectNone()"><span class="mdi mdi-checkbox-blank-outline mr"></span>select none</a></li>
+            <li><a class="dropdown-link" ng-click="selectAll()"><span class="mdi mdi-checkbox-marked-outline mr"></span>Select all</a></li>
+            <li><a class="dropdown-link" ng-click="selectNone()"><span class="mdi mdi-checkbox-blank-outline mr"></span>Select none</a></li>
           </ul>
         </lx-dropdown-menu>
       </lx-dropdown>
@@ -110,7 +118,7 @@
     </div>
   </div>
 
-  <div ng-if="loggedIn" class="contacts">
+  <div ng-if="loggedIn && contacts.length > 0" class="contacts">
     <div class="row contact mb" ng-repeat="contact in contacts|filter: filterContacts">
       <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
         <div class="list-row__primary">

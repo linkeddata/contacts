@@ -2,7 +2,7 @@ var Contacts = angular.module('Contacts', ['lumx']);
 
 
 Contacts.controller('Main', function($scope, LxDialogService) {
-    $scope.loggedIn = false;
+    $scope.loggedIn = true;
 
     $scope.my = {
         name: "Andrei Vlad Sambra",

@@ -13,6 +13,7 @@
 
 body {
   font-family: 'Roboto', sans-serif;
+  position: relative;
 }
 
 a {
@@ -32,6 +33,19 @@ li {
   text-align: center;
 }
 
+.topbar {
+  position: fixed;
+  top: 0;
+  width: 100%;
+  z-index: 100;
+}
+.selectbar {
+  position: fixed;
+  top: 0px;
+  width: 100%;
+  z-index: 100;
+}
+
 .welcome {
   min-height: 100%;
   min-height: 100%;
@@ -49,6 +63,10 @@ li {
 
 .contacts {
   padding: 10px;
+  display: inline-block;
+  position: relative;
+  width: 100%;
+  top: 65px;
 }
 
 .toolbar img {
@@ -72,7 +90,6 @@ li {
 
 .search-filter__input {
   padding: 0 10px 0 10px;
-  border: 1px solid #ccc;
   background-color: #fff;
   color: #000!important;
 }
