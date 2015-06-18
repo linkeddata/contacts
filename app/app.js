@@ -2,7 +2,7 @@ var Contacts = angular.module('Contacts', ['lumx']);
 
 
 Contacts.controller('Main', function($scope, LxDialogService) {
-    $scope.loggedIn = true;
+    $scope.loggedIn = false;
 
     $scope.my = {
         name: "Andrei Vlad Sambra",
@@ -36,8 +36,8 @@ Contacts.controller('Main', function($scope, LxDialogService) {
 
     $scope.logOut = function() {
         $scope.loggedIn = false;
-        $scope.my = {};
-        $scope.contacts = [];
+        // $scope.my = {};
+        // $scope.contacts = [];
         $scope.selectedContacts = [];
     };
 
