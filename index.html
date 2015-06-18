@@ -18,14 +18,17 @@
 </head>
 
 <body ng-controller="Main" flex-container="column">
+
+  <!-- Welcome page -->
+
   <div class="welcome row grad-bg" ng-if="!loggedIn">
     <div class="absolute-center">
       <div class="tc-white-1">
-        <p>
+        <div>
           <span class="icon icon--xl icon--flat mdi mdi-account-location tc-light-blue-100"></span>
           <span class="fs-display-2">CONTACTS</span>
-        </p>
-        <p class="fs-subhead"> -- A personal address book manager</p>
+        </div>
+        <div class="fs-subhead"> -- A personal address book manager</div>
         <button class="mt++ btn btn--l btn--black bgc-indigo-500" lx-ripple aria-label="Login to manage your contacts" lx-tooltip="Login to manage your contacts" tooltip-position="bottom" ng-click="viewLogin()">
             <span class="tc-white-1">Login</span>
         </button>
@@ -35,192 +38,204 @@
     </div>
   </div>
 
-  <div class="topbar">
-    <div ng-if="loggedIn" class="toolbar bgc-blue-A700">
+  <!-- Authenticated user -->
 
+  <div ng-if="loggedIn">
+
+    <!-- Top menu bar -->
+
+    <div class="topbar">
+      <div class="toolbar bgc-blue-A700">
+
+        <div class="toolbar__left mr">
+          <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="opendAddDialog()">
+            <span class="mdi mdi-account-plus tc-white-1"></span>
+          </button>
+        </div>
+
+        <div class="toolbar__left" aria-label="Filter contacts" lx-tooltip="Filter contacts" tooltip-position="bottom">
+          <lx-search-filter closed theme="dark" filter-width="100%" placeholder="Filter contacts" model="filterContacts"></lx-search-filter>
+        </div>
+
+        <div class="toolbar__right toolbar__label">
+          <div class="toolbar__right fs-title mr" ng-show="loggedIn" lx-tooltip="{{my.name}}" tooltip-position="bottom">
+            <img class="mr" ng-show="my.picture" ng-src="{{my.picture}}" alt="Photo of {{my.name}}"/>
+            <img class="mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" />
+          </div>
+          <lx-dropdown position="right" from-top>
+            <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Menu">
+              <span class="mdi mdi-dots-vertical tc-white-1"></span>
+            </button>
+            <lx-dropdown-menu>
+              <ul>
+                <li><a class="dropdown-link"><span class="mdi mdi-cloud-download mr"></span>Import vCards</a></li>
+                <li><a class="dropdown-link"><span class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
+                <li><a class="dropdown-link"><span class="mdi mdi-settings mr"></span>Preferences</a></li>
+                <li><a class="dropdown-link"><span class="mdi mdi-information-outline mr"></span>About</a></li>
+                <li class="dropdown-divider"></li>
+                <li><a class="dropdown-link" ng-click="logOut()"><span class="mdi mdi-exit-to-app mr"></span>Logout</a></li>
+              </ul>
+            </lx-dropdown-menu>
+          </lx-dropdown>
+        </div>
+      </div>
+    </div>
+
+    <!-- Selected contacts bar -->
+
+    <div class="selectbar toolbar bgc-blue-100 tc-grey-800" ng-if="selectedContacts.length > 0">
       <div class="toolbar__left mr">
-        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="opendAddDialog()">
-          <span class="mdi mdi-account-plus tc-white-1"></span>
+        <a class="btn btn--l" lx-ripple aria-label="Back" lx-tooltip="Back" tooltip-position="bottom" ng-click="selectNone()">
+          <span class="mdi mdi-arrow-left tc-grey-800"></span>
+          Back
+        </a>
+      </div>
+      <div class="toolbar__left toolbar__label mr">
+        
+        <lx-dropdown>
+          <a class="btn btn--l btn--black" lx-ripple lx-dropdown-toggle aria-label="Selection menu">
+            <span>{{selectedContacts.length}} selected</span>
+            <span class="mdi mdi-chevron-down tc-grey-800"></span>
+          </a>
+          <lx-dropdown-menu>
+            <ul>
+              <li><a class="dropdown-link" ng-click="selectAll()"><span class="mdi mdi-checkbox-marked-outline mr"></span>Select all</a></li>
+              <li><a class="dropdown-link" ng-click="selectNone()"><span class="mdi mdi-checkbox-blank-outline mr"></span>Select none</a></li>
+            </ul>
+          </lx-dropdown-menu>
+        </lx-dropdown>
+      </div>
+      <div class="toolbar__right">
+        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Merge contacts" lx-tooltip="Merge" tooltip-position="bottom" ng-click="mergeSelected()">
+          <span class="mdi mdi-account-multiple tc-grey-800"></span>
+        </button>
+        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Delete contacts" lx-tooltip="Delete" tooltip-position="bottom" ng-click="deleteSelected()">
+          <span class="mdi mdi-delete tc-grey-800"></span>
         </button>
       </div>
-
-      <div class="toolbar__left" aria-label="Filter contacts" lx-tooltip="Filter contacts" tooltip-position="bottom">
-        <lx-search-filter closed theme="dark" filter-width="100%" placeholder="Filter contacts" model="filterContacts"></lx-search-filter>
-      </div>
-
-      <div class="toolbar__right toolbar__label">
-        <div class="toolbar__right fs-title mr" ng-show="loggedIn" lx-tooltip="{{my.name}}" tooltip-position="bottom">
-          <img class="mr" ng-show="my.picture" ng-src="{{my.picture}}" alt="Photo of {{my.name}}"/>
-          <img class="mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" />
-        </div>
+      <div class="toolbar__right">
         <lx-dropdown position="right" from-top>
-          <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Menu">
-            <span class="mdi mdi-dots-vertical tc-white-1"></span>
+          <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Multiple contacts menu">
+            <span class="mdi mdi-dots-vertical tc-grey-800"></span>
           </button>
           <lx-dropdown-menu>
             <ul>
-              <li><a class="dropdown-link"><span class="mdi mdi-cloud-download mr"></span>Import vCards</a></li>
               <li><a class="dropdown-link"><span class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
-              <li><a class="dropdown-link"><span class="mdi mdi-settings mr"></span>Preferences</a></li>
-              <li><a class="dropdown-link"><span class="mdi mdi-information-outline mr"></span>About</a></li>
-              <li class="dropdown-divider"></li>
-              <li><a class="dropdown-link" ng-click="logOut()"><span class="mdi mdi-exit-to-app mr"></span>Logout</a></li>
+              <li><a class="dropdown-link"><span class="mdi mdi-account-multiple-plus mr"></span>Add to group</a></li>
             </ul>
           </lx-dropdown-menu>
         </lx-dropdown>
       </div>
     </div>
-  </div>
 
+    <!-- Contacts -->
 
-  <div class="selectbar toolbar bgc-blue-100 tc-grey-800" ng-if="selectedContacts.length > 0">
-    <div class="toolbar__left mr">
-      <a class="btn btn--l" lx-ripple aria-label="Back" lx-tooltip="Back" tooltip-position="bottom" ng-click="selectNone()">
-        <span class="mdi mdi-arrow-left tc-grey-800"></span>
-        Back
-      </a>
-    </div>
-    <div class="toolbar__left toolbar__label mr">
-      
-      <lx-dropdown>
-        <a class="btn btn--l btn--black" lx-ripple lx-dropdown-toggle aria-label="Selection menu">
-          <span>{{selectedContacts.length}} selected</span>
-          <span class="mdi mdi-chevron-down tc-grey-800"></span>
-        </a>
-        <lx-dropdown-menu>
-          <ul>
-            <li><a class="dropdown-link" ng-click="selectAll()"><span class="mdi mdi-checkbox-marked-outline mr"></span>Select all</a></li>
-            <li><a class="dropdown-link" ng-click="selectNone()"><span class="mdi mdi-checkbox-blank-outline mr"></span>Select none</a></li>
-          </ul>
-        </lx-dropdown-menu>
-      </lx-dropdown>
-    </div>
-    <div class="toolbar__right">
-      <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Merge contacts" lx-tooltip="Merge" tooltip-position="bottom" ng-click="mergeSelected()">
-        <span class="mdi mdi-account-multiple tc-grey-800"></span>
-      </button>
-      <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Delete contacts" lx-tooltip="Delete" tooltip-position="bottom" ng-click="deleteSelected()">
-        <span class="mdi mdi-delete tc-grey-800"></span>
-      </button>
-    </div>
-    <div class="toolbar__right">
-      <lx-dropdown position="right" from-top>
-        <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Multiple contacts menu">
-          <span class="mdi mdi-dots-vertical tc-grey-800"></span>
-        </button>
-        <lx-dropdown-menu>
-          <ul>
-            <li><a class="dropdown-link"><span class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
-            <li><a class="dropdown-link"><span class="mdi mdi-account-multiple-plus mr"></span>Add to group</a></li>
-          </ul>
-        </lx-dropdown-menu>
-      </lx-dropdown>
-    </div>
-  </div>
-
-  <div ng-if="loggedIn && contacts.length > 0" class="contacts">
-    <div class="row contact mb" ng-repeat="contact in contacts|filter: filterContacts">
-      <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
-        <div class="list-row__primary">
-          <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" lx-tooltip="Toggle favorite" tooltip-position="bottom" ng-click="toggleFavorite($index)">
-            <span class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
-          </button>
-        </div>
-        <div class="list-row__primary">
-          <div ng-show="contact.showcheckbox">
-            <div class="checkbox">
-              <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection($index)">
-              <label for="cb-{{$index}}" class="checkbox__label"></label>
+    <div ng-show="contacts.length > 0" class="contacts">
+      <div class="row contact mb" ng-repeat="contact in contacts | filter: filterContacts">
+        <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
+          <div class="list-row__primary">
+            <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" lx-tooltip="Toggle favorite" tooltip-position="bottom" ng-click="toggleFavorite($index)">
+              <span class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
+            </button>
+          </div>
+          <div class="list-row__primary">
+            <div ng-show="contact.showcheckbox">
+              <div class="checkbox">
+                <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection($index)">
+                <label for="cb-{{$index}}" class="checkbox__label"></label>
+              </div>
+            </div>
+            <div ng-hide="contact.hidepic">
+              <img ng-show="contact.picture" ng-src="{{contact.picture}}" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round">
+              <img ng-hide="contact.picture" src="images/generic_photo.png" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round" />
             </div>
           </div>
-          <div ng-hide="contact.hidepic">
-            <img ng-show="contact.picture" ng-src="{{contact.picture}}" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round">
-            <img ng-hide="contact.picture" src="images/generic_photo.png" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round" />
+
+          <div class="list-row__content">
+              <div class="display-block">
+                {{contact.name}}
+              </div>
+              <div class="display-block fs-body-1 tc-black-2">
+                <a href="mailto:{{contact.email}}">{{contact.email}}</a>
+              </div>
+              <div class="display-block fs-body-1 tc-black-2">
+                {{contact.phone}}
+              </div>
+          </div>
+
+          <div class="list-row__secondary">
+            <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="More contact info" lx-tooltip="Show more" tooltip-position="bottom">
+              <span class="icon icon--s icon--grey icon--flat mdi mdi-chevron-double-down"></span>
+            </button>
           </div>
         </div>
-
-        <div class="list-row__content">
-            <div class="display-block">
-              {{contact.name}}
-            </div>
-            <div class="display-block fs-body-1 tc-black-2">
-              <a href="mailto:{{contact.email}}">{{contact.email}}</a>
-            </div>
-            <div class="display-block fs-body-1 tc-black-2">
-              {{contact.phone}}
-            </div>
-        </div>
-
-        <div class="list-row__secondary">
-          <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="More contact info" lx-tooltip="Show more" tooltip-position="bottom">
-            <span class="icon icon--s icon--grey icon--flat mdi mdi-chevron-double-down"></span>
-          </button>
+        <!-- More info -->
+        <div class="more">
+          
         </div>
       </div>
-      <!-- More info -->
-      <div class="more">
-        
-      </div>
     </div>
+
+    <!-- Dialogues -->
+
+    <lx-dialog class="dialog dialog--l" id="addcontact">
+      <div class="dialog__header">
+        <div class="toolbar bgc-light-blue-500 pl++">
+          <span class="toolbar__label tc-white fs-title">
+            Add new contact
+          </span>
+        </div>
+      </div>
+      <div class="dialog__content">
+        <div class="mt++" flex-container="row" flex-gutter="24">
+        <div flex-item>
+            <form>
+                <lx-text-field label="First and last name" fixed-label="true" icon="account">
+                    <input type="text" ng-model="textFields.fixedFirstName">
+                </lx-text-field>
+
+                <lx-text-field label="Phone number" fixed-label="true" icon="phone">
+                    <input type="text" ng-model="textFields.fixedLastName">
+                </lx-text-field>
+
+                <lx-text-field label="Email address" fixed-label="true" icon="email">
+                    <input type="email" ng-model="textFields.fixedEmail">
+                </lx-text-field>
+
+                <lx-text-field label="Location" fixed-label="true" icon="city">
+                    <input type="text" ng-model="textFields.fixedAdress">
+                </lx-text-field>
+            </form>
+        </div>
+
+        <div flex-item>
+            <form>
+                <lx-text-field label="First name" fixed-label="true">
+                    <input type="text" ng-model="textFields.fixedFirstName2">
+                </lx-text-field>
+
+                <lx-text-field label="Last name" fixed-label="true">
+                    <input type="text" ng-model="textFields.fixedLastName2">
+                </lx-text-field>
+
+                <lx-text-field label="Email" fixed-label="true">
+                    <input type="email" ng-model="textFields.fixedEmail2">
+                </lx-text-field>
+
+                <lx-text-field label="Address" fixed-label="true">
+                    <input type="text" ng-model="textFields.fixedAdress2">
+                </lx-text-field>
+            </form>
+        </div>
+    </div>
+      </div>
+      <div class="dialog__actions">
+          <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>
+          <button class="btn btn--m btn--black btn--flat" lx-ripple>Add</button>
+      </div>
+    </lx-dialog>
+
   </div>
-
-
-  <lx-dialog class="dialog dialog--l" id="addcontact">
-    <div class="dialog__header">
-      <div class="toolbar bgc-light-blue-500 pl++">
-        <span class="toolbar__label tc-white fs-title">
-          Add new contact
-        </span>
-      </div>
-    </div>
-    <div class="dialog__content">
-      <div class="mt++" flex-container="row" flex-gutter="24">
-      <div flex-item>
-          <form>
-              <lx-text-field label="First and last name" fixed-label="true" icon="account">
-                  <input type="text" ng-model="textFields.fixedFirstName">
-              </lx-text-field>
-
-              <lx-text-field label="Phone number" fixed-label="true" icon="phone">
-                  <input type="text" ng-model="textFields.fixedLastName">
-              </lx-text-field>
-
-              <lx-text-field label="Email address" fixed-label="true" icon="email">
-                  <input type="email" ng-model="textFields.fixedEmail">
-              </lx-text-field>
-
-              <lx-text-field label="Location" fixed-label="true" icon="city">
-                  <input type="text" ng-model="textFields.fixedAdress">
-              </lx-text-field>
-          </form>
-      </div>
-
-      <div flex-item>
-          <form>
-              <lx-text-field label="First name" fixed-label="true">
-                  <input type="text" ng-model="textFields.fixedFirstName2">
-              </lx-text-field>
-
-              <lx-text-field label="Last name" fixed-label="true">
-                  <input type="text" ng-model="textFields.fixedLastName2">
-              </lx-text-field>
-
-              <lx-text-field label="Email" fixed-label="true">
-                  <input type="email" ng-model="textFields.fixedEmail2">
-              </lx-text-field>
-
-              <lx-text-field label="Address" fixed-label="true">
-                  <input type="text" ng-model="textFields.fixedAdress2">
-              </lx-text-field>
-          </form>
-      </div>
-  </div>
-    </div>
-    <div class="dialog__actions">
-        <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>
-        <button class="btn btn--m btn--black btn--flat" lx-ripple>Add</button>
-    </div>
-  </lx-dialog>
 
   <!-- Deps -->
   <script src="bower_components/jquery/dist/jquery.min.js"></script>

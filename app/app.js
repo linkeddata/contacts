@@ -28,7 +28,6 @@ Contacts.controller('Main', function($scope, LxDialogService) {
         }
     ];
 
-
     $scope.viewLogin = function() {
         $scope.loggedIn = true;
     };
