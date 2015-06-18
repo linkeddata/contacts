@@ -11,6 +11,7 @@
       display: none !important;
     }
   </style>
+  <base target="_blank">
   <link rel="stylesheet" href="bower_components/lumx/dist/lumx.css">
   <link rel="stylesheet" href="bower_components/mdi/css/materialdesignicons.css">
   <link rel="stylesheet" href="bower_components/ngImgCrop/compile/minified/ng-img-crop.css"/>
@@ -19,6 +20,7 @@
 </head>
 
 <body ng-controller="Main" flow-prevent-drop flex-container="column">
+  <div id="progress"></div>
 
   <!-- Welcome page -->
 
@@ -29,11 +31,12 @@
         <span class="app-name fs-display-2">CONTACTS</span>
       </div>
       <div class="mt fs-subhead"> -- A personal address book manager</div>
-      <button class="mt++ btn btn--l btn--black bgc-light-blue-300" lx-ripple aria-label="Login to manage your contacts" lx-tooltip="Login to manage your contacts" tooltip-position="bottom" ng-click="viewLogin()">
-          <span class="tc-white-1">Login</span>
+      <button class="mt++ btn btn--l btn--black bgc-light-blue-300" lx-ripple aria-label="Login to manage your contacts" lx-tooltip="Login to manage your contacts" tooltip-position="bottom" ng-click="TLSlogin()">
+          <span class="tc-white-1">{{loginTLSButtonText}}</span>
       </button>
     </div>
-      <!-- <iframe id="signup" src="" sandbox="allow-same-origin allow-scripts allow-forms" frameborder="0"></iframe> -->
+    <!-- Login -->
+    
   </div>
 
   <!-- Authenticated user -->
@@ -45,7 +48,7 @@
     <div class="topbar">
       <div class="toolbar bgc-blue-A700">
         <div class="toolbar__left">
-          <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="opendAddDialog()">
+          <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="openDialog('addcontact')">
             <span aria-hidden="true" class="mdi mdi-account-plus tc-white-1"></span>
           </button>
         </div>
@@ -69,7 +72,7 @@
                 <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-cloud-download mr"></span>Import vCards</a></li>
                 <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li>
                 <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-settings mr"></span>Preferences</a></li>
-                <li><a class="dropdown-link" ng-click="opendAboutDialog()"><span aria-hidden="true" class="mdi mdi-information-outline mr"></span>About</a></li>
+                <li><a class="dropdown-link" ng-click="openDialog('about')"><span aria-hidden="true" class="mdi mdi-information-outline mr"></span>About</a></li>
                 <li class="dropdown-divider"></li>
                 <li><a class="dropdown-link" ng-click="logOut()"><span aria-hidden="true" class="mdi mdi-exit-to-app mr"></span>Logout</a></li>
               </ul>
@@ -89,7 +92,6 @@
         </a>
       </div>
       <div class="toolbar__left toolbar__label mr">
-        
         <lx-dropdown>
           <a class="btn btn--l btn--black" lx-ripple lx-dropdown-toggle aria-label="Selection menu">
             <span>{{selectedContacts.length}} selected</span>
@@ -129,53 +131,12 @@
     <!-- Contacts -->
 
     <div ng-show="contacts.length > 0" class="contacts">
-      <div class="row contact mb" ng-repeat="contact in contacts | filter: filterContacts">
-        <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
-          <div class="list-row__primary">
-            <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" ng-click="toggleFavorite($index)">
-              <span aria-hidden="true" class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
-            </button>
-          </div>
-          <div class="list-row__primary mr+">
-            <div ng-show="contact.showcheckbox">
-              <div class="checkbox mt+ ml">
-                <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection($index)">
-                <label for="cb-{{$index}}" class="checkbox__label"></label>
-              </div>
-            </div>
-            <div ng-hide="contact.hidepic">
-              <img ng-show="contact.picture" ng-src="{{contact.picture}}" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round">
-              <img ng-hide="contact.picture" src="images/generic_photo.png" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round" />
-            </div>
-          </div>
-
-          <div class="list-row__content">
-              <div class="display-block">
-                {{contact.name}}
-              </div>
-              <div class="display-block fs-body-1 tc-black-2">
-                <a href="mailto:{{contact.email}}">{{contact.email}}</a>
-              </div>
-              <div class="display-block fs-body-1 tc-black-2">
-                {{contact.phone}}
-              </div>
-          </div>
-
-          <div class="list-row__secondary">
-            <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="More contact info" lx-tooltip="Show more" tooltip-position="bottom">
-              <span aria-hidden="true" class="icon icon--s icon--grey icon--flat mdi mdi-chevron-double-down"></span>
-            </button>
-          </div>
-        </div>
-        <!-- More info -->
-        <div class="more">
-          
-        </div>
-      </div>
+      <contacts></contacts>
     </div>
 
     <!-- Dialogues -->
 
+    <!-- New contact -->
     <lx-dialog class="dialog dialog--l" id="addcontact">
       <div class="dialog__header">
         <div class="toolbar bgc-blue-A700 pl++">
@@ -230,7 +191,8 @@
       </div>
     </lx-dialog>
 
-    <lx-dialog class="dialog dialog--l" id="about">
+    <!-- About -->
+    <lx-dialog class="dialog dialog--l" auto-close="true" id="about">
       <div class="dialog__header">
         <div class="toolbar bgc-blue-A700 pl+">
           <span class="toolbar__label tc-white fs-title">
@@ -253,13 +215,17 @@
       </div>
     </lx-dialog>
 
-  </div>
+    <!-- End dialogues -->
 
-  <div class="align-center footer">
+    <!-- footer -->
+     <div class="align-center footer fs-body-2 ">
       &copy; 2015
       | <a href="https://github.com/linkeddata/contacts/issues" target="_blank"><span aria-hidden="true" class="mdi-action-info-outline"></span> Issue tracker</a>
       | <a href="https://github.com/linkeddata/contacts" target="_blank">GitHub</a>
+    </div>
+  
   </div>
+
 
   <!-- Deps -->
   <script src="bower_components/jquery/dist/jquery.min.js"></script>
@@ -269,6 +235,7 @@
   <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
   <script src="bower_components/ngImgCrop/compile/minified/ng-img-crop.js"></script>
   <script src="vendor/rdflib.min.js"></script>
+  <script src="vendor/common.js"></script>
   <!-- App -->
   <script src="app/app.js"></script>
 </body>

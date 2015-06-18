@@ -1,0 +1,43 @@
+<div class="row contact mb" ng-repeat="contact in contacts | filter: filterContacts">
+  <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
+    <div class="list-row__primary">
+      <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" ng-click="toggleFavorite($index)">
+        <span aria-hidden="true" class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
+      </button>
+    </div>
+    <div class="list-row__primary mr+">
+      <div ng-show="contact.showcheckbox">
+        <div class="checkbox mt+ ml">
+          <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection($index)">
+          <label for="cb-{{$index}}" class="checkbox__label"></label>
+        </div>
+      </div>
+      <div ng-hide="contact.hidepic">
+        <img ng-show="contact.picture" ng-src="{{contact.picture}}" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round">
+        <img ng-hide="contact.picture" src="images/generic_photo.png" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round" />
+      </div>
+    </div>
+
+    <div class="list-row__content">
+        <div class="display-block">
+          {{contact.name}}
+        </div>
+        <div class="display-block fs-body-1 tc-black-2">
+          <a href="mailto:{{contact.email}}">{{contact.email}}</a>
+        </div>
+        <div class="display-block fs-body-1 tc-black-2">
+          {{contact.phone}}
+        </div>
+    </div>
+
+    <div class="list-row__secondary">
+      <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="More contact info" lx-tooltip="Show more" tooltip-position="bottom">
+        <span aria-hidden="true" class="icon icon--s icon--grey icon--flat mdi mdi-chevron-double-down"></span>
+      </button>
+    </div>
+  </div>
+  <!-- More info -->
+  <div class="more">
+    
+  </div>
+</div>

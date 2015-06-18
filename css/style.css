@@ -25,6 +25,13 @@ li {
   line-height: 40px
 }
 
+#progress {
+  position: fixed;
+  width: 100%;
+  top: 3px;
+  z-index: 110;
+}
+
 .absolute-center {
   position: fixed;
   width: 90%;
@@ -92,7 +99,7 @@ li {
   display: inline-block;
   position: relative;
   width: 100%;
-  height: auto; min-height: 100%;
+  height: auto; min-height: 95%;
   top: 65px;
 }
 
