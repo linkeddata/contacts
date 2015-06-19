@@ -33,15 +33,14 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     $scope.my = {
         config: {
-            workspaces: []
+            workspaces: [],
+            availableWorkspaces: []
         }
     };
 
     // chosen storage URI for the app workspace
     $scope.storageURI = {};
-
-    $scope.availableWorkspaces = [];
-    
+   
     $scope.selectedContacts = [];
 
     $scope.contacts = [
@@ -68,9 +67,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.getProfile = function(uri, forWebID) {
         var webid = (forWebID)?forWebID:uri;
 
-        if (!$scope.my) {
-            $scope.my = {};
-        }
         if (!$scope.my.webid || $scope.my.webid.length == 0) {
             $scope.my.webid = webid;
         }
@@ -165,7 +161,8 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                         for (var i=0; i<storages.length; i++) {
                             $scope.my.config.storages.push(
                                 {
-                                    uri: storages[i]['object']['value']
+                                    uri: storages[i]['object']['value'],
+                                    checked: (i===0)?true:false
                                 }
                             );
                         }
@@ -173,18 +170,19 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 }
 
                 // Get workspaces
-                if (!$scope.availableWorkspaces || $scope.availableWorkspaces.length === 0) {
+                if (!$scope.my.config.availableWorkspaces || $scope.my.config.availableWorkspaces.length === 0) {
                     var workspaces = g.statementsMatching(webidRes, PIM('workspace'), undefined);
                     if (workspaces && workspaces.length > 0) {
                         for (var i=0; i<workspaces.length; i++) {
                             var ws = workspaces[i];
                             var config = g.statementsMatching(ws['object'], RDF('type'), PIM('SystemWorkspace'))[0];
+                            console.log(config);
                             if (config) {
-                                $scope.my.config.app = config.value;
+                                $scope.my.config.app = config['subject']['value'];
                                 continue;
                             }
                             var wsTitle = g.any(ws['object'], DCT('title'));
-                            $scope.availableWorkspaces.push({ 
+                            $scope.my.config.availableWorkspaces.push({ 
                                 uri: ws['object']['value'],
                                 name: (wsTitle)?wsTitle.value:'Untitled workspace'
                             });
@@ -350,6 +348,8 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         return query;
     };
     */
+
+    // Sends SPARQL patches over the wire
     $scope.sendSPARQLPatch = function (uri, query, obj, oldStatement) {
         return new Promise(function(resolve) {
             $http({
@@ -380,7 +380,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         });
     };
 
-    // LDP helpers
+    // LDP PUT helper function
     $scope.putLDP = function(uri, type) {
         return new Promise(function(resolve) {
             var containerURI = uri;
@@ -405,6 +405,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         });
     }
 
+    // Initialize Apps workspace if user doesn't have one already
     $scope.initAppWorkspace = function() {
         if ($scope.storageURI.uri) {
             var uri = $scope.storageURI.uri+'Applications';
@@ -416,13 +417,13 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                             $rdf.st(
                                 $rdf.sym($scope.my.webid),
                                 PIM('workspace'),
-                                $rdf.sym(uri),
+                                $rdf.sym(uri+'/'),
                                 $rdf.sym('')
                             ).toNT() + " }";
                         query += " ;\n";
                         query += "INSERT DATA { " +
                             $rdf.st(
-                                $rdf.sym(uri),
+                                $rdf.sym(uri+'/'),
                                 RDF('type'),
                                 PIM('SystemWorkspace'),
                                 $rdf.sym('')
@@ -430,14 +431,14 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                         query += " ;\n";
                         query += "INSERT DATA { " +
                             $rdf.st(
-                                $rdf.sym(uri),
+                                $rdf.sym(uri+'/'),
                                 DCT('title'),
                                 $rdf.lit("Applications Workspace"),
                                 $rdf.sym('')
                             ).toNT() + " }";
                         $scope.sendSPARQLPatch($scope.my.config.preferencesFile, query).then(function(result) {
                             // all done
-                            $scope.my.config.app = uri;
+                            $scope.my.config.app = uri+'/';
                             $scope.saveLocalStorage();
                             $scope.$apply();
                         });
@@ -447,7 +448,11 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 }
             });
         }
-    }
+    };
+
+    $scope.initApp = function() {
+
+    };
 
     $scope.toggleFavorite = function(id) {
         $scope.contacts[id].favorite = ($scope.contacts[id].favorite === 'favorite')?'':'favorite';
