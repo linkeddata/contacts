@@ -30,7 +30,7 @@
         <span class="icon icon--xl icon--flat mdi mdi-account-location tc-light-blue-300"></span>
         <span class="app-name fs-display-2">CONTACTS</span>
       </div>
-      <div class="mt fs-subhead"> -- A personal address book manager</div>
+      <div class="mt fs-subhead">A personal address book manager</div>
       <button class="mt++ btn btn--l btn--black bgc-light-blue-300" lx-ripple aria-label="Login to manage your contacts" lx-tooltip="Login to manage your contacts" tooltip-position="bottom" ng-click="TLSlogin()">
           <span class="tc-white-1">{{loginTLSButtonText}}</span>
       </button>
@@ -58,9 +58,9 @@
         </div>
 
         <div class="toolbar__right toolbar__label">
-          <div class="toolbar__right fs-title" ng-show="loggedIn" lx-tooltip="{{my.name}}" tooltip-position="bottom">
-            <img class="myimg mr" ng-show="my.picture" ng-src="{{my.picture}}" alt="Photo of {{my.name}}"/>
-            <img class="myimg mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" />
+          <div class="toolbar__right fs-title" ng-show="loggedIn">
+            <img class="myimg mr" ng-show="my.picture" ng-src="{{my.picture}}" alt="Photo of {{my.name}}" lx-tooltip="{{my.name}}" tooltip-position="bottom" />
+            <img class="myimg mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" lx-tooltip="{{my.name}}" tooltip-position="bottom" />
             <span class="myname tc-white-1">{{my.name}}</span>
           </div>
           <lx-dropdown position="right" from-top>
@@ -129,10 +129,10 @@
     </div>
 
     <!-- Contacts -->
+    <contacts></contacts>
 
-    <div ng-show="contacts.length > 0" class="contacts">
-      <contacts></contacts>
-    </div>
+    <!-- Workspace picker -->
+    <workspaces></workspaces>
 
     <!-- Dialogues -->
 

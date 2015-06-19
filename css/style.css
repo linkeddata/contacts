@@ -13,6 +13,7 @@
 
 html, body {
   font-family: 'Roboto', sans-serif;
+  font-weight: 300;
   position: relative;
   height: 100%;
 }
@@ -49,7 +50,7 @@ li {
 
 .main {
   position: relative;
-  height: 100%;
+  height: auto; min-height: 95%;
 }
 
 .topbar {
@@ -99,7 +100,6 @@ li {
   display: inline-block;
   position: relative;
   width: 100%;
-  height: auto; min-height: 95%;
   top: 65px;
 }
 
@@ -139,6 +139,11 @@ li {
 .dialog__l {
   width: 90%;
   margin-left: -45%;
+}
+
+.checkbox-workspace {
+  position: relative;
+  top: 10px;
 }
 
 .checkbox__label {

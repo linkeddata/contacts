@@ -1,0 +1,22 @@
+<div class="p+ mt+">
+  <div ng-if="contacts.length===0" class="card p++ mt+">
+    <h4>It appears this is the first time you are using this app. You need to pick a location where to store your contacts.</h4>
+    <br>
+    <p>I managed to find the following workspaces from your profile information. Please select those in which you would like to store contact data:</p>
+    <ul class="list mt">
+      <li class="list-row list-row--has-separator" ng-repeat="workspace in my.workspaces">
+        <div class="checkbox">
+          <input type="checkbox" id="ws-{{$index}}" class="checkbox__input" ng-model="workspace.checked">
+          <label for="ws-{{$index}}" class="checkbox__label"></label>
+        </div>
+
+        <div>
+          <span lx-tooltip="{{workspace.uri}}" tooltip-position="bottom">{{workspace.name}}</span>
+        </div>
+      </li>
+    </ul>
+    <button class="btn btn--l btn--blue btn--raised mt++" lx-ripple aria-label="Save preferences" ng-disabled="(my.workspaces | filter: checked != true).length < 1">
+      <span>Save preferences</span>
+    </button>
+  </div>
+</div>
