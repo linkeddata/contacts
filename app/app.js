@@ -66,7 +66,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     // string uri  - URI of resource containing profile information
     // string forWebID - whether it loads extended profile documents for a given WebID
     $scope.getProfile = function(uri, forWebID) {
-
         var webid = (forWebID)?forWebID:uri;
 
         if (!$scope.my) {
@@ -123,11 +122,10 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     }
                     var prefs = g.statementsMatching(webidRes, PIM('preferencesFile'), undefined);
                     if (prefs.length > 0) {
-                        prefs.forEach(function(pref){
-                            if (pref['object']['value']) {
-                                $scope.getProfile(pref['object']['value'], webid);
-                            }
-                        });
+                        if (prefs[0]['object']['value']) {
+                            $scope.getProfile(prefs[0]['object']['value'], webid);
+                            $scope.my.config.preferencesFile = prefs[0]['object']['value'];
+                        }
                     }
                     $scope.my.toLoad = sameAs.length + seeAlso.length + prefs.length + 1;
                 }
@@ -202,7 +200,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 if ($scope.my.toLoad === 0) {
                     // Hide loading bar
                     LxProgressService.linear.hide('#progress');
-                    $scope.saveCredentials();
+                    $scope.saveLocalStorage();
                     scope = $scope;
                     gg = g;
                 }
@@ -351,34 +349,36 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
         return query;
     };
-
+    */
     $scope.sendSPARQLPatch = function (uri, query, obj, oldStatement) {
-        $http({
-          method: 'PATCH',
-          url: uri,
-          headers: {
-            'Content-Type': 'application/sparql-update'
-          },
-          withCredentials: true,
-          data: query
-        }).success(function(data, status, headers) {
-          obj.locked = false;
-          obj.uploading = false;
-          $scope.changeInProgress = false;
-          Notifier.success('Profile updated!');
-        }).error(function(data, status, headers) {
-          obj.locked = false;
-          obj.uploading = false;
-          obj.failed = true;
-          if (oldStatement) {
-            obj.statement = oldStatement;
-          }
-          $scope.changeInProgress = false;
-          Notifier.error('Could not update profile: HTTP '+status);
-          console.log(data);
+        return new Promise(function(resolve) {
+            $http({
+              method: 'PATCH',
+              url: uri,
+              headers: {
+                'Content-Type': 'application/sparql-update'
+              },
+              withCredentials: true,
+              data: query
+            }).success(function(data, status, headers) {
+                if (obj) {
+                    obj.locked = false;
+                    obj.uploading = false;
+                }
+                resolve(status);
+            }).error(function(data, status, headers) {
+                if (obj) {
+                    obj.locked = false;
+                    obj.uploading = false;
+                    obj.failed = true;
+                    if (oldStatement) {
+                        obj.statement = oldStatement;
+                    }
+                }
+                resolve(status);
+            });
         });
     };
-    */
 
     // LDP helpers
     $scope.putLDP = function(uri, type) {
@@ -398,9 +398,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 if (headers("Location") && headers("Location").length > 0) {
                     containerURI = headers("Location");
                 }
-                resolve(containerURI, status, headers);
+                resolve(status);
             }).error(function(data, status, headers) {
-                resolve(containerURI, status, headers);
+                resolve(status);
             });
         });
     }
@@ -408,12 +408,42 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.initAppWorkspace = function() {
         if ($scope.storageURI.uri) {
             var uri = $scope.storageURI.uri+'Applications';
-            $scope.putLDP(uri, 'ldpc').then(function(result, status, headers) {
+            $scope.putLDP(uri, 'ldpc').then(function(status) {
                 if (status == 201) {
-                    
+                    if ($scope.my.config.preferencesFile) {
+                        // Add new workspace triples to the preferencesFile
+                        var query = "INSERT DATA { " + 
+                            $rdf.st(
+                                $rdf.sym($scope.my.webid),
+                                PIM('workspace'),
+                                $rdf.sym(uri),
+                                $rdf.sym('')
+                            ).toNT() + " }";
+                        query += " ;\n";
+                        query += "INSERT DATA { " +
+                            $rdf.st(
+                                $rdf.sym(uri),
+                                RDF('type'),
+                                PIM('SystemWorkspace'),
+                                $rdf.sym('')
+                            ).toNT() + " }";
+                        query += " ;\n";
+                        query += "INSERT DATA { " +
+                            $rdf.st(
+                                $rdf.sym(uri),
+                                DCT('title'),
+                                $rdf.lit("Applications Workspace"),
+                                $rdf.sym('')
+                            ).toNT() + " }";
+                        $scope.sendSPARQLPatch($scope.my.config.preferencesFile, query).then(function(result) {
+                            // all done
+                            $scope.my.config.app = uri;
+                            $scope.saveLocalStorage();
+                            $scope.$apply();
+                        });
+                    }
                 } else if (status >= 400) {
-                    console.log(status + " -- could not create ldpc on "+uri);
-                    console.log(headers);
+                    console.log("HTTP " + status + ": failed to create ldpc on "+uri);
                 }
             });
         }
@@ -513,7 +543,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         });
     };
 
-    $scope.saveCredentials = function() {
+    $scope.saveLocalStorage = function() {
         var data = {
             profile: $scope.my,
             loggedIn: $scope.loggedIn
