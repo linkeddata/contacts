@@ -18,6 +18,7 @@ $rdf.Fetcher.crossSiteProxyTemplate=PROXY;
 var Contacts = angular.module('Contacts', ['lumx']);
 
 Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService, LxProgressService, LxDialogService) {
+    $scope.initialized = false;
     $scope.loggedIn = false;
     $scope.loginTLSButtonText = "Login";
 
@@ -31,9 +32,16 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     // };
 
     $scope.my = {
-        workspaces: []
+        config: {
+            workspaces: []
+        }
     };
 
+    // chosen storage URI for the app workspace
+    $scope.storageURI = {};
+
+    $scope.availableWorkspaces = [];
+    
     $scope.selectedContacts = [];
 
     $scope.contacts = [
@@ -99,7 +107,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     $scope.my.loadDate = Date.now();
                 }
 
-                // try to fetch additional data from sameAs, seeAlso and preferenceFile
+                // Load additional data from sameAs, seeAlso and preferenceFile
                 if (!forWebID) {
                     var sameAs = g.statementsMatching(webidRes, OWL('sameAs'), undefined);
                     if (sameAs.length > 0) {
@@ -151,22 +159,34 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     }
                 }
 
+                // Get storage location
+                if (!$scope.my.config.storages || $scope.my.config.storages.length === 0) {
+                    $scope.my.config.storages = [];
+                    var storages = g.statementsMatching(webidRes, PIM('storage'), undefined);
+                    if (storages && storages.length > 0) {
+                        for (var i=0; i<storages.length; i++) {
+                            $scope.my.config.storages.push(
+                                {
+                                    uri: storages[i]['object']['value']
+                                }
+                            );
+                        }
+                    }
+                }
+
                 // Get workspaces
-                if (!$scope.my.workspaces || $scope.my.workspaces.length === 0) {
-                    $scope.my.workspaces = [];
+                if (!$scope.availableWorkspaces || $scope.availableWorkspaces.length === 0) {
                     var workspaces = g.statementsMatching(webidRes, PIM('workspace'), undefined);
                     if (workspaces && workspaces.length > 0) {
                         for (var i=0; i<workspaces.length; i++) {
                             var ws = workspaces[i];
                             var config = g.statementsMatching(ws['object'], RDF('type'), PIM('SystemWorkspace'))[0];
                             if (config) {
-                                $scope.my.config = {
-                                    uri: config.value
-                                };
+                                $scope.my.config.app = config.value;
                                 continue;
                             }
                             var wsTitle = g.any(ws['object'], DCT('title'));
-                            $scope.my.workspaces.push({ 
+                            $scope.availableWorkspaces.push({ 
                                 uri: ws['object']['value'],
                                 name: (wsTitle)?wsTitle.value:'Untitled workspace'
                             });
@@ -192,6 +212,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         });
     };
 
+    /*
     $scope.ProfileElement = function(s) {
         this.locked = false;
         this.uploading = false;
@@ -217,65 +238,65 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     // };
 
     $scope.ProfileElement.prototype.updateObject = function(update, force) {
-    // do not update if value hasn't changed
-    if (this.value == this.prev && !force) {
-      return;
-    }
-
-    $scope.changeInProgress = true;
-
-    if (!this.failed && this.value) {
-      this.prev = angular.copy(this.value);
-    }
-    var oldS = angular.copy(this.statement);
-    if (this.statement) {
-      if (this.statement['object']['termType'] == 'literal') {
-        this.statement['object']['value'] = this.value;
-      } else if (this.statement['object']['termType'] == 'symbol') {
-        val = this.value;
-        if (this.statement['predicate'].compareTerm(FOAF('mbox')) == 0) {
-          val = "mailto:"+val;
-        } else if (this.statement['predicate'].compareTerm(FOAF('phone')) == 0) {
-          val = "tel:"+val;
+        // do not update if value hasn't changed
+        if (this.value == this.prev && !force) {
+          return;
         }
-        this.statement['object']['uri'] = val;
-        this.statement['object']['value'] = val;
-      }
-    }
 
-    if (update) {
-      this.locked = true;
-      var query = '';
-      var graphURI = '';
-      if (oldS && oldS['object']['value'].length > 0) {
-        var query = "DELETE DATA { " + oldS.toNT() + " }";
-        if (oldS['why'] && oldS['why']['value'].length > 0) {
-          graphURI = oldS['why']['value'];
-        } else {
-          graphURI = oldS['subject']['value'];
+        $scope.changeInProgress = true;
+
+        if (!this.failed && this.value) {
+          this.prev = angular.copy(this.value);
         }
-        // add separator
-        if (this.value.length > 0) {
-          query += " ;\n";
-        }
-      }
-      if (this.value && this.value.length > 0) {
-        // should ask the user where the new triple should be saved
-        query += "INSERT DATA { " + this.statement.toNT() + " }";
-        if (graphURI.length == 0) {
-          if (this.statement && this.statement['why']['value'].length > 0) {
-            graphURI = this.statement['why']['value'];
-          } else {
-            graphURI = this.statement['subject']['value'];
+        var oldS = angular.copy(this.statement);
+        if (this.statement) {
+          if (this.statement['object']['termType'] == 'literal') {
+            this.statement['object']['value'] = this.value;
+          } else if (this.statement['object']['termType'] == 'symbol') {
+            val = this.value;
+            if (this.statement['predicate'].compareTerm(FOAF('mbox')) == 0) {
+              val = "mailto:"+val;
+            } else if (this.statement['predicate'].compareTerm(FOAF('phone')) == 0) {
+              val = "tel:"+val;
+            }
+            this.statement['object']['uri'] = val;
+            this.statement['object']['value'] = val;
           }
         }
-      }
 
-      // send PATCH request
-      if (graphURI && graphURI.length > 0) {
-        $scope.sendSPARQLPatch(graphURI, query, this, oldS);
-      }
-    }
+        if (update) {
+          this.locked = true;
+          var query = '';
+          var graphURI = '';
+          if (oldS && oldS['object']['value'].length > 0) {
+            var query = "DELETE DATA { " + oldS.toNT() + " }";
+            if (oldS['why'] && oldS['why']['value'].length > 0) {
+              graphURI = oldS['why']['value'];
+            } else {
+              graphURI = oldS['subject']['value'];
+            }
+            // add separator
+            if (this.value.length > 0) {
+              query += " ;\n";
+            }
+          }
+          if (this.value && this.value.length > 0) {
+            // should ask the user where the new triple should be saved
+            query += "INSERT DATA { " + this.statement.toNT() + " }";
+            if (graphURI.length == 0) {
+              if (this.statement && this.statement['why']['value'].length > 0) {
+                graphURI = this.statement['why']['value'];
+              } else {
+                graphURI = this.statement['subject']['value'];
+              }
+            }
+          }
+
+          // send PATCH request
+          if (graphURI && graphURI.length > 0) {
+            $scope.sendSPARQLPatch(graphURI, query, this, oldS);
+          }
+        }
     };
 
     $scope.ProfileElement.prototype.deleteSubject = function (send) {
@@ -357,6 +378,46 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
           console.log(data);
         });
     };
+    */
+
+    // LDP helpers
+    $scope.putLDP = function(uri, type) {
+        return new Promise(function(resolve) {
+            var containerURI = uri;
+            var linkHeader = (type=='ldpc')?'<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"':'<http://www.w3.org/ns/ldp#Resource>; rel="type"';
+            $http({
+                method: 'PUT',
+                url: uri,
+                headers: {
+                    'Content-Type': 'text/turtle',
+                    'Link': linkHeader,
+                },
+                withCredentials: true,
+                data: ''
+            }).success(function(data, status, headers) {
+                if (headers("Location") && headers("Location").length > 0) {
+                    containerURI = headers("Location");
+                }
+                resolve(containerURI, status, headers);
+            }).error(function(data, status, headers) {
+                resolve(containerURI, status, headers);
+            });
+        });
+    }
+
+    $scope.initAppWorkspace = function() {
+        if ($scope.storageURI.uri) {
+            var uri = $scope.storageURI.uri+'Applications';
+            $scope.putLDP(uri, 'ldpc').then(function(result, status, headers) {
+                if (status == 201) {
+                    
+                } else if (status >= 400) {
+                    console.log(status + " -- could not create ldpc on "+uri);
+                    console.log(headers);
+                }
+            });
+        }
+    }
 
     $scope.toggleFavorite = function(id) {
         $scope.contacts[id].favorite = ($scope.contacts[id].favorite === 'favorite')?'':'favorite';
@@ -483,16 +544,12 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             var dateValid = data.profile.loadDate + 1000 * 60 * 60 * 24;
             if (Date.now() < dateValid) {
                 $scope.my = data.profile;
-                if (!$scope.webid) {
-                    $scope.webid = data.profile.webid;
-                }
+                $scope.loggedIn = true;
             } else {
                 console.log("Deleting profile data because it expired");
                 localStorage.removeItem($scope.appOrigin);
-                // loading profile again
-                $scope.getProfile(data.profile.webid);
+                // prompt for login
             }
-            $scope.loggedIn = true;
         } else {
             // clear sessionStorage in case there was a change to the data structure
             console.log("Deleting profile because of structure change");

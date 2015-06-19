@@ -47,13 +47,13 @@
 
     <div class="topbar">
       <div class="toolbar bgc-blue-A700">
-        <div class="toolbar__left">
+        <div ng-if="initialized" class="toolbar__left">
           <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="openDialog('addcontact')">
             <span aria-hidden="true" class="mdi mdi-account-plus tc-white-1"></span>
           </button>
         </div>
 
-        <div class="toolbar__left" aria-label="Filter contacts" lx-tooltip="Filter contacts" tooltip-position="bottom">
+        <div ng-if="initialized" class="toolbar__left" aria-label="Filter contacts" lx-tooltip="Filter contacts" tooltip-position="bottom">
           <lx-search-filter closed theme="dark" filter-width="220px" placeholder="Filter..." model="filterContacts"></lx-search-filter>
         </div>
 
