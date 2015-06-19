@@ -130,6 +130,10 @@ li {
   font-weight: 300;
 }
 
+.fs-title {
+  font-weight: 300;
+}
+
 .search-filter__input {
   padding: 0 10px 0 10px;
   background-color: #fff;

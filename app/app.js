@@ -9,6 +9,7 @@ var OWL = $rdf.Namespace("http://www.w3.org/2002/07/owl#");
 var PIM = $rdf.Namespace("http://www.w3.org/ns/pim/space#");
 var UI = $rdf.Namespace("http://www.w3.org/ns/ui#");
 var DCT = $rdf.Namespace("http://purl.org/dc/terms/");
+var SOLID = $rdf.Namespace("http://www.w3.org/ns/solid/app#");
 var VCARD = $rdf.Namespace("http://www.w3.org/2006/vcard/ns");
 
 var scope, gg;
@@ -22,8 +23,14 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.loggedIn = false;
     $scope.loginTLSButtonText = "Login";
 
-    $scope.appOrigin = window.location.origin;
-    $scope.loginWidget = $sce.trustAsResourceUrl('https://linkeddata.github.io/signup/index.html?ref='+$scope.appOrigin);
+    $scope.app = {};
+    $scope.app.origin = window.location.origin;
+    $scope.app.homepage = "https://linkeddata.github.io/contacts/";
+    $scope.app.icon = "https://linkeddata.github.io/contacts/images/favicon.png";
+    $scope.app.name = "Contacts";
+    $scope.app.description = "A personal address book manager";
+
+    $scope.loginWidget = $sce.trustAsResourceUrl('https://linkeddata.github.io/signup/index.html?ref='+$scope.app.origin);
 
     // $scope.my = {
     //     name: "Andrei Vlad Sambra",
@@ -31,6 +38,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     //     picture: "https://deiu.me/public/avatar.jpg"
     // };
 
+    // App user model
     $scope.my = {
         config: {
             workspaces: [],
@@ -40,9 +48,10 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // chosen storage URI for the app workspace
     $scope.storageURI = {};
-   
+    // temporary list of selected contacts
     $scope.selectedContacts = [];
 
+    // list of contacts
     $scope.contacts = [
         // {
         //     name: "John Doe",
@@ -175,10 +184,11 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     if (workspaces && workspaces.length > 0) {
                         for (var i=0; i<workspaces.length; i++) {
                             var ws = workspaces[i];
-                            var config = g.statementsMatching(ws['object'], RDF('type'), PIM('SystemWorkspace'))[0];
-                            console.log(config);
+                            var config = g.statementsMatching(ws['object'], RDF('type'), SOLID('ConfigurationWorkspace'))[0];
                             if (config) {
-                                $scope.my.config.app = config['subject']['value'];
+                                $scope.my.config.appWorkspace = config['subject']['value'];
+                                // Also get app data config
+                                $scope.fetchAppConfig(g, config['subject']['value']);
                                 continue;
                             }
                             var wsTitle = g.any(ws['object'], DCT('title'));
@@ -188,7 +198,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                             });
                         };
                     } else {
-                        // no workspaces found
+                        //@@TODO no workspaces found
                         // write to a container in storage?
                     }
                 }
@@ -205,6 +215,20 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
                 $scope.$apply();
             }
+        });
+    };
+
+    // Fetch and look for our app in configuration resources
+    $scope.fetchAppConfig = function(graph, uri) {
+        var f = $rdf.fetcher(graph, TIMEOUT);
+
+        var docURI = (uri.indexOf('#') >= 0)?uri.slice(0, uri.indexOf('#')):uri;
+        // Show loading bar
+        LxProgressService.linear.show('#E1F5FE', '#progress');
+        // Fetch user data
+        f.nowOrWhenFetched(docURI+'*',undefined,function(ok, body, xhr) {
+
+
         });
     };
 
@@ -407,51 +431,115 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // Initialize Apps workspace if user doesn't have one already
     $scope.initAppWorkspace = function() {
-        if ($scope.storageURI.uri) {
-            var uri = $scope.storageURI.uri+'Applications';
+        console.log($scope.storageURI);
+        if ($scope.storageURI.checked) {
+            var uri = $scope.storageURI.checked+'Applications';
+            console.log("Initializing empty apps workspace in "+uri);
             $scope.putLDP(uri, 'ldpc').then(function(status) {
                 if (status == 201) {
                     if ($scope.my.config.preferencesFile) {
                         // Add new workspace triples to the preferencesFile
-                        var query = "INSERT DATA { " + 
-                            $rdf.st(
-                                $rdf.sym($scope.my.webid),
-                                PIM('workspace'),
-                                $rdf.sym(uri+'/'),
-                                $rdf.sym('')
-                            ).toNT() + " }";
-                        query += " ;\n";
-                        query += "INSERT DATA { " +
-                            $rdf.st(
-                                $rdf.sym(uri+'/'),
-                                RDF('type'),
-                                PIM('SystemWorkspace'),
-                                $rdf.sym('')
-                            ).toNT() + " }";
-                        query += " ;\n";
-                        query += "INSERT DATA { " +
-                            $rdf.st(
-                                $rdf.sym(uri+'/'),
-                                DCT('title'),
-                                $rdf.lit("Applications Workspace"),
-                                $rdf.sym('')
-                            ).toNT() + " }";
+                        var query = "INSERT DATA { " + $scope.newStatement($rdf.sym($scope.my.webid), PIM('workspace'), $rdf.sym(uri+'/')) + " } ;\n";
+                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(uri+'/'), RDF('type'), PIM('Workspace')) + " } ;\n";
+                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(uri+'/'), RDF('type'), SOLID('ConfigurationWorkspace')) + " } ;\n";
+                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(uri+'/'), DCT('title'), $rdf.lit("App configuration workspace")) + " }";
                         $scope.sendSPARQLPatch($scope.my.config.preferencesFile, query).then(function(result) {
                             // all done
-                            $scope.my.config.app = uri+'/';
+                            $scope.my.config.appWorkspace = uri+'/';
                             $scope.saveLocalStorage();
+                            $scope.notify('success', 'Created configuration workspace');
                             $scope.$apply();
                         });
                     }
                 } else if (status >= 400) {
-                    console.log("HTTP " + status + ": failed to create ldpc on "+uri);
+                    console.log("HTTP " + status + ": failed to create ldpc for "+uri);
+                    $scope.notify('error', 'Failed to create config workspace -- HTTP '+status);
                 }
             });
         }
     };
 
     $scope.initApp = function() {
+        if ($scope.my.config.appWorkspace) {
+            var selected = [];
+            
+            var g = new $rdf.graph();
+            g.add($rdf.sym(''), RDF('type'), PIM('ConfigurationFile'));
+            g.add($rdf.sym(''), SOLID('configuration'), $rdf.sym("#conf"));
+            g.add($rdf.sym('#conf'), RDF('type'), SOLID('Configuration'));
+            g.add($rdf.sym('#conf'), SOLID('name'), $rdf.lit($scope.app.name));
+            g.add($rdf.sym('#conf'), SOLID('homepage'), $rdf.lit($scope.app.homepage));
+            g.add($rdf.sym('#conf'), SOLID('icon'), $rdf.sym($scope.app.icon));
+            g.add($rdf.sym('#conf'), SOLID('description'), $rdf.lit($scope.app.description));
 
+            for (var i=0; i<$scope.my.config.availableWorkspaces.length; i++) {
+                if ($scope.my.config.availableWorkspaces[i].checked) {
+                    $scope.my.config.workspaces.push($scope.my.config.availableWorkspaces[i].uri);
+                    g.add($rdf.sym('#conf'), SOLID('dataSource'), $rdf.sym($scope.my.config.availableWorkspaces[i].uri));
+                }
+            }
+            var triples = new $rdf.Serializer(g).toN3(g);
+            console.log(triples);
+            $http({
+                method: 'POST',
+                url: $scope.my.config.appWorkspace,
+                withCredentials: true,
+                headers: {
+                    "Content-Type": "text/turtle", 
+                    "Slug": "contacts"
+                },
+                data: triples
+            }).
+            success(function() {
+                // create containers
+                $scope.notify('success', 'Created config file');
+                $scope.my.toInit = $scope.my.config.workspaces.length;
+                for (var i=0; i<$scope.my.config.workspaces.length; i++) {
+                    $scope.initDataContainers($scope.my.config.workspaces[i]);
+                }
+            }).
+            error(function(data, status, headers) {
+                console.log('Error - '+status, data);
+                $scope.notify('error', 'Failed to create config file -- HTTP '+status);
+            });
+        }
+    };
+
+    $scope.initDataContainers = function(workspace) {
+        var uri = workspace+"Contacts";
+        $scope.putLDP(uri, 'ldpc').then(function(status) {
+            if (status == 201) {
+                $scope.my.toInit--;
+                if ($scope.my.toInit === 0) {
+                    $scope.notify('success', 'Data sources created');
+                    $scope.initialized = true;
+                    $scope.saveLocalStorage();
+                    $scope.$apply();
+                }
+            } else {
+                // error creating containers for contacts in workspace
+                $scope.notify('error', 'Failed to create LDPC -- HTTP '+status);
+                console.log("HTTP " + status + ": failed to create ldpc for "+uri);
+            }
+        });
+    };
+
+    $scope.newStatement = function(s, p, o) {
+        return new $rdf.st(s, p , o).toNT();
+    };
+
+    $scope.notify = function(type, text) {
+        if (type === 'simple') {
+            LxNotificationService.notify(text);
+        } else if (type === 'info') {
+            LxNotificationService.info(text);
+        } else if (type === 'success') {
+            LxNotificationService.success(text);
+        } else if (type === 'warning') {
+            LxNotificationService.warning(text);
+        } else if (type === 'error') {
+            LxNotificationService.error(text);
+        }
     };
 
     $scope.toggleFavorite = function(id) {
@@ -553,7 +641,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             profile: $scope.my,
             loggedIn: $scope.loggedIn
         };
-        localStorage.setItem($scope.appOrigin, JSON.stringify(data));
+        localStorage.setItem($scope.app.origin, JSON.stringify(data));
     };
 
     $scope.logOut = function() {
@@ -564,13 +652,13 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         $scope.selectedContacts = [];
 
         // clear localstorage
-        localStorage.removeItem($scope.appOrigin);
+        localStorage.removeItem($scope.app.origin);
     };
 
     // initialize by retrieving user info from sessionStorage
     // retrieve from sessionStorage
-    if (localStorage.getItem($scope.appOrigin)) {
-        var data = JSON.parse(localStorage.getItem($scope.appOrigin));
+    if (localStorage.getItem($scope.app.origin)) {
+        var data = JSON.parse(localStorage.getItem($scope.app.origin));
         if (data) {
             if (!$scope.my) {
               $scope.my = {};
@@ -580,15 +668,18 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             if (Date.now() < dateValid) {
                 $scope.my = data.profile;
                 $scope.loggedIn = true;
+                if ($scope.my.config.workspaces && $scope.my.config.workspaces.length > 0) {
+                    $scope.initialized = true;
+                }
             } else {
                 console.log("Deleting profile data because it expired");
-                localStorage.removeItem($scope.appOrigin);
+                localStorage.removeItem($scope.app.origin);
                 // prompt for login
             }
         } else {
             // clear sessionStorage in case there was a change to the data structure
             console.log("Deleting profile because of structure change");
-            localStorage.removeItem($scope.appOrigin);
+            localStorage.removeItem($scope.app.origin);
         }
     }
 });
