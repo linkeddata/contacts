@@ -19,7 +19,7 @@ $rdf.Fetcher.crossSiteProxyTemplate=PROXY;
 var Contacts = angular.module('Contacts', ['lumx']);
 
 Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService, LxProgressService, LxDialogService) {
-    $scope.initialized = false;
+    $scope.initialized = true;
     $scope.loggedIn = false;
     $scope.loginTLSButtonText = "Login";
 
@@ -182,13 +182,19 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 if (!$scope.my.config.availableWorkspaces || $scope.my.config.availableWorkspaces.length === 0) {
                     var workspaces = g.statementsMatching(webidRes, PIM('workspace'), undefined);
                     if (workspaces && workspaces.length > 0) {
+                        // check if user has an app config workspace
+                        var configWs = g.statementsMatching(undefined, RDF('type'), SOLID('ConfigurationWorkspace'))[0];
+                        if (configWs) {
+                            $scope.my.config.appWorkspace = configWs['subject']['value'];
+                            // Also get app data config
+                            $scope.fetchAppConfig(g, configWs['subject']['value']);
+                        } else {
+                            $scope.initialized = false;
+                        }
                         for (var i=0; i<workspaces.length; i++) {
                             var ws = workspaces[i];
-                            var config = g.statementsMatching(ws['object'], RDF('type'), SOLID('ConfigurationWorkspace'))[0];
-                            if (config) {
-                                $scope.my.config.appWorkspace = config['subject']['value'];
-                                // Also get app data config
-                                $scope.fetchAppConfig(g, config['subject']['value']);
+                            // don't include the apps workspace in the suggestions list
+                            if (g.statementsMatching(ws['object'], RDF('type'), SOLID('ConfigurationWorkspace'))[0]) {
                                 continue;
                             }
                             var wsTitle = g.any(ws['object'], DCT('title'));
@@ -203,6 +209,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     }
                 }
 
+                // decrease the counter of profiles left to load
                 $scope.my.toLoad--;
 
                 if ($scope.my.toLoad === 0) {
@@ -228,14 +235,16 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         // Fetch user data
         f.nowOrWhenFetched(docURI+'*',undefined,function(ok, body, xhr) {
             LxProgressService.linear.hide('#progress');
-            var thisApp = graph.statementsMatching(undefined, SOLID('homepage'), $rdf.lit($scope.app.homepage))[0];
+            var thisApp = graph.statementsMatching(undefined, SOLID('homepage'), $rdf.sym($scope.app.homepage))[0];
             if (thisApp) {
                 var dataSources = graph.statementsMatching(thisApp['subject'], SOLID('dataSource'), undefined);
                 dataSources.forEach(function(source) {
                     $scope.my.config.workspaces.push(source['object']['value']);
                 });
-                $scope.initialized = true;
                 $scope.saveLocalStorage();
+            } else {
+                $scope.initialized = false;
+                $scope.$apply();
             }
         });
     };
@@ -442,7 +451,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         console.log($scope.storageURI);
         if ($scope.storageURI.checked) {
             var uri = $scope.storageURI.checked+'Applications';
-            console.log("Initializing empty apps workspace in "+uri);
             $scope.putLDP(uri, 'ldpc').then(function(status) {
                 if (status == 201) {
                     if ($scope.my.config.preferencesFile) {
@@ -467,10 +475,10 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
     };
 
+    // save app configuration if it's the first time the app runs
     $scope.initApp = function() {
         if ($scope.my.config.appWorkspace) {
             var selected = [];
-            
             var g = new $rdf.graph();
             g.add($rdf.sym(''), RDF('type'), PIM('ConfigurationFile'));
             g.add($rdf.sym(''), SOLID('configuration'), $rdf.sym("#conf"));
@@ -487,7 +495,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 }
             }
             var triples = new $rdf.Serializer(g).toN3(g);
-            console.log(triples);
             $http({
                 method: 'POST',
                 url: $scope.my.config.appWorkspace,
@@ -676,8 +683,8 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             if (Date.now() < dateValid) {
                 $scope.my = data.profile;
                 $scope.loggedIn = true;
-                if ($scope.my.config.workspaces && $scope.my.config.workspaces.length > 0) {
-                    $scope.initialized = true;
+                if ($scope.my.config.workspaces && $scope.my.config.workspaces.length === 0) {
+                    $scope.initialized = false;
                 }
             } else {
                 console.log("Deleting profile data because it expired");
