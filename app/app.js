@@ -53,21 +53,21 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // list of contacts
     $scope.contacts = [
-        // {
-        //     name: "John Doe",
-        //     email: "first@email.com",
-        //     picture: 'https://lh4.googleusercontent.com/-dPvV6bpyaik/U_VfpkP5nnI/AAAAAAAAFHQ/6TKGdHRHFSU/w960-h962-no/1306d2a9-ea03-45e2-bdcd-ef48119c965b',
-        //     favorite: '',
-        //     checked: false
-        // },
-        // {
-        //     name: "Jane Smith",
-        //     email: "second@example.org",
-        //     phone: "+1-231-114-1231",
-        //     picture: "https://lh6.googleusercontent.com/-yqYqI3T_KRs/VYKVXGXWW_I/AAAAAAAAAwU/Bd84tPHEcoM/s500-no/Untitled-61142014104414PM.jpg",
-        //     favorite: 'favorite',
-        //     checked: false
-        // }
+        {
+            name: "John Doe",
+            email: "first@email.com",
+            picture: 'https://lh4.googleusercontent.com/-dPvV6bpyaik/U_VfpkP5nnI/AAAAAAAAFHQ/6TKGdHRHFSU/w960-h962-no/1306d2a9-ea03-45e2-bdcd-ef48119c965b',
+            favorite: '',
+            checked: false
+        },
+        {
+            name: "Jane Smith",
+            email: "second@example.org",
+            phone: "+1-231-114-1231",
+            picture: "https://lh6.googleusercontent.com/-yqYqI3T_KRs/VYKVXGXWW_I/AAAAAAAAAwU/Bd84tPHEcoM/s500-no/Untitled-61142014104414PM.jpg",
+            favorite: 'favorite',
+            checked: false
+        }
     ];
 
     // Load a user's profile
@@ -227,8 +227,16 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         LxProgressService.linear.show('#E1F5FE', '#progress');
         // Fetch user data
         f.nowOrWhenFetched(docURI+'*',undefined,function(ok, body, xhr) {
-
-
+            LxProgressService.linear.hide('#progress');
+            var thisApp = graph.statementsMatching(undefined, SOLID('homepage'), $rdf.lit($scope.app.homepage))[0];
+            if (thisApp) {
+                var dataSources = graph.statementsMatching(thisApp['subject'], SOLID('dataSource'), undefined);
+                dataSources.forEach(function(source) {
+                    $scope.my.config.workspaces.push(source['object']['value']);
+                });
+                $scope.initialized = true;
+                $scope.saveLocalStorage();
+            }
         });
     };
 
@@ -468,9 +476,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             g.add($rdf.sym(''), SOLID('configuration'), $rdf.sym("#conf"));
             g.add($rdf.sym('#conf'), RDF('type'), SOLID('Configuration'));
             g.add($rdf.sym('#conf'), SOLID('name'), $rdf.lit($scope.app.name));
-            g.add($rdf.sym('#conf'), SOLID('homepage'), $rdf.lit($scope.app.homepage));
-            g.add($rdf.sym('#conf'), SOLID('icon'), $rdf.sym($scope.app.icon));
             g.add($rdf.sym('#conf'), SOLID('description'), $rdf.lit($scope.app.description));
+            g.add($rdf.sym('#conf'), SOLID('homepage'), $rdf.sym($scope.app.homepage));
+            g.add($rdf.sym('#conf'), SOLID('icon'), $rdf.sym($scope.app.icon));
 
             for (var i=0; i<$scope.my.config.availableWorkspaces.length; i++) {
                 if ($scope.my.config.availableWorkspaces[i].checked) {

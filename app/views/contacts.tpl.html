@@ -1,4 +1,4 @@
-<div class="contacts">
+<div class="contacts" ng-if="initialized">
   <div class="row contact mb" ng-repeat="contact in contacts | filter: filterContacts">
     <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
       
