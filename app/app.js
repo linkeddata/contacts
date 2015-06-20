@@ -254,14 +254,15 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // load contacts from a data source
     $scope.loadContacts = function(uri) {
-        var g = new $rdf.graph();
-        var f = new $rdf.fetcher(graph, TIMEOUT);
-
         // Show loading bar
         LxProgressService.linear.show('#E1F5FE', '#progress');
+        console.log("Loading contacts from "+uri+"*");
+        var g = new $rdf.graph();
+        var f = new $rdf.fetcher(g, TIMEOUT);
+
         f.nowOrWhenFetched(uri+'*',undefined,function(ok, body, xhr) {
             LxProgressService.linear.hide('#progress');
-
+            console.log(uri);
             var contacts = g.statementsMatching(undefined, RDF('type'), VCARD('Individual'));
             if (contacts && contacts.length > 0) {
                 for (var i=0; i<contacts.length; i++) {
@@ -291,6 +292,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     // push contact to list
                     $scope.contacts.push(contact);
                 }
+                console.log($scope.contacts);
             }
 
         });
@@ -378,58 +380,58 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
     };
 
-    $scope.ProfileElement.prototype.deleteSubject = function (send) {
-        this.locked = true;
-        $scope.changeInProgress = true;
-        var query = '';
-        var graphURI = '';
-        var oldS = angular.copy(this.statement);
-        if (oldS['why'] && oldS['why']['value'].length > 0) {
-          graphURI = oldS['why']['value'];
-        } else {
-          graphURI = oldS['subject']['value'];
-        }
-        $scope.profile.sources.forEach(function (src) {
-          // Delete outgoing arcs with the same subject
-          var needle = oldS['object']['value'];
-          var out = $scope.kb.statementsMatching($rdf.sym(needle), undefined, undefined, $rdf.sym(src.uri));
-          // Also delete incoming arcs
-          var inc = $scope.kb.statementsMatching(undefined, undefined, $rdf.sym(needle), $rdf.sym(src.uri));
-          for (i in out) {
-            var s = out[i];
-            // check type?
-            if (s['object'].termType == 'literal') {
-              var o = $rdf.lit(s['object']['value']);
-            } else if (s['object'].termType == 'symbol') {
-              var o = $rdf.sym(s['object']['value']);
-            }
-            statement = new $rdf.st(
-              s['subject'],
-              s['predicate'],
-              o,
-              s['why']
-            );
-            query += 'DELETE DATA { ' + statement.toNT() + " }";
-            if (i < out.length - 1 || inc.length > 0) {
-              query +=  " ;\n";
-            }
-          };
+    // $scope.ProfileElement.prototype.deleteSubject = function (send) {
+    //     this.locked = true;
+    //     $scope.changeInProgress = true;
+    //     var query = '';
+    //     var graphURI = '';
+    //     var oldS = angular.copy(this.statement);
+    //     if (oldS['why'] && oldS['why']['value'].length > 0) {
+    //       graphURI = oldS['why']['value'];
+    //     } else {
+    //       graphURI = oldS['subject']['value'];
+    //     }
+    //     $scope.profile.sources.forEach(function (src) {
+    //       // Delete outgoing arcs with the same subject
+    //       var needle = oldS['object']['value'];
+    //       var out = $scope.kb.statementsMatching($rdf.sym(needle), undefined, undefined, $rdf.sym(src.uri));
+    //       // Also delete incoming arcs
+    //       var inc = $scope.kb.statementsMatching(undefined, undefined, $rdf.sym(needle), $rdf.sym(src.uri));
+    //       for (i in out) {
+    //         var s = out[i];
+    //         // check type?
+    //         if (s['object'].termType == 'literal') {
+    //           var o = $rdf.lit(s['object']['value']);
+    //         } else if (s['object'].termType == 'symbol') {
+    //           var o = $rdf.sym(s['object']['value']);
+    //         }
+    //         statement = new $rdf.st(
+    //           s['subject'],
+    //           s['predicate'],
+    //           o,
+    //           s['why']
+    //         );
+    //         query += 'DELETE DATA { ' + statement.toNT() + " }";
+    //         if (i < out.length - 1 || inc.length > 0) {
+    //           query +=  " ;\n";
+    //         }
+    //       };
           
-          for (i in inc) {
-            var s = inc[i];
-            // check type?
-            query += 'DELETE DATA { ' + s.toNT() + " }";
-            if (i < inc.length - 1) {
-              query += " ;\n";
-            }
-          };
-        });
-        // Send patch to server
-        if (query.length > 0 && send) {
-          $scope.sendSPARQLPatch(graphURI, query, this);
-        }
-        return query;
-    };
+    //       for (i in inc) {
+    //         var s = inc[i];
+    //         // check type?
+    //         query += 'DELETE DATA { ' + s.toNT() + " }";
+    //         if (i < inc.length - 1) {
+    //           query += " ;\n";
+    //         }
+    //       };
+    //     });
+    //     // Send patch to server
+    //     if (query.length > 0 && send) {
+    //       $scope.sendSPARQLPatch(graphURI, query, this);
+    //     }
+    //     return query;
+    // };
     
 
     // Sends SPARQL patches over the wire
@@ -533,7 +535,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             for (var i=0; i<$scope.my.config.availableWorkspaces.length; i++) {
                 if ($scope.my.config.availableWorkspaces[i].checked) {
                     $scope.my.config.workspaces.push($scope.my.config.availableWorkspaces[i].uri);
-                    g.add($rdf.sym('#conf'), SOLID('dataSource'), $rdf.sym($scope.my.config.availableWorkspaces[i].uri));
                 }
             }
             var triples = new $rdf.Serializer(g).toN3(g);
@@ -543,16 +544,21 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 withCredentials: true,
                 headers: {
                     "Content-Type": "text/turtle", 
-                    "Slug": "contacts"
+                    "Slug": "Contacts"
                 },
                 data: triples
             }).
-            success(function() {
+            success(function(data, status, headers) {
+                if (headers('Location')) {
+                    $scope.my.config.uri = headers('Location');
+                } else {
+                    $scope.my.config.uri = $scope.my.config.appWorkspace + "contacts";
+                }
                 // create containers
                 $scope.notify('success', 'Created config file');
                 $scope.my.toInit = $scope.my.config.workspaces.length;
                 for (var i=0; i<$scope.my.config.workspaces.length; i++) {
-                    $scope.initDataContainers($scope.my.config.workspaces[i]);
+                    $scope.initDataContainers($scope.my.config.workspaces[i], "Contacts");
                 }
             }).
             error(function(data, status, headers) {
@@ -562,17 +568,31 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
     };
 
-    $scope.initDataContainers = function(workspace) {
-        var uri = workspace+"Contacts";
+    $scope.initDataContainers = function(workspace, name, attempt) {
+        var uri = workspace+name;
+        // may have to retry in case of name conflict (406)
+        if (!attempt) {
+            var attempt = 1;
+        } else {
+            attempt++;
+        }
+
         $scope.putLDP(uri, 'ldpc').then(function(status) {
-            if (status == 201) {
+            if (status === 201) {
                 $scope.my.toInit--;
                 if ($scope.my.toInit === 0) {
-                    $scope.notify('success', 'Data sources created');
-                    $scope.initialized = true;
-                    $scope.saveLocalStorage();
-                    $scope.$apply();
+                    var query = "INSERT DATA { " + $scope.newStatement($rdf.sym('#conf'), SOLID('dataSource'), $rdf.sym(uri+'/')) + " }";
+                    $scope.sendSPARQLPatch($scope.my.config.uri, query).then(function(result) {
+                        // all done
+                        $scope.notify('success', 'Data sources created');
+                        $scope.initialized = true;
+                        $scope.saveLocalStorage();
+                        $scope.$apply();
+                    });
                 }
+            } else if (status === 406) {
+                console.log("HTTP " + status + ": failed to create ldpc for "+uri+". Retrying with "+name+attempt.toString());
+                $scope.initDataContainers(workspace, name+attempt.toString(), attempt);
             } else {
                 // error creating containers for contacts in workspace
                 $scope.notify('error', 'Failed to create LDPC -- HTTP '+status);
@@ -679,13 +699,12 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
               $scope.webid = user;
             }
             $scope.getProfile(user);
-            $scope.loginTLSButtonText = 'Logged in';
             $scope.loggedIn = true;
           } else {
             LxNotificationService.error('WebID-TLS authentication failed.');
             console.log('WebID-TLS authentication failed.');
-            $scope.loginTLSButtonText = 'Login';
           }
+          $scope.loginTLSButtonText = 'Login';
         }).error(function(data, status, headers) {
             LxNotificationService.error('Could not connect to auth server: HTTP '+status);
             console.log('Could not connect to auth server: HTTP '+status);
