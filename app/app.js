@@ -53,21 +53,21 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // list of contacts
     $scope.contacts = [
-        {
-            name: "John Doe",
-            email: "first@email.com",
-            picture: 'https://lh4.googleusercontent.com/-dPvV6bpyaik/U_VfpkP5nnI/AAAAAAAAFHQ/6TKGdHRHFSU/w960-h962-no/1306d2a9-ea03-45e2-bdcd-ef48119c965b',
-            favorite: '',
-            checked: false
-        },
-        {
-            name: "Jane Smith",
-            email: "second@example.org",
-            phone: "+1-231-114-1231",
-            picture: "https://lh6.googleusercontent.com/-yqYqI3T_KRs/VYKVXGXWW_I/AAAAAAAAAwU/Bd84tPHEcoM/s500-no/Untitled-61142014104414PM.jpg",
-            favorite: 'favorite',
-            checked: false
-        }
+        // {
+        //     name: "John Doe",
+        //     email: "first@email.com",
+        //     picture: 'https://lh4.googleusercontent.com/-dPvV6bpyaik/U_VfpkP5nnI/AAAAAAAAFHQ/6TKGdHRHFSU/w960-h962-no/1306d2a9-ea03-45e2-bdcd-ef48119c965b',
+        //     favorite: '',
+        //     checked: false
+        // },
+        // {
+        //     name: "Jane Smith",
+        //     email: "second@example.org",
+        //     phone: "+1-231-114-1231",
+        //     picture: "https://lh6.googleusercontent.com/-yqYqI3T_KRs/VYKVXGXWW_I/AAAAAAAAAwU/Bd84tPHEcoM/s500-no/Untitled-61142014104414PM.jpg",
+        //     favorite: 'favorite',
+        //     checked: false
+        // }
     ];
 
     // Load a user's profile
@@ -80,8 +80,8 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             $scope.my.webid = webid;
         }
 
-        var g = $rdf.graph();
-        var f = $rdf.fetcher(g, TIMEOUT);
+        var g = new $rdf.graph();
+        var f = new $rdf.fetcher(g, TIMEOUT);
 
         var docURI = (uri.indexOf('#') >= 0)?uri.slice(0, uri.indexOf('#')):uri;
         var webidRes = $rdf.sym(webid);
@@ -227,19 +227,22 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // Fetch and look for our app in configuration resources
     $scope.fetchAppConfig = function(graph, uri) {
-        var f = $rdf.fetcher(graph, TIMEOUT);
+        var f = new $rdf.fetcher(graph, TIMEOUT);
 
-        var docURI = (uri.indexOf('#') >= 0)?uri.slice(0, uri.indexOf('#')):uri;
         // Show loading bar
         LxProgressService.linear.show('#E1F5FE', '#progress');
         // Fetch user data
-        f.nowOrWhenFetched(docURI+'*',undefined,function(ok, body, xhr) {
+        f.nowOrWhenFetched(uri+'*',undefined,function(ok, body, xhr) {
             LxProgressService.linear.hide('#progress');
             var thisApp = graph.statementsMatching(undefined, SOLID('homepage'), $rdf.sym($scope.app.homepage))[0];
             if (thisApp) {
                 var dataSources = graph.statementsMatching(thisApp['subject'], SOLID('dataSource'), undefined);
                 dataSources.forEach(function(source) {
-                    $scope.my.config.workspaces.push(source['object']['value']);
+                    if (source['object']['value'].length > 0) {
+                        $scope.my.config.workspaces.push(source['object']['value']);
+                        // Load contacts from sources
+                        $scope.loadContacts(source['object']['value']);
+                    }
                 });
                 $scope.saveLocalStorage();
             } else {
@@ -249,13 +252,56 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         });
     };
 
-    /*
-    $scope.ProfileElement = function(s) {
+    // load contacts from a data source
+    $scope.loadContacts = function(uri) {
+        var g = new $rdf.graph();
+        var f = new $rdf.fetcher(graph, TIMEOUT);
+
+        // Show loading bar
+        LxProgressService.linear.show('#E1F5FE', '#progress');
+        f.nowOrWhenFetched(uri+'*',undefined,function(ok, body, xhr) {
+            LxProgressService.linear.hide('#progress');
+
+            var contacts = g.statementsMatching(undefined, RDF('type'), VCARD('Individual'));
+            if (contacts && contacts.length > 0) {
+                for (var i=0; i<contacts.length; i++) {
+                    var subject = contacts[i]['subject']
+                    var contact = {};
+                    var uid = g.statementsMatching(subject, VCARD('hasUID'), undefined)[0];
+                    if (uid && uid.length > 0) {
+                        contact.uid = new $scope.ContactElement(uid);
+                    }
+                    var fn = g.statementsMatching(subject, VCARD('fn'), undefined)[0];
+                    if (fn && fn.length > 0) {
+                        contact.fn = new $scope.ContactElement(fn);
+                    }
+                    var photo = g.statementsMatching(subject, VCARD('hasPhoto'), undefined)[0];
+                    if (photo && photo.length > 0) {
+                        contact.photo = new $scope.ContactElement(photo);
+                    }
+                    var emails = g.statementsMatching(subject, VCARD('hasEmail'), undefined);
+                    if (emails && emails.length > 0) {
+                        contact.emails = new $scope.ContactElement(emails);
+                    }
+                    var phones = g.statementsMatching(subject, VCARD('hasTelephone'), undefined);
+                    if (phones && phones.length > 0) {
+                        contact.phones = new $scope.ContactElement(phones);
+                    }
+
+                    // push contact to list
+                    $scope.contacts.push(contact);
+                }
+            }
+
+        });
+    };
+
+    // Contact element object
+    $scope.ContactElement = function(s) {
         this.locked = false;
         this.uploading = false;
         this.failed = false;
         this.picker = false;
-        this.knowsme = false;
         this.statement = angular.copy(s);
         this.value = this.prev = '';
         if (s && s['object']['value']) {
@@ -270,11 +316,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
     };
 
-    // $scope.ProfileElement.prototype.updateSubject = function(update, force) {
-
-    // };
-
-    $scope.ProfileElement.prototype.updateObject = function(update, force) {
+    $scope.ContactElement.prototype.updateObject = function(update, force) {
         // do not update if value hasn't changed
         if (this.value == this.prev && !force) {
           return;
@@ -388,7 +430,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
         return query;
     };
-    */
+    
 
     // Sends SPARQL patches over the wire
     $scope.sendSPARQLPatch = function (uri, query, obj, oldStatement) {
