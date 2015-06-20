@@ -1,5 +1,5 @@
 <div class="contacts" ng-if="initialized">
-  <div ng-if="contacts.length===0" class="row card align-center p+ mt">
+  <div ng-if="initialized && contacts.length===0" class="row card align-center p+ mt">
     <h3>You don't have any contacts yet.</h3>
     <div>
       <button class="btn btn--l btn--blue btn--raised mt+" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="openDialog('addcontact')">
@@ -9,7 +9,7 @@
     </div>
   </div>
 
-  <div class="row contact mb" ng-repeat="contact in contacts | filter: filterContacts">
+  <div class="row contacts mb" ng-if="initialized" ng-repeat="contact in contacts | filter: filterContacts">
     <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
       
       <div class="list-row__primary">

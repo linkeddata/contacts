@@ -32,6 +32,8 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     $scope.loginWidget = $sce.trustAsResourceUrl('https://linkeddata.github.io/signup/index.html?ref='+$scope.app.origin);
 
+    $scope.filters = {};
+
     // $scope.my = {
     //     name: "Andrei Vlad Sambra",
     //     email: "andrei@w3.org",
@@ -302,7 +304,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     $scope.contacts.push(contact);
                     console.log(contact);
                 }
-                // console.log($scope.contacts);
+                $scope.saveLocalStorage();
             }
 
         });
@@ -725,7 +727,8 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.saveLocalStorage = function() {
         var data = {
             profile: $scope.my,
-            loggedIn: $scope.loggedIn
+            loggedIn: $scope.loggedIn,
+            contacts: $scope.contacts
         };
         localStorage.setItem($scope.app.origin, JSON.stringify(data));
     };
@@ -755,13 +758,15 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 $scope.my = data.profile;
                 $scope.loggedIn = true;
                 if ($scope.my.config.appWorkspace) {
-                    $scope.fetchAppConfig();
+                    // disabled for testing
+                    //$scope.fetchAppConfig();
                 } else {
                     $scope.initialized = false;
                 }
                 if ($scope.my.config.workspaces && $scope.my.config.workspaces.length === 0) {
                     $scope.initialized = false;
                 }
+                $scope.contacts = data.contacts;
             } else {
                 console.log("Deleting profile data because it expired");
                 localStorage.removeItem($scope.app.origin);

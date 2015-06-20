@@ -36,13 +36,11 @@
       </button>
     </div>
     <!-- Login -->
-    
   </div>
 
   <!-- Authenticated user -->
 
   <div class="main" ng-if="loggedIn">
-
     <!-- Top menu bar -->
 
     <div class="topbar">
@@ -54,7 +52,7 @@
         </div>
 
         <div ng-if="initialized" class="toolbar__left" aria-label="Filter contacts" lx-tooltip="Filter contacts" tooltip-position="bottom">
-          <lx-search-filter closed theme="dark" filter-width="220px" placeholder="Filter..." model="filterContacts"></lx-search-filter>
+          <lx-search-filter closed theme="dark" filter-width="220px" placeholder="Filter..." model="filters.contacts"></lx-search-filter>
         </div>
 
         <div class="toolbar__right toolbar__label">
@@ -129,10 +127,101 @@
     </div>
 
     <!-- Contacts -->
-    <contacts></contacts>
+    <div class="contacts" ng-show="initialized">
+      <div ng-if="contacts.length===0" class="row card align-center p+ mt">
+        <h3>You don't have any contacts yet.</h3>
+        <div>
+          <button class="btn btn--l btn--blue btn--raised mt+" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="openDialog('addcontact')">
+            <span aria-hidden="true" class="mdi mdi-account-plus tc-white-1"></span>
+            <span>Add a contact</span>
+          </button>
+        </div>
+      </div>
+
+      <div class="row contact mb" ng-repeat="contact in contacts | filter:filters.contacts | orderBy: 'name'">
+        <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
+          
+          <div class="list-row__primary">
+            <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" ng-click="toggleFavorite($index)">
+              <span aria-hidden="true" class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
+            </button>
+          </div>
+          <div class="list-row__primary mr+">
+            <div ng-show="contact.showcheckbox">
+              <div class="checkbox mt+ ml">
+                <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection($index)">
+                <label for="cb-{{$index}}" class="checkbox__label"></label>
+              </div>
+            </div>
+            <div ng-hide="contact.hidepic">
+              <img ng-show="contact.photo" ng-src="{{contact.photo}}" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round">
+              <img ng-hide="contact.photo" src="images/generic_photo.png" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round" />
+            </div>
+          </div>
+
+          <div class="list-row__content">
+            <div class="display-block">
+              {{contact.name}}
+            </div>
+            <div class="display-block fs-body-1 tc-black-2">
+              {{contact.emails[0]}}
+            </div>
+            <div class="display-block fs-body-1 tc-black-2">
+              {{contact.phones[0]}}
+            </div>
+          </div>
+
+          <div class="list-row__secondary">
+            <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="More contact info" lx-tooltip="Show more" tooltip-position="bottom">
+              <span aria-hidden="true" class="icon icon--s icon--grey icon--flat mdi mdi-chevron-double-down"></span>
+            </button>
+          </div>
+        </div>
+        <!-- More info -->
+        <div class="more">
+          
+        </div>
+      </div>
+    </div>
 
     <!-- Workspace picker -->
-    <workspaces></workspaces>
+    <!-- <workspaces></workspaces> -->
+    <div class="p+ mt+">
+      <div ng-if="!initialized" class="card p++ mt+">
+        <h4>It appears this is the first time you are using this application. You may have to go through some configuration steps before you can use it.</h4>
+
+        <div ng-if="!my.config.appWorkspace || my.config.appWorkspace.length===0">
+          <p class="mt">I could not find a workspace in which to store configuration data for applications. Please select a storage space in which to create the workspace:</p>
+          <div class="radio-group mt+">
+            <div class="radio-button" ng-repeat="storage in my.config.storages">
+                <input type="radio" id="radio-{{$index}}" ng-model="storageURI.checked" value="{{storage.uri}}" class="radio-button__input">
+                <label for="radio-{{$index}}" class="radio-button__label">Storage {{$index+1}}</label>
+                <span class="radio-button__help">Location: {{storage.uri}}</span>
+            </div>
+          </div>
+          <button class="btn btn--l btn--blue btn--raised mt++" lx-ripple aria-label="Save preferences" ng-click="initAppWorkspace()" ng-disabled="!storageURI.checked">
+            <span>Create Apps workspace</span>
+          </button>
+        </div>
+
+        <div ng-if="my.config.appWorkspace && my.config.appWorkspace.length>0 && my.config.workspaces.length===0">
+          <p class="mt">I managed to find the following workspaces in your profile information. Please select those in which you would like to store contact data:</p>
+          <ul class="list">
+            <li class="list-row list-row--has-separator" ng-repeat="workspace in my.config.availableWorkspaces">
+              <div class="checkbox mt">
+                <input type="checkbox" id="ws-{{$index}}" class="checkbox__input" ng-model="workspace.checked">
+                <label for="ws-{{$index}}" class="checkbox__label">{{workspace.name}}</label>
+                <span class="checkbox__help">Location: {{workspace.uri}}</span>
+              </div>
+            </li>
+          </ul>
+          <button class="btn btn--l btn--blue btn--raised mt++" lx-ripple aria-label="Save preferences" ng-click="initApp()" ng-disabled="(my.config.availableWorkspaces | filter: checked != true).length < 1">
+            <span>Save preferences</span>
+          </button>
+        </div>
+      </div>
+    </div>
+
 
     <!-- Dialogues -->
 
@@ -223,7 +312,6 @@
       | <a href="https://github.com/linkeddata/contacts/issues" target="_blank"><span aria-hidden="true" class="mdi-action-info-outline"></span> Issue tracker</a>
       | <a href="https://github.com/linkeddata/contacts" target="_blank">GitHub</a>
     </div>
-  
   </div>
 
 
