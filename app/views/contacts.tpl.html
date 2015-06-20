@@ -1,5 +1,5 @@
 <div class="contacts" ng-if="initialized">
-  <div class="row card align-center p+ mt">
+  <div ng-if="contacts.length===0" class="row card align-center p+ mt">
     <h3>You don't have any contacts yet.</h3>
     <div>
       <button class="btn btn--l btn--blue btn--raised mt+" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="openDialog('addcontact')">
@@ -25,8 +25,8 @@
           </div>
         </div>
         <div ng-hide="contact.hidepic">
-          <img ng-show="contact.picture" ng-src="{{contact.picture}}" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round">
-          <img ng-hide="contact.picture" src="images/generic_photo.png" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round" />
+          <img ng-show="contact.photo" ng-src="{{contact.photo}}" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round">
+          <img ng-hide="contact.photo" src="images/generic_photo.png" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round" />
         </div>
       </div>
 
@@ -35,10 +35,10 @@
             {{contact.name}}
           </div>
           <div class="display-block fs-body-1 tc-black-2">
-            <a href="mailto:{{contact.email}}">{{contact.email}}</a>
+            {{contact.emails[0]}}
           </div>
           <div class="display-block fs-body-1 tc-black-2">
-            {{contact.phone}}
+            {{contact.phones[0]}}
           </div>
       </div>
 

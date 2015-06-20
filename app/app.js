@@ -10,7 +10,7 @@ var PIM = $rdf.Namespace("http://www.w3.org/ns/pim/space#");
 var UI = $rdf.Namespace("http://www.w3.org/ns/ui#");
 var DCT = $rdf.Namespace("http://purl.org/dc/terms/");
 var SOLID = $rdf.Namespace("http://www.w3.org/ns/solid/app#");
-var VCARD = $rdf.Namespace("http://www.w3.org/2006/vcard/ns");
+var VCARD = $rdf.Namespace("http://www.w3.org/2006/vcard/ns#");
 
 var scope, gg;
 
@@ -187,7 +187,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                         if (configWs) {
                             $scope.my.config.appWorkspace = configWs['subject']['value'];
                             // Also get app data config
-                            $scope.fetchAppConfig(g, configWs['subject']['value']);
+                            $scope.fetchAppConfig();
                         } else {
                             $scope.initialized = false;
                         }
@@ -226,159 +226,169 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     // Fetch and look for our app in configuration resources
-    $scope.fetchAppConfig = function(graph, uri) {
-        var f = new $rdf.fetcher(graph, TIMEOUT);
+    $scope.fetchAppConfig = function() {
+        var g = new $rdf.graph();
+        var f = new $rdf.fetcher(g, TIMEOUT);
 
         // Show loading bar
         LxProgressService.linear.show('#E1F5FE', '#progress');
-        // Fetch user data
-        f.nowOrWhenFetched(uri+'*',undefined,function(ok, body, xhr) {
+        if ($scope.my.config.appWorkspace) {
+            // Fetch user data
+            f.nowOrWhenFetched($scope.my.config.appWorkspace+'*',undefined,function(ok, body, xhr) {
+                LxProgressService.linear.hide('#progress');
+                var thisApp = g.statementsMatching(undefined, SOLID('homepage'), $rdf.sym($scope.app.homepage))[0];
+                if (thisApp) {
+                    var dataSources = g.statementsMatching(thisApp['subject'], SOLID('dataSource'), undefined);
+                    dataSources.forEach(function(source) {
+                        if (source['object']['value'].length > 0) {
+                            $scope.my.config.workspaces.push(source['object']['value']);
+                            // Load contacts from sources
+                            $scope.loadContacts(source['object']['value']);
+                        }
+                    });
+                    $scope.saveLocalStorage();
+                } else {
+                    $scope.initialized = false;
+                    $scope.$apply();
+                }
+            });
+        } else {
             LxProgressService.linear.hide('#progress');
-            var thisApp = graph.statementsMatching(undefined, SOLID('homepage'), $rdf.sym($scope.app.homepage))[0];
-            if (thisApp) {
-                var dataSources = graph.statementsMatching(thisApp['subject'], SOLID('dataSource'), undefined);
-                dataSources.forEach(function(source) {
-                    if (source['object']['value'].length > 0) {
-                        $scope.my.config.workspaces.push(source['object']['value']);
-                        // Load contacts from sources
-                        $scope.loadContacts(source['object']['value']);
-                    }
-                });
-                $scope.saveLocalStorage();
-            } else {
-                $scope.initialized = false;
-                $scope.$apply();
-            }
-        });
+        }
     };
 
     // load contacts from a data source
     $scope.loadContacts = function(uri) {
         // Show loading bar
         LxProgressService.linear.show('#E1F5FE', '#progress');
-        console.log("Loading contacts from "+uri+"*");
         var g = new $rdf.graph();
         var f = new $rdf.fetcher(g, TIMEOUT);
 
         f.nowOrWhenFetched(uri+'*',undefined,function(ok, body, xhr) {
             LxProgressService.linear.hide('#progress');
-            console.log(uri);
             var contacts = g.statementsMatching(undefined, RDF('type'), VCARD('Individual'));
             if (contacts && contacts.length > 0) {
                 for (var i=0; i<contacts.length; i++) {
                     var subject = contacts[i]['subject']
                     var contact = {};
                     var uid = g.statementsMatching(subject, VCARD('hasUID'), undefined)[0];
-                    if (uid && uid.length > 0) {
-                        contact.uid = new $scope.ContactElement(uid);
+                    if (uid && uid['object']['value'].length > 0) {
+                        contact.uid = uid['object']['value'];
                     }
                     var fn = g.statementsMatching(subject, VCARD('fn'), undefined)[0];
-                    if (fn && fn.length > 0) {
-                        contact.fn = new $scope.ContactElement(fn);
+                    if (fn && fn['object']['value'].length > 0) {
+                        contact.name = fn['object']['value'];
                     }
                     var photo = g.statementsMatching(subject, VCARD('hasPhoto'), undefined)[0];
-                    if (photo && photo.length > 0) {
-                        contact.photo = new $scope.ContactElement(photo);
+                    if (photo && photo['object']['value'].length > 0) {
+                        contact.photo = photo['object']['value'];
                     }
                     var emails = g.statementsMatching(subject, VCARD('hasEmail'), undefined);
-                    if (emails && emails.length > 0) {
-                        contact.emails = new $scope.ContactElement(emails);
+                    if (emails.length > 0) {
+                        contact.emails = [];
+                        emails.forEach(function(email) {
+                            contact.emails.push(email['object']['value']);
+                        });
                     }
                     var phones = g.statementsMatching(subject, VCARD('hasTelephone'), undefined);
-                    if (phones && phones.length > 0) {
-                        contact.phones = new $scope.ContactElement(phones);
+                    if (phones.length > 0) {
+                        contact.phones = [];
+                        phones.forEach(function(phone) {
+                            contact.phones.push(phone['object']['value']);
+                        });
                     }
 
                     // push contact to list
                     $scope.contacts.push(contact);
+                    console.log(contact);
                 }
-                console.log($scope.contacts);
+                // console.log($scope.contacts);
             }
 
         });
     };
 
     // Contact element object
-    $scope.ContactElement = function(s) {
-        this.locked = false;
-        this.uploading = false;
-        this.failed = false;
-        this.picker = false;
-        this.statement = angular.copy(s);
-        this.value = this.prev = '';
-        if (s && s['object']['value']) {
-            var val = s['object']['value']
-            if (val.indexOf('tel:') >= 0) {
-                val = val.slice(4, val.length);
-            } else if (val.indexOf('mailto:') >= 0) {
-                val = val.slice(7, val.length);
-            }
-            this.value = val;
-            this.prev = val;
-        }
-    };
+    // $scope.ContactElement = function(s) {
+    //     this.locked = false;
+    //     this.uploading = false;
+    //     this.failed = false;
+    //     this.picker = false;
+    //     this.statement = angular.copy(s);
+    //     this.value = this.prev = '';
+    //     if (s && s['object']['value']) {
+    //         var val = s['object']['value']
+    //         if (val.indexOf('tel:') >= 0) {
+    //             val = val.slice(4, val.length);
+    //         } else if (val.indexOf('mailto:') >= 0) {
+    //             val = val.slice(7, val.length);
+    //         }
+    //         this.value = val;
+    //         this.prev = val;
+    //     }
+    // };
 
-    $scope.ContactElement.prototype.updateObject = function(update, force) {
-        // do not update if value hasn't changed
-        if (this.value == this.prev && !force) {
-          return;
-        }
+    // $scope.ContactElement.prototype.updateObject = function(update, force) {
+    //     // do not update if value hasn't changed
+    //     if (this.value == this.prev && !force) {
+    //       return;
+    //     }
 
-        $scope.changeInProgress = true;
+    //     $scope.changeInProgress = true;
 
-        if (!this.failed && this.value) {
-          this.prev = angular.copy(this.value);
-        }
-        var oldS = angular.copy(this.statement);
-        if (this.statement) {
-          if (this.statement['object']['termType'] == 'literal') {
-            this.statement['object']['value'] = this.value;
-          } else if (this.statement['object']['termType'] == 'symbol') {
-            val = this.value;
-            if (this.statement['predicate'].compareTerm(FOAF('mbox')) == 0) {
-              val = "mailto:"+val;
-            } else if (this.statement['predicate'].compareTerm(FOAF('phone')) == 0) {
-              val = "tel:"+val;
-            }
-            this.statement['object']['uri'] = val;
-            this.statement['object']['value'] = val;
-          }
-        }
+    //     if (!this.failed && this.value) {
+    //       this.prev = angular.copy(this.value);
+    //     }
+    //     var oldS = angular.copy(this.statement);
+    //     if (this.statement) {
+    //       if (this.statement['object']['termType'] == 'literal') {
+    //         this.statement['object']['value'] = this.value;
+    //       } else if (this.statement['object']['termType'] == 'symbol') {
+    //         val = this.value;
+    //         if (this.statement['predicate'].compareTerm(FOAF('mbox')) == 0) {
+    //           val = "mailto:"+val;
+    //         } else if (this.statement['predicate'].compareTerm(FOAF('phone')) == 0) {
+    //           val = "tel:"+val;
+    //         }
+    //         this.statement['object']['uri'] = val;
+    //         this.statement['object']['value'] = val;
+    //       }
+    //     }
 
-        if (update) {
-          this.locked = true;
-          var query = '';
-          var graphURI = '';
-          if (oldS && oldS['object']['value'].length > 0) {
-            var query = "DELETE DATA { " + oldS.toNT() + " }";
-            if (oldS['why'] && oldS['why']['value'].length > 0) {
-              graphURI = oldS['why']['value'];
-            } else {
-              graphURI = oldS['subject']['value'];
-            }
-            // add separator
-            if (this.value.length > 0) {
-              query += " ;\n";
-            }
-          }
-          if (this.value && this.value.length > 0) {
-            // should ask the user where the new triple should be saved
-            query += "INSERT DATA { " + this.statement.toNT() + " }";
-            if (graphURI.length == 0) {
-              if (this.statement && this.statement['why']['value'].length > 0) {
-                graphURI = this.statement['why']['value'];
-              } else {
-                graphURI = this.statement['subject']['value'];
-              }
-            }
-          }
+    //     if (update) {
+    //       this.locked = true;
+    //       var query = '';
+    //       var graphURI = '';
+    //       if (oldS && oldS['object']['value'].length > 0) {
+    //         var query = "DELETE DATA { " + oldS.toNT() + " }";
+    //         if (oldS['why'] && oldS['why']['value'].length > 0) {
+    //           graphURI = oldS['why']['value'];
+    //         } else {
+    //           graphURI = oldS['subject']['value'];
+    //         }
+    //         // add separator
+    //         if (this.value.length > 0) {
+    //           query += " ;\n";
+    //         }
+    //       }
+    //       if (this.value && this.value.length > 0) {
+    //         // should ask the user where the new triple should be saved
+    //         query += "INSERT DATA { " + this.statement.toNT() + " }";
+    //         if (graphURI.length == 0) {
+    //           if (this.statement && this.statement['why']['value'].length > 0) {
+    //             graphURI = this.statement['why']['value'];
+    //           } else {
+    //             graphURI = this.statement['subject']['value'];
+    //           }
+    //         }
+    //       }
 
-          // send PATCH request
-          if (graphURI && graphURI.length > 0) {
-            $scope.sendSPARQLPatch(graphURI, query, this, oldS);
-          }
-        }
-    };
+    //       // send PATCH request
+    //       if (graphURI && graphURI.length > 0) {
+    //         $scope.sendSPARQLPatch(graphURI, query, this, oldS);
+    //       }
+    //     }
+    // };
 
     // $scope.ProfileElement.prototype.deleteSubject = function (send) {
     //     this.locked = true;
@@ -744,6 +754,11 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             if (Date.now() < dateValid) {
                 $scope.my = data.profile;
                 $scope.loggedIn = true;
+                if ($scope.my.config.appWorkspace) {
+                    $scope.fetchAppConfig();
+                } else {
+                    $scope.initialized = false;
+                }
                 if ($scope.my.config.workspaces && $scope.my.config.workspaces.length === 0) {
                     $scope.initialized = false;
                 }
