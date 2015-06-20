@@ -1,5 +1,5 @@
 <div class="contacts" ng-if="initialized">
-  <div ng-if="initialized && contacts.length===0" class="row card align-center p+ mt">
+  <div ng-if="contacts.length===0" class="row card align-center p+ mt">
     <h3>You don't have any contacts yet.</h3>
     <div>
       <button class="btn btn--l btn--blue btn--raised mt+" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="openDialog('addcontact')">
@@ -9,19 +9,19 @@
     </div>
   </div>
 
-  <div class="row contacts mb" ng-if="initialized" ng-repeat="contact in contacts | filter: filterContacts">
-    <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact($index, true)" ng-mouseleave="hoverContact($index, false)">
+  <div class="row contact mb" ng-repeat="contact in contacts | filter: filters.contacts | orderBy: 'name'">
+    <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact(contacts.indexOf(contact), true)" ng-mouseleave="hoverContact(contacts.indexOf(contact), false)">
       
       <div class="list-row__primary">
-        <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" ng-click="toggleFavorite($index)">
+        <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" ng-click="toggleFavorite(contacts.indexOf(contact))">
           <span aria-hidden="true" class="icon icon--l icon--flat mdi" ng-class="contact.favorite == 'favorite'?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
         </button>
       </div>
       <div class="list-row__primary mr+">
         <div ng-show="contact.showcheckbox">
           <div class="checkbox mt+ ml">
-            <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection($index)">
-            <label for="cb-{{$index}}" class="checkbox__label"></label>
+            <input type="checkbox" id="cb-{{contacts.indexOf(contact)}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection(contacts.indexOf(contact))">
+            <label for="cb-{{contacts.indexOf(contact)}}" class="checkbox__label"></label>
           </div>
         </div>
         <div ng-hide="contact.hidepic">

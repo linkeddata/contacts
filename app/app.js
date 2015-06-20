@@ -289,14 +289,14 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     if (emails.length > 0) {
                         contact.emails = [];
                         emails.forEach(function(email) {
-                            contact.emails.push(email['object']['value']);
+                            contact.emails.push(email['object']['value'].slice(7, email['object']['value'].length));
                         });
                     }
                     var phones = g.statementsMatching(subject, VCARD('hasTelephone'), undefined);
                     if (phones.length > 0) {
                         contact.phones = [];
                         phones.forEach(function(phone) {
-                            contact.phones.push(phone['object']['value']);
+                            contact.phones.push(phone['object']['value'].slice(4, phone['object']['value'].length));
                         });
                     }
 
