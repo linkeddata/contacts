@@ -9,6 +9,7 @@ var OWL = $rdf.Namespace("http://www.w3.org/2002/07/owl#");
 var PIM = $rdf.Namespace("http://www.w3.org/ns/pim/space#");
 var UI = $rdf.Namespace("http://www.w3.org/ns/ui#");
 var DCT = $rdf.Namespace("http://purl.org/dc/terms/");
+var LDP = $rdf.Namespace("http://www.w3.org/ns/ldp#");
 var SOLID = $rdf.Namespace("http://www.w3.org/ns/solid/app#");
 var VCARD = $rdf.Namespace("http://www.w3.org/2006/vcard/ns#");
 
@@ -342,17 +343,23 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                         if (arr.length > 0) {
                             contact[prop] = [];
                             for (var i=0; i<arr.length; i++) {
+                                // Set the right why value to subject value if it's an ldp#resource
+                                var ldpRes = g.statementsMatching($rdf.sym(uri+'*'), LDP('contains'), subject);
+                                if (ldpRes.length > 0) {
+                                    arr[i]['why']['uri'] = arr[i]['why']['value'] = subject['value'];
+                                }
                                 contact[prop].push(new $scope.ContactElement(arr[i]));
                             }
                         }
                     };
-                    
+
                     $scope.vcardElems.forEach(function(elem) {
                         newElement(g.statementsMatching(subject, VCARD(elem), undefined), elem);
                     });
                     
                     // push contact to list
                     $scope.contacts.push(contact);
+                    $scope.$apply();
                 }
                 scope.contacts = $scope.contacts;
                 $scope.saveLocalStorage();

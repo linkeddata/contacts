@@ -157,10 +157,10 @@
               drag-over-class="dragover" ng-multiple="false" allow-dir="false"
               ng-accept="'.jpg,.jpeg,.png'" ng-capture="camera">
               <div ng-file-select ng-model="contact.pictureFile" accept="image/*" ng-multiple="false" ng-capture="camera" class="relative center valign-wrapper">
-                <img ng-if="contact.picture.value" ng-src="{{contact.picture.value}}" class="newimg align-center img-round"/>
-                <img ng-if="!contact.picture.value || contact.picture.value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
+                <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center img-round"/>
+                <img ng-if="!contact.hasPhoto[0].value || contact.hasPhoto[0].value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
                 <div class="valign align-center">
-                  <spinner class="valign spinner" ng-show="contact.picture.uploading"></spinner>
+                  <spinner class="valign spinner" ng-show="contact.hasPhoto.uploading"></spinner>
                   <button class="btn btn--l btn--black" lx-ripple>
                     <span aria-hidden="true" class="mdi mdi-camera"></span>
                     <span class="valign">Change photo</span>
