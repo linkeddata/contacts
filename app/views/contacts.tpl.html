@@ -2,7 +2,7 @@
   <div ng-if="contacts.length===0" class="row card align-center p+ mt">
     <h3>You don't have any contacts yet.</h3>
     <div>
-      <button class="btn btn--l btn--blue btn--raised mt+" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="openDialog('addcontact')">
+      <button class="btn btn--l btn--blue btn--raised mt+" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="openDialog('contactInfo')">
         <span aria-hidden="true" class="mdi mdi-account-plus tc-white-1"></span>
         <span>Add a contact</span>
       </button>
@@ -10,7 +10,7 @@
   </div>
 
   <div class="row contact mb" ng-repeat="contact in contacts | filter: filters.contacts | orderBy: 'name'">
-    <div class="card list-row list-row--multi-line" ng-class="{ 'bgc-blue-100':contact.checked }" ng-mouseenter="hoverContact(contacts.indexOf(contact), true)" ng-mouseleave="hoverContact(contacts.indexOf(contact), false)">
+    <div class="card list-row list-row--multi-line" ng-class="{'bgc-blue-100':contact.checked, 'disabled': contact.disabled}" ng-mouseenter="hoverContact(contacts.indexOf(contact), true)" ng-mouseleave="hoverContact(contacts.indexOf(contact), false)">
       
       <div class="list-row__primary">
         <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" ng-click="toggleFavorite(contacts.indexOf(contact))">
@@ -24,33 +24,38 @@
             <label for="cb-{{contacts.indexOf(contact)}}" class="checkbox__label"></label>
           </div>
         </div>
-        <div ng-hide="contact.hidepic">
-          <img ng-show="contact.photo" ng-src="{{contact.photo}}" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round">
-          <img ng-hide="contact.photo" src="images/generic_photo.png" alt="Photo of {{contact.name}}" width="40" height="40" class="img-round" />
+        <div ng-hide="contact.hidepic" ng-click="hoverContact(contacts.indexOf(contact), true)">
+          <img ng-show="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" alt="Photo of {{contact.fn[0].value}}" width="40" height="40" class="img-round">
+          <img ng-hide="contact.hasPhoto[0].value" src="images/generic_photo.png" alt="Photo of {{contact.fn[0].value}}" width="40" height="40" class="img-round" />
         </div>
       </div>
 
-      <div class="list-row__content">
+      <div class="list-row__content truncate" ng-click="hoverContact(contacts.indexOf(contact), true)">
           <div class="display-block">
-            {{contact.name}}
+            {{contact.fn[0].value}}
           </div>
           <div class="display-block fs-body-1 tc-black-2">
-            {{contact.emails[0]}}
+            {{contact.hasEmail[0].value}}
           </div>
           <div class="display-block fs-body-1 tc-black-2">
-            {{contact.phones[0]}}
+            {{contact.hasTelephone[0].value}}
           </div>
       </div>
 
-      <div class="list-row__secondary">
-        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="More contact info" lx-tooltip="Show more" tooltip-position="bottom">
-          <span aria-hidden="true" class="icon icon--s icon--grey icon--flat mdi mdi-chevron-double-down"></span>
-        </button>
+      <div class="list-row__secondary mt">
+        <lx-dropdown position="right" from-top>
+          <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Actions">
+            <span aria-hidden="true" class="mdi mdi-dots-vertical"></span>
+          </button>
+          <lx-dropdown-menu>
+            <ul>
+              <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-eye mr"></span>Show more</a></li>
+              <li><a class="dropdown-link" ng-click="editContact(contacts.indexOf(contact))"><span aria-hidden="true" class="mdi mdi-pencil mr"></span>Edit contact</a></li>
+              <li><a class="dropdown-link" ng-click="confirmDelete([contacts.indexOf(contact)])"><span aria-hidden="true" class="mdi mdi-delete mr"></span>Delete</a></li>
+            </ul>
+          </lx-dropdown-menu>
+        </lx-dropdown>
       </div>
-    </div>
-    <!-- More info -->
-    <div class="more">
-      
     </div>
   </div>
 </div>

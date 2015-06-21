@@ -130,6 +130,24 @@ li {
   font-weight: 300;
 }
 
+.pick-area img:hover {
+  border: 3px solid #fff;
+}
+.pick-file {
+  position: absolute;
+  display: inline-block!important;
+  bottom: 0px;
+  opacity: 0.5;
+  left: 3px;
+  right: 3px;
+  width: 170px;
+  height: 50px;
+  border-radius: 3px;
+}
+.pick-file:hover {
+  opacity: 0.6;
+}
+
 .fs-title {
   font-weight: 300;
 }
@@ -140,9 +158,8 @@ li {
   color: #000!important;
 }
 
-.dialog__l {
-  width: 90%;
-  margin-left: -45%;
+.dialog {
+  top: 15px;
 }
 
 .checkbox-workspace {
@@ -176,6 +193,12 @@ li {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3F51B5', endColorstr='#03A9F4',GradientType=1 );
 }
 
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  background: #CCC;
+}
+
 .newimg {
   width: 180px;
   height: 180px;
@@ -203,6 +226,13 @@ li {
    color:    #ccc!important;
 }
 
+@media screen and (max-width: 1023px) {
+  .dialog--l {
+    width: 96%;
+    margin-left: -48%;
+  }
+}
+
 @media (max-width: 600px) {
   .welcome { overflow: auto; }
   .welcome-title {
@@ -220,6 +250,12 @@ li {
     font-size: 2.125rem;
     font-weight: 400;
     line-height: 40px;
+  }
+  .truncate {
+    width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
 
   .toolbar {
