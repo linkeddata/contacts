@@ -102,7 +102,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             console.log(ids);
             var plural = '';
             var id = ids[0];
-            var text = $scope.contacts[id].name.value +' ?';
+            var text = $scope.contacts[id].card.name.value +' ?';
         } else if (ids.length > 1) {
             var plural = 's';
             var text = ids.length +' contacts?';
@@ -127,7 +127,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         // hide select bar 
         $scope.selectNone();
         // save contacts state
-        $scope.saveLocalStorage();
+        // $scope.saveLocalStorage();
     };
 
     $scope.editContact = function(id) {
@@ -337,18 +337,19 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 for (var i=0; i<contacts.length; i++) {
                     var subject = contacts[i]['subject']
                     var contact = {};
+                    contact.card = [];
                     contact.disabled = false;
 
                     var newElement = function(arr, prop) {
                         if (arr.length > 0) {
-                            contact[prop] = [];
+                            contact.card[prop] = [];
                             for (var i=0; i<arr.length; i++) {
                                 // Set the right why value to subject value if it's an ldp#resource
                                 var ldpRes = g.statementsMatching($rdf.sym(uri+'*'), LDP('contains'), subject);
                                 if (ldpRes.length > 0) {
                                     arr[i]['why']['uri'] = arr[i]['why']['value'] = subject['value'];
                                 }
-                                contact[prop].push(new $scope.ContactElement(arr[i]));
+                                contact.card[prop].push(new $scope.ContactElement(arr[i]));
                             }
                         }
                     };
