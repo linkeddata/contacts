@@ -35,12 +35,12 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // list of vocabularies used for vcard data
     $scope.vcardElems = [ 
-        { name: 'fn', label:'Name', icon: 'account', textarea: false, display: true },
-        { name: 'uid', label: 'WebID', icon: 'web', textarea: false, display: true },
-        { name: 'hasPhoto', label:'Photo', icon: 'camera', textarea: false, display: false },
-        { name: 'hasEmail', label:'Email', icon: 'email', textarea: false, display: true  },
-        { name: 'hasTelephone', label:'Phone', icon: 'phone', textarea: false, display: true },
-        { name: 'hasNote', label:'Note', icon: 'file-document-box', textarea: true, display: true }
+        { name: 'fn', label:'Name', icon: 'account', link: false, textarea: false, display: true },
+        { name: 'uid', label: 'WebID', icon: 'web', link: true, textarea: false, display: true },
+        { name: 'hasPhoto', label:'Photo', icon: 'camera', link: false, textarea: false, display: false },
+        { name: 'hasEmail', label:'Email', icon: 'email', link: true, textarea: false, display: true  },
+        { name: 'hasTelephone', label:'Phone', icon: 'phone', link: true, textarea: false, display: true },
+        { name: 'hasNote', label:'Note', icon: 'file-document-box', link: false, textarea: true, display: true }
     ];
 
     // set init variables
@@ -75,9 +75,43 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         $scope.contacts = [];
     };
 
+    $scope.addContactField = function(name) {
+        var statement = new $rdf.st(
+                $rdf.sym(''),
+                VCARD(name),
+                $rdf.sym(''),
+                $rdf.sym('')
+            );
+        if (!$scope.contact[name]) {
+            $scope.contact[name] = [];
+        }
+        $scope.contact[name].push(new $scope.ContactElement(statement));
+    };
+
+    $scope.deleteContactField = function(elem, item) {
+        elem.splice(item, 1);
+    };
+
+    $scope.viewContact = function(id) {
+        delete $scope.contact;
+        $scope.contact = angular.copy($scope.contacts[id]);
+        $scope.contact.id = id;
+        $scope.contact.editing = false;
+        $scope.openDialog('contactInfo');
+    };
+
+    $scope.editContact = function(id) {
+        delete $scope.contact;
+        $scope.contact = angular.copy($scope.contacts[id]);
+        $scope.contact.id = id;
+        $scope.contact.editing = true;
+        $scope.openDialog('contactInfo');
+        console.log($scope.contact);
+    };
+
     $scope.saveContact = function() {
         // if contact exists
-        if ($scope.contact.id) {
+        if ($scope.contact.id !== undefined) {
             $scope.contacts[$scope.contact.id] = angular.copy($scope.contact);
             delete $scope.contacts[$scope.contact.id].id;
             $scope.notify('success', 'Contact updated');
@@ -93,21 +127,20 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     };
 
-    $scope.addElement = function() {
-        if (!$scope.profile.phones) {
-          $scope.profile.phones = [];
-        }
-        var elem = new $scope.ContactElement(
-        
-          $rdf.st(
-            $rdf.sym($scope.profile.webid),
-            FOAF('phone'),
-            $rdf.sym(''),
-            $rdf.sym('')
-          )
-        );
-        $scope.profile.phones.push(newPhone);
-    };
+    $scope.resetContact = function() {
+        delete $scope.contact;
+        $scope.contact = {};
+        $scope.contact.editing = true;
+        $scope.vcardElems.forEach(function(elem) {
+            var statement = new $rdf.st(
+                $rdf.sym(''),
+                VCARD(elem.name),
+                $rdf.sym(''),
+                $rdf.sym('')
+            );
+            $scope.contact[elem.name] = [new $scope.ContactElement(statement)];
+        });
+    }
 
     $scope.confirmDelete = function(ids, type) {
         if (ids.length === 1) {
@@ -139,44 +172,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         // save modified contacts list
         $scope.saveLocalStorage();
     };
-
-    $scope.addContactField = function(name) {
-        var statement = new $rdf.st(
-                $rdf.sym(''),
-                VCARD(name),
-                $rdf.sym(''),
-                $rdf.sym('')
-            );
-        if (!$scope.contact[name]) {
-            $scope.contact[name] = [];
-        }
-        $scope.contact[name].push(new $scope.ContactElement(statement));
-    };
-
-    $scope.deleteContactField = function(elem, item) {
-        elem.splice(item, 1);
-    };
-
-    $scope.editContact = function(id) {
-        delete $scope.contact;
-        $scope.contact = angular.copy($scope.contacts[id]);
-        $scope.contact.id = id;
-        $scope.openDialog('contactInfo');
-    };
-
-    $scope.resetContact = function() {
-        delete $scope.contact;
-        $scope.contact = {};
-        $scope.vcardElems.forEach(function(elem) {
-            var statement = new $rdf.st(
-                $rdf.sym(''),
-                VCARD(elem.name),
-                $rdf.sym(''),
-                $rdf.sym('')
-            );
-            $scope.contact[elem.name] = [new $scope.ContactElement(statement)];
-        });
-    }
 
     // Load a user's profile
     // string uri  - URI of resource containing profile information
@@ -428,8 +423,10 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         if (s && s['object']['value']) {
             var val = s['object']['value']
             if (val.indexOf('tel:') >= 0) {
+                this.uri = val;
                 val = val.slice(4, val.length);
             } else if (val.indexOf('mailto:') >= 0) {
+                this.uri = val;
                 val = val.slice(7, val.length);
             }
             this.value = val;

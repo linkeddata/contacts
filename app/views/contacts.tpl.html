@@ -49,9 +49,8 @@
           </button>
           <lx-dropdown-menu>
             <ul>
-              <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-eye mr"></span>Show more</a></li>
+              <li><a class="dropdown-link" ng-click="viewContact(contacts.indexOf(contact))"><span aria-hidden="true" class="mdi mdi-eye mr"></span>View contact</a></li>
               <li><a class="dropdown-link" ng-click="editContact(contacts.indexOf(contact))"><span aria-hidden="true" class="mdi mdi-pencil mr"></span>Edit contact</a></li>
-              <li><a class="dropdown-link" href="{{contact.uri}}"><span aria-hidden="true" class="mdi mdi-link mr"></span>Link to contact</a></li>
               <li><a class="dropdown-link" ng-click="manageSelection(contacts.indexOf(contact), true)"><span aria-hidden="true" class="mdi mdi-checkbox-marked-outline mr"></span>Select contact</a></li>
               <li class="dropdown-divider"></li>
               <li><a class="dropdown-link" ng-click="confirmDelete([contacts.indexOf(contact)])"><span aria-hidden="true" class="mdi mdi-delete mr"></span>Delete</a></li>

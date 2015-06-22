@@ -83,7 +83,7 @@
     <!-- Selected contacts bar -->
 
     <div class="selectbar toolbar bgc-blue-100 tc-grey-800" ng-if="selects.contacts.length > 0">
-      <div class="toolbar__left mr">
+      <div class="toolbar__left">
         <a class="btn btn--l" lx-ripple aria-label="Back" lx-tooltip="Back" tooltip-position="bottom" ng-click="selectNone()">
           <span aria-hidden="true" class="mdi mdi-arrow-left tc-grey-800"></span>
           Back
@@ -161,10 +161,10 @@
     <div class="dialog__content p">
       <div flex-container="row" flex-gutter="24">
         <div flex-item="3" class="mt ml">
-          <div ng-file-drop ng-model="contact.pictureFile" class="drop-box valign-wrapper center profile-picture" 
+          <div ng-if="contact.editing" ng-file-drop ng-model="contact.pictureFile" class="profile-picture" 
             drag-over-class="dragover" ng-multiple="false" allow-dir="false"
             ng-accept="'.jpg,.jpeg,.png'" ng-capture="camera">
-            <div ng-file-select ng-model="contact.pictureFile" accept="image/*" ng-multiple="false" ng-capture="camera" class="relative center valign-wrapper">
+            <div ng-file-select ng-model="contact.pictureFile" accept="image/*" ng-multiple="false" ng-capture="camera">
               <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center img-round"/>
               <img ng-if="!contact.hasPhoto[0].value || contact.hasPhoto[0].value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
               <div class="valign align-center">
@@ -176,10 +176,15 @@
               </div>
             </div>
           </div>
+
+          <div ng-if="!contact.editing" class="profile-picture">
+            <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center img-round"/>
+              <img ng-if="!contact.hasPhoto[0].value || contact.hasPhoto[0].value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
+          </div>
         </div>
 
         <div flex-item>
-          <div ng-repeat="elem in vcardElems">
+          <div ng-if="contact.editing" ng-repeat="elem in vcardElems">
             <div ng-if="elem.display" ng-repeat="item in contact[elem.name]">
               <lx-text-field ng-if="!elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
                 <input type="text" ng-model="item.value">
@@ -194,7 +199,24 @@
             </div>
           </div>
 
-          <lx-dropdown>
+          <div ng-if="!contact.editing">
+              <div ng-repeat="elem in vcardElems">
+                <div ng-if="contact[elem.name].length > 0 && elem.display" class="list-row">
+                  <div class="list-row__primary">
+                      <i class="icon icon--s icon--grey icon--flat mdi mdi-{{elem.icon}} top"></i>
+                  </div>
+                  <div class="list-row__content">
+                      <div><strong>{{elem.label}}</strong></div>
+                      <div ng-repeat="item in contact[elem.name]">
+                        <span ng-if="!elem.link">{{item.value}}</span>
+                        <a ng-if="elem.link" href="{{item.uri}}">{{item.value}}</a>
+                      </div>
+                  </div>
+                </div>
+              </div>
+          </div>
+
+          <lx-dropdown ng-if="contact.editing">
             <a class="btn btn--l btn--black" lx-ripple lx-dropdown-toggle aria-label="Select fields to add">
               <span>Add field</span>
               <span aria-hidden="true" class="mdi mdi-chevron-down tc-grey-800"></span>
@@ -208,9 +230,13 @@
         </div>
       </div>
     </div>
-    <div class="dialog__actions">
+    <div ng-if="contact.editing" class="dialog__actions">
       <button class="btn btn--m btn--black btn--flat" lx-ripple ng-click="saveContact()">Save</button>
       <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>
+    </div>
+    <div ng-if="!contact.editing" class="dialog__actions">
+      <button class="btn btn--m btn--black btn--flat" lx-ripple ng-click="contact.editing=true">Edit</button>
+      <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Close</button>
     </div>
   </lx-dialog>
 
