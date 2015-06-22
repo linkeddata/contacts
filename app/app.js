@@ -24,10 +24,6 @@ var Contacts = angular.module('Contacts', [
 ]);
 
 Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService, LxProgressService, LxDialogService) {
-    $scope.initialized = true;
-    $scope.loggedIn = false;
-    $scope.loginTLSButtonText = "Login";
-
     $scope.app = {};
     $scope.app.origin = window.location.origin;
     $scope.app.homepage = "https://linkeddata.github.io/contacts/";
@@ -46,30 +42,34 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         { name: 'hasTelephone', label:'Phone', icon: 'phone', display: true }
     ];
 
+    // set init variables
+    $scope.init = function() {
+        $scope.initialized = true;
+        $scope.loggedIn = false;
+        $scope.loginTLSButtonText = "Login";
 
-    // search filter object
-    $scope.filters = {};
+        // search filter object
+        $scope.filters = {};
 
-    // user model
-    $scope.my = {
-        config: {
-            workspaces: [],
-            availableWorkspaces: []
-        }
+        // user model
+        $scope.my = {
+            config: {
+                workspaces: [],
+                availableWorkspaces: []
+            }
+        };
+
+        // chosen storage URI for the app workspace
+        $scope.storageURI = {};
+        // temporary list of selected contacts
+        $scope.selectedContacts = [];
+
+        // contact to be added/updated
+        $scope.contact = $scope.resetContact();
+
+        // list of contacts
+        $scope.contacts = [];
     };
-
-    // chosen storage URI for the app workspace
-    $scope.storageURI = {};
-    // temporary list of selected contacts
-    $scope.selectedContacts = [];
-
-    // contact to be added/updated
-    $scope.contact = {};
-
-    // list of contacts
-    $scope.contacts = [];
-
-
 
     $scope.saveContact = function() {
         console.log($scope.contact);
@@ -130,13 +130,15 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.editContact = function(id) {
-        $scope.openDialog('contactInfo');
+        delete $scope.contact;
         $scope.contact = angular.copy($scope.contacts[id]);
         $scope.contact.id = id;
+        $scope.openDialog('contactInfo');
     };
 
     $scope.resetContact = function() {
-        var contact = {};
+        delete $scope.contact;
+        $scope.contact = {};
         $scope.vcardElems.forEach(function(elem) {
             var statement = new $rdf.st(
                 $rdf.sym(''),
@@ -144,10 +146,8 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 $rdf.sym(''),
                 $rdf.sym('')
             );
-            contact[elem.name] = [new $scope.ContactElement(statement)];
+            $scope.contact[elem.name] = [new $scope.ContactElement(statement)];
         });
-        console.log(contact);
-        return contact;
     }
 
     // Load a user's profile
@@ -774,10 +774,10 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // Dialogues
     $scope.openDialog = function(elem, reset) {
-        LxDialogService.open(elem);
         if (reset) {
-            $scope.contact = $scope.resetContact();
+            $scope.resetContact();
         }
+        LxDialogService.open(elem);
         $(document).keyup(function(e) {
           if (e.keyCode===27) {
             LxDialogService.close(elem);
@@ -795,9 +795,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
           // add dir to local list
           var user = headers('User');
           if (user && user.length > 0 && user.slice(0,4) == 'http') {
-            if (!$scope.webid) {
-              $scope.webid = user;
-            }
             $scope.getProfile(user);
             $scope.loggedIn = true;
           } else {
@@ -822,24 +819,16 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.logOut = function() {
-        $scope.loggedIn = false;
-        $scope.webid = '';
-        $scope.my = {};
-        $scope.contacts = [];
-        $scope.selectedContacts = [];
-
+        $scope.init();
         // clear localstorage
         localStorage.removeItem($scope.app.origin);
     };
 
-    // initialize by retrieving user info from sessionStorage
-    // retrieve from sessionStorage
+    // initialize by retrieving user info from localStorage
+    $scope.init();
     if (localStorage.getItem($scope.app.origin)) {
         var data = JSON.parse(localStorage.getItem($scope.app.origin));
         if (data) {
-            if (!$scope.my) {
-              $scope.my = {};
-            }
             // don't let session data become stale (24h validity)
             var dateValid = data.profile.loadDate + 1000 * 60 * 60 * 24;
             if (Date.now() < dateValid) {

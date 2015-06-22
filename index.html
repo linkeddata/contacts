@@ -134,116 +134,96 @@
 
     <workspaces></workspaces>
 
-    <!-- Dialogues -->
-
-    <!-- New contact -->
-    <lx-dialog class="dialog dialog--l" id="contactInfo">
-      <div class="dialog__header">
-        <div class="toolbar bgc-blue-A700 pl++">
-          <span class="toolbar__label tc-white fs-title">
-            New contact
-          </span>
-          <div class="toolbar__right">
-            <button class="btn btn--l btn--white btn--icon" lx-ripple lx-dialog-close>
-              <span aria-hidden="true" class="mdi mdi-close"></span>
-            </button>
-          </div>
-        </div>
-      </div>
-      <div class="dialog__content">
-        <div class="p+" flex-container="row" flex-gutter="24">
-          <div flex-item="3">
-            <div ng-file-drop ng-model="contact.pictureFile" class="drop-box valign-wrapper center profile-picture" 
-              drag-over-class="dragover" ng-multiple="false" allow-dir="false"
-              ng-accept="'.jpg,.jpeg,.png'" ng-capture="camera">
-              <div ng-file-select ng-model="contact.pictureFile" accept="image/*" ng-multiple="false" ng-capture="camera" class="relative center valign-wrapper">
-                <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center img-round"/>
-                <img ng-if="!contact.hasPhoto[0].value || contact.hasPhoto[0].value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
-                <div class="valign align-center">
-                  <spinner class="valign spinner" ng-show="contact.hasPhoto.uploading"></spinner>
-                  <button class="btn btn--l btn--black" lx-ripple>
-                    <span aria-hidden="true" class="mdi mdi-camera"></span>
-                    <span class="valign">Change photo</span>
-                  </button>
-                </div>
-              </div>
-          </div>
-          </div>
-
-          <div flex-item>
-                <div ng-repeat="elem in vcardElems">
-                  <lx-text-field ng-if="elem.display" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}" ng-repeat="item in contact[elem.name]">
-                      <input type="text" ng-model="item.value">
-                  </lx-text-field>
-                </div>
-<!-- 
-                <lx-text-field label="Phone number" fixed-label="true" icon="phone" ng-repeat="phone in contact.hasTelephone">
-                    <input type="text" ng-model="phone.value">
-                </lx-text-field>
-
-                <lx-text-field label="Address" fixed-label="true" icon="city" ng-repeat="address in contact.address">
-                    <input type="text" ng-model="address.value">
-                </lx-text-field>
-
-                <lx-text-field label="Email address" fixed-label="true" icon="email" ng-repeat="email in contact.hasEmail">
-                    <input type="email" ng-model="email.value">
-                </lx-text-field>
-
-                <lx-text-field label="Homepage" fixed-label="true" icon="earth" ng-repeat="homepage in contact.homepages">
-                    <input type="email" ng-model="homepage.value"> -->
-                </lx-text-field>
-            </form>
-          </div>
-        </div>
-      </div>
-      <div class="dialog__actions">
-        <button class="btn btn--m btn--black btn--flat" lx-ripple ng-click="saveContact()">Save</button>
-        <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>
-      </div>
-    </lx-dialog>
-
-
-
-    <!-- About -->
-    <lx-dialog class="dialog dialog--l" auto-close="true" id="about">
-      <div class="dialog__header">
-        <div class="toolbar bgc-blue-A700 pl+">
-          <span class="toolbar__label tc-white fs-title">
-            About Contacts
-          </span>
-          <div class="toolbar__right">
-            <button class="btn btn--l btn--white btn--icon" lx-ripple lx-dialog-close>
-              <span aria-hidden="true" class="mdi mdi-close"></span>
-            </button>
-          </div>
-        </div>
-      </div>
-      <div class="dialog__content p+">
-        <p>Contacts is a personal address book manager, that uses Linked Data to store your contacts on your personal online datastore.</p>
-        <br>
-        <p>This application follows the <a href="https://github.com/linkeddata/SoLiD/">SoLiD specifications</a> to ensure that your data stays private.</p>
-      </div>
-      <div class="dialog__actions">
-        <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Close</button>
-      </div>
-    </lx-dialog>
-
-    <!-- End dialogues -->
-
     <!-- footer -->
-     <div class="align-center footer fs-body-2 mt">
+    <div class="align-center footer fs-body-2 mt+">
       &copy; 2015
       | <a href="https://github.com/linkeddata/contacts/issues" target="_blank"><span aria-hidden="true" class="mdi-action-info-outline"></span> Issue tracker</a>
       | <a href="https://github.com/linkeddata/contacts" target="_blank">GitHub</a>
     </div>
   </div>
 
+  <!-- Dialogues -->
+
+  <!-- New contact -->
+  <lx-dialog class="dialog dialog--l" auto-close="true" id="contactInfo">
+    <div class="dialog__header">
+      <div class="toolbar bgc-blue-A700 pl++">
+        <span class="toolbar__label tc-white fs-title">
+          New contact
+        </span>
+        <div class="toolbar__right">
+          <button class="btn btn--l btn--white btn--icon" lx-ripple lx-dialog-close>
+            <span aria-hidden="true" class="mdi mdi-close"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="dialog__content">
+      <div class="p+" flex-container="row" flex-gutter="24">
+        <div flex-item="3">
+          <div ng-file-drop ng-model="contact.pictureFile" class="drop-box valign-wrapper center profile-picture" 
+            drag-over-class="dragover" ng-multiple="false" allow-dir="false"
+            ng-accept="'.jpg,.jpeg,.png'" ng-capture="camera">
+            <div ng-file-select ng-model="contact.pictureFile" accept="image/*" ng-multiple="false" ng-capture="camera" class="relative center valign-wrapper">
+              <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center img-round"/>
+              <img ng-if="!contact.hasPhoto[0].value || contact.hasPhoto[0].value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
+              <div class="valign align-center">
+                <spinner class="valign spinner" ng-show="contact.hasPhoto.uploading"></spinner>
+                <button class="btn btn--l btn--black" lx-ripple>
+                  <span aria-hidden="true" class="mdi mdi-camera"></span>
+                  <span class="valign">Change photo</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div flex-item>
+          <div ng-repeat="elem in vcardElems">
+            <lx-text-field ng-if="elem.display" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}" ng-repeat="item in contact[elem.name]">
+              <input type="text" ng-model="item.value">
+            </lx-text-field>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="dialog__actions">
+      <button class="btn btn--m btn--black btn--flat" lx-ripple ng-click="saveContact()">Save</button>
+      <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>
+    </div>
+  </lx-dialog>
+
+  <!-- About -->
+  <lx-dialog class="dialog dialog--l" auto-close="true" id="about">
+    <div class="dialog__header">
+      <div class="toolbar bgc-blue-A700 pl+">
+        <span class="toolbar__label tc-white fs-title">
+          About Contacts
+        </span>
+        <div class="toolbar__right">
+          <button class="btn btn--l btn--white btn--icon" lx-ripple lx-dialog-close>
+            <span aria-hidden="true" class="mdi mdi-close"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="dialog__content p+">
+      <p>Contacts is a personal address book manager, that uses Linked Data to store your contacts on your personal online datastore.</p>
+      <br>
+      <p>This application follows the <a href="https://github.com/linkeddata/SoLiD/">SoLiD specifications</a> to ensure that your data stays private.</p>
+    </div>
+    <div class="dialog__actions">
+      <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Close</button>
+    </div>
+  </lx-dialog>
+
+  <!-- End dialogues -->
 
   <!-- Deps -->
-  <script src="bower_components/jquery/dist/jquery.min.js"></script>
+  <script src="bower_components/jquery/dist/jquery.js"></script>
   <script src="bower_components/velocity/velocity.min.js"></script>
   <script src="bower_components/angular/angular.min.js"></script>
-  <script src="bower_components/lumx/dist/lumx.min.js"></script>
+  <script src="bower_components/lumx/dist/lumx.js"></script>
   <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
   <script src="bower_components/ngImgCrop/compile/minified/ng-img-crop.js"></script>
   <script src="vendor/rdflib.min.js"></script>
