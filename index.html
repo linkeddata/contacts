@@ -82,7 +82,7 @@
 
     <!-- Selected contacts bar -->
 
-    <div class="selectbar toolbar bgc-blue-100 tc-grey-800" ng-if="selectedContacts.length > 0">
+    <div class="selectbar toolbar bgc-blue-100 tc-grey-800" ng-if="selects.contacts.length > 0">
       <div class="toolbar__left mr">
         <a class="btn btn--l" lx-ripple aria-label="Back" lx-tooltip="Back" tooltip-position="bottom" ng-click="selectNone()">
           <span aria-hidden="true" class="mdi mdi-arrow-left tc-grey-800"></span>
@@ -92,7 +92,7 @@
       <div class="toolbar__left toolbar__label mr">
         <lx-dropdown>
           <a class="btn btn--l btn--black" lx-ripple lx-dropdown-toggle aria-label="Selection menu">
-            <span>{{selectedContacts.length}} selected</span>
+            <span>{{selects.contacts.length}} selected</span>
             <span aria-hidden="true" class="mdi mdi-chevron-down tc-grey-800"></span>
           </a>
           <lx-dropdown-menu>
@@ -104,10 +104,10 @@
         </lx-dropdown>
       </div>
       <div class="toolbar__right">
-        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Merge contacts" lx-tooltip="Merge" tooltip-position="bottom" ng-show="selectedContacts.length > 1" ng-click="mergeSelected()">
+        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Merge contacts" lx-tooltip="Merge" tooltip-position="bottom" ng-show="selects.contacts.length > 1" ng-click="mergeSelected()">
           <span aria-hidden="true" class="mdi mdi-numeric-1-box-multiple-outline tc-grey-800"></span>
         </button>
-        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Delete contacts" lx-tooltip="Delete" tooltip-position="bottom" ng-click="confirmDelete(selectedContacts)">
+        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Delete contacts" lx-tooltip="Delete" tooltip-position="bottom" ng-click="confirmDelete(selects.contacts)">
           <span aria-hidden="true" class="mdi mdi-delete tc-grey-800"></span>
         </button>
       </div>
@@ -149,7 +149,7 @@
     <div class="dialog__header">
       <div class="toolbar bgc-blue-A700 pl++">
         <span class="toolbar__label tc-white fs-title">
-          New contact
+          Contact
         </span>
         <div class="toolbar__right">
           <button class="btn btn--l btn--white btn--icon" lx-ripple lx-dialog-close>
@@ -158,9 +158,9 @@
         </div>
       </div>
     </div>
-    <div class="dialog__content">
-      <div class="p+" flex-container="row" flex-gutter="24">
-        <div flex-item="3">
+    <div class="dialog__content p">
+      <div flex-container="row" flex-gutter="24">
+        <div flex-item="3" class="mt ml">
           <div ng-file-drop ng-model="contact.pictureFile" class="drop-box valign-wrapper center profile-picture" 
             drag-over-class="dragover" ng-multiple="false" allow-dir="false"
             ng-accept="'.jpg,.jpeg,.png'" ng-capture="camera">
@@ -180,10 +180,31 @@
 
         <div flex-item>
           <div ng-repeat="elem in vcardElems">
-            <lx-text-field ng-if="elem.display" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}" ng-repeat="item in contact[elem.name]">
-              <input type="text" ng-model="item.value">
-            </lx-text-field>
+            <div ng-if="elem.display" ng-repeat="item in contact[elem.name]">
+              <lx-text-field ng-if="!elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
+                <input type="text" ng-model="item.value">
+              </lx-text-field>
+              <lx-text-field ng-if="elem.textarea" label="{{elem.label}}">
+                <textarea ng-model="item.value"></textarea>
+              </lx-text-field>
+
+              <button class="btn btn--l btn--grey btn--icon form-icon" lx-ripple ng-click="deleteContactField(contact[elem.name], contact[elem.name].indexOf(item))">
+                <span aria-hidden="true" class="mdi mdi-close"></span>
+              </button>
+            </div>
           </div>
+
+          <lx-dropdown>
+            <a class="btn btn--l btn--black" lx-ripple lx-dropdown-toggle aria-label="Select fields to add">
+              <span>Add field</span>
+              <span aria-hidden="true" class="mdi mdi-chevron-down tc-grey-800"></span>
+            </a>
+          <lx-dropdown-menu>
+            <ul>
+              <li ng-repeat="elem in vcardElems|filter:{display: true}"><a class="dropdown-link" ng-click="addContactField(elem.name)"><span aria-hidden="true" class="mr mdi mdi-{{elem.icon}}"></span>{{elem.label}}</a></li>
+            </ul>
+          </lx-dropdown-menu>
+        </lx-dropdown>
         </div>
       </div>
     </div>
@@ -220,10 +241,10 @@
   <!-- End dialogues -->
 
   <!-- Deps -->
-  <script src="bower_components/jquery/dist/jquery.js"></script>
+  <script src="bower_components/jquery/dist/jquery.min.js"></script>
   <script src="bower_components/velocity/velocity.min.js"></script>
   <script src="bower_components/angular/angular.min.js"></script>
-  <script src="bower_components/lumx/dist/lumx.js"></script>
+  <script src="bower_components/lumx/dist/lumx.min.js"></script>
   <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
   <script src="bower_components/ngImgCrop/compile/minified/ng-img-crop.js"></script>
   <script src="vendor/rdflib.min.js"></script>

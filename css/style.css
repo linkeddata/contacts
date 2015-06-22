@@ -151,6 +151,17 @@ li {
   color: #000!important;
 }
 
+.form-field {
+  margin-right: 40px!important;
+}
+
+.form-icon {
+  display: block;
+  position: relative;
+  float: right;
+  top: -45px;
+}
+
 .dialog {
   top: 15px;
 }

@@ -35,11 +35,12 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // list of vocabularies used for vcard data
     $scope.vcardElems = [ 
-        { name: 'uid', label: 'UID', icon: 'globe', display: false },
-        { name: 'fn', label:'Name', icon: 'account', display: true },
-        { name: 'hasPhoto', label:'Photo', icon: 'camera', display: false },
-        { name: 'hasEmail', label:'Email', icon: 'email', display: true  },
-        { name: 'hasTelephone', label:'Phone', icon: 'phone', display: true }
+        { name: 'fn', label:'Name', icon: 'account', textarea: false, display: true },
+        { name: 'uid', label: 'WebID', icon: 'web', textarea: false, display: true },
+        { name: 'hasPhoto', label:'Photo', icon: 'camera', textarea: false, display: false },
+        { name: 'hasEmail', label:'Email', icon: 'email', textarea: false, display: true  },
+        { name: 'hasTelephone', label:'Phone', icon: 'phone', textarea: false, display: true },
+        { name: 'hasNote', label:'Note', icon: 'file-document-box', textarea: true, display: true }
     ];
 
     // set init variables
@@ -50,6 +51,10 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
         // search filter object
         $scope.filters = {};
+
+        $scope.selects = {
+            contacts: []
+        };
 
         // user model
         $scope.my = {
@@ -62,7 +67,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         // chosen storage URI for the app workspace
         $scope.storageURI = {};
         // temporary list of selected contacts
-        $scope.selectedContacts = [];
 
         // contact to be added/updated
         $scope.contact = $scope.resetContact();
@@ -125,8 +129,25 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
         // hide select bar 
         $scope.selectNone();
-        // save contacts state
+        // save modified contacts list
         // $scope.saveLocalStorage();
+    };
+
+    $scope.addContactField = function(name) {
+        var statement = new $rdf.st(
+                $rdf.sym(''),
+                VCARD(name),
+                $rdf.sym(''),
+                $rdf.sym('')
+            );
+        if (!$scope.contact[name]) {
+            $scope.contact[name] = [];
+        }
+        $scope.contact[name].push(new $scope.ContactElement(statement));
+    };
+
+    $scope.deleteContactField = function(elem, item) {
+        elem.splice(item, 1);
     };
 
     $scope.editContact = function(id) {
@@ -361,7 +382,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 for (var i=0; i<contacts.length; i++) {
                     var subject = contacts[i]['subject']
                     var contact = {};
-
+                    contact.uri = subject.value;
                     var newElement = function(arr, prop) {
                         if (arr.length > 0) {
                             contact[prop.name] = [];
@@ -738,14 +759,14 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.manageSelection = function(id) {
         if ($scope.contacts[id].checked) {
             // add to selection list
-            $scope.selectedContacts.push(id);
+            $scope.selects.contacts.push(id);
             $scope.contacts[id].showcheckbox = true;
             $scope.contacts[id].hidepic = true;
         } else {
             // remove from selection list
-            for(var i = $scope.selectedContacts.length - 1; i >= 0; i--) {
-                if ($scope.selectedContacts[i] === id) {
-                    $scope.selectedContacts.splice(i, 1);
+            for(var i = $scope.selects.contacts.length - 1; i >= 0; i--) {
+                if ($scope.selects.contacts[i] === id) {
+                    $scope.selects.contacts.splice(i, 1);
                     $scope.contacts[i].showcheckbox = false;
                     $scope.contacts[i].hidepic = false;
                 }
@@ -754,12 +775,12 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.selectAll = function() {
-        $scope.selectedContacts = [];
+        $scope.selects.contacts = [];
         for (var i = $scope.contacts.length - 1; i >= 0; i--) {
            $scope.contacts[i].checked = true;
            $scope.contacts[i].showcheckbox = true;
            $scope.contacts[i].hidepic = true;
-           $scope.selectedContacts.push(i);
+           $scope.selects.contacts.push(i);
         }
     };
 
@@ -769,7 +790,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
            $scope.contacts[i].showcheckbox = false;
            $scope.contacts[i].hidepic = false;
         }
-        $scope.selectedContacts = [];
+        $scope.selects.contacts = [];
     };
 
     // Dialogues
