@@ -743,21 +743,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         $scope.hoverContact(id, false);
     };
 
-    $scope.hoverContact = function(id, hover) {
-        if ($scope.contacts[id].checked) {
-            $scope.contacts[id].showcheckbox = true;
-            $scope.contacts[id].hidepic = true;
-        } else {
-            if (hover === true) {
-                $scope.contacts[id].showcheckbox = true;
-                $scope.contacts[id].hidepic = true;
-            } else {
-                $scope.contacts[id].showcheckbox = false;
-                $scope.contacts[id].hidepic = false;
-            }
-        }
-    };
-
     // custom sort function
     $scope.orderByName = function() {
         var arr = [];
@@ -773,19 +758,16 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         $scope.contacts.sort(compare);
     };
 
-    $scope.manageSelection = function(id) {
-        if ($scope.contacts[id].checked) {
+    $scope.manageSelection = function(id, force) {
+        if ($scope.contacts[id].checked || force === true) {
+            $scope.contacts[id].checked = true;
             // add to selection list
             $scope.selects.contacts.push(id);
-            $scope.contacts[id].showcheckbox = true;
-            $scope.contacts[id].hidepic = true;
         } else {
             // remove from selection list
             for(var i = $scope.selects.contacts.length - 1; i >= 0; i--) {
                 if ($scope.selects.contacts[i] === id) {
                     $scope.selects.contacts.splice(i, 1);
-                    $scope.contacts[i].showcheckbox = false;
-                    $scope.contacts[i].hidepic = false;
                 }
             }
         }
@@ -795,8 +777,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         $scope.selects.contacts = [];
         for (var i = $scope.contacts.length - 1; i >= 0; i--) {
            $scope.contacts[i].checked = true;
-           $scope.contacts[i].showcheckbox = true;
-           $scope.contacts[i].hidepic = true;
            $scope.selects.contacts.push(i);
         }
     };
@@ -804,8 +784,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.selectNone = function() {
         for (var i = $scope.contacts.length - 1; i >= 0; i--) {
            $scope.contacts[i].checked = false;
-           $scope.contacts[i].showcheckbox = false;
-           $scope.contacts[i].hidepic = false;
         }
         $scope.selects.contacts = [];
     };
