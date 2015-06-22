@@ -76,13 +76,21 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.saveContact = function() {
-        console.log($scope.contact);
         // if contact exists
         if ($scope.contact.id) {
             $scope.contacts[$scope.contact.id] = angular.copy($scope.contact);
             delete $scope.contacts[$scope.contact.id].id;
+            $scope.notify('success', 'Contact updated');
+        } else {
+            $scope.contacts.push(angular.copy($scope.contact));
+            $scope.notify('success', 'Contact added');
         }
         $scope.saveLocalStorage();
+        LxDialogService.close('contactInfo');
+
+        //@@TODO write to server
+
+
     };
 
     $scope.addElement = function() {
@@ -103,7 +111,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     $scope.confirmDelete = function(ids, type) {
         if (ids.length === 1) {
-            console.log(ids);
             var plural = '';
             var id = ids[0];
             var text = $scope.contacts[id].fn.value +' ?';
@@ -130,7 +137,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         // hide select bar 
         $scope.selectNone();
         // save modified contacts list
-        // $scope.saveLocalStorage();
+        $scope.saveLocalStorage();
     };
 
     $scope.addContactField = function(name) {
@@ -751,9 +758,19 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
     };
 
-    $scope.showMore = function(id) {
+    // custom sort function
+    $scope.orderByName = function() {
+        var arr = [];
 
-        $scope.hoverContact(id, false);
+        function compare(a, b) {
+            if (a.fn[0].value < b.fn[0].value)
+                return -1;
+            if (a.fn[0].value > b.fn[0].value)
+                return 1;
+            return 0
+        };
+
+        $scope.contacts.sort(compare);
     };
 
     $scope.manageSelection = function(id) {
