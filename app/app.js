@@ -102,7 +102,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             console.log(ids);
             var plural = '';
             var id = ids[0];
-            var text = $scope.contacts[id].name.value +' ?';
+            var text = $scope.contacts[id].fn.value +' ?';
         } else if (ids.length > 1) {
             var plural = 's';
             var text = ids.length +' contacts?';
@@ -282,6 +282,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                                 continue;
                             }
                             var wsTitle = g.any(ws['object'], DCT('title'));
+                            if (!$scope.my.config.availableWorkspaces) {
+                                $scope.my.config.availableWorkspaces = [];
+                            }
                             $scope.my.config.availableWorkspaces.push({ 
                                 uri: ws['object']['value'],
                                 name: (wsTitle)?wsTitle.value:'Untitled workspace'
@@ -325,6 +328,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     var dataSources = g.statementsMatching(thisApp['subject'], SOLID('dataSource'), undefined);
                     dataSources.forEach(function(source) {
                         if (source['object']['value'].length > 0) {
+                            if (!$scope.my.config.workspaces) {
+                                $scope.my.config.workspaces = [];
+                            }
                             $scope.my.config.workspaces.push(source['object']['value']);
                             // Load contacts from sources
                             $scope.loadContacts(source['object']['value']);
