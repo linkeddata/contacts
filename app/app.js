@@ -39,11 +39,11 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // list of vocabularies used for vcard data
     $scope.vcardElems = [ 
-        'uid',
-        'fn',
-        'hasPhoto',
-        'hasEmail',
-        'hasTelephone'
+        { name: 'uid', label: 'UID', icon: 'globe', display: false },
+        { name: 'fn', label:'Name', icon: 'account', display: true },
+        { name: 'hasPhoto', label:'Photo', icon: 'camera', display: false },
+        { name: 'hasEmail', label:'Email', icon: 'email', display: true  },
+        { name: 'hasTelephone', label:'Phone', icon: 'phone', display: true }
     ];
 
 
@@ -102,7 +102,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             console.log(ids);
             var plural = '';
             var id = ids[0];
-            var text = $scope.contacts[id].card.name.value +' ?';
+            var text = $scope.contacts[id].name.value +' ?';
         } else if (ids.length > 1) {
             var plural = 's';
             var text = ids.length +' contacts?';
@@ -120,7 +120,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
         var i = ids.length;
         while (i--) {
-            $scope.contacts[ids[i]].disabled = true;
             $scope.contacts.splice(ids[i], 1);
             //@@TODO also delete from server
         }
@@ -131,10 +130,25 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.editContact = function(id) {
+        $scope.openDialog('contactInfo');
         $scope.contact = angular.copy($scope.contacts[id]);
         $scope.contact.id = id;
-        $scope.openDialog('contactInfo');
     };
+
+    $scope.resetContact = function() {
+        var contact = {};
+        $scope.vcardElems.forEach(function(elem) {
+            var statement = new $rdf.st(
+                $rdf.sym(''),
+                VCARD(elem.name),
+                $rdf.sym(''),
+                $rdf.sym('')
+            );
+            contact[elem.name] = [new $scope.ContactElement(statement)];
+        });
+        console.log(contact);
+        return contact;
+    }
 
     // Load a user's profile
     // string uri  - URI of resource containing profile information
@@ -144,6 +158,10 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
         if (!$scope.my.webid || $scope.my.webid.length == 0) {
             $scope.my.webid = webid;
+        }
+
+        if (!$scope.my.config) {
+            $scope.my.config = {};
         }
 
         var g = new $rdf.graph();
@@ -337,32 +355,29 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 for (var i=0; i<contacts.length; i++) {
                     var subject = contacts[i]['subject']
                     var contact = {};
-                    contact.card = [];
-                    contact.disabled = false;
 
                     var newElement = function(arr, prop) {
                         if (arr.length > 0) {
-                            contact.card[prop] = [];
+                            contact[prop.name] = [];
                             for (var i=0; i<arr.length; i++) {
                                 // Set the right why value to subject value if it's an ldp#resource
                                 var ldpRes = g.statementsMatching($rdf.sym(uri+'*'), LDP('contains'), subject);
                                 if (ldpRes.length > 0) {
                                     arr[i]['why']['uri'] = arr[i]['why']['value'] = subject['value'];
                                 }
-                                contact.card[prop].push(new $scope.ContactElement(arr[i]));
+                                contact[prop.name].push(new $scope.ContactElement(arr[i]));
                             }
                         }
                     };
 
                     $scope.vcardElems.forEach(function(elem) {
-                        newElement(g.statementsMatching(subject, VCARD(elem), undefined), elem);
+                        newElement(g.statementsMatching(subject, VCARD(elem.name), undefined), elem);
                     });
                     
                     // push contact to list
                     $scope.contacts.push(contact);
                     $scope.$apply();
                 }
-                scope.contacts = $scope.contacts;
                 $scope.saveLocalStorage();
             }
         });
@@ -752,8 +767,11 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     // Dialogues
-    $scope.openDialog = function(elem) {
+    $scope.openDialog = function(elem, reset) {
         LxDialogService.open(elem);
+        if (reset) {
+            $scope.contact = $scope.resetContact();
+        }
         $(document).keyup(function(e) {
           if (e.keyCode===27) {
             LxDialogService.close(elem);

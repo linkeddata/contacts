@@ -9,7 +9,7 @@
     </div>
   </div>
 
-  <div class="row contact mb" ng-repeat="contact in contacts | filter: filters.contacts | orderBy: '-name.value'">
+  <div class="row contact mb" ng-repeat="contact in contacts | filter: filters.contacts | orderBy: 'name.value'">
     <div class="card list-row list-row--multi-line" ng-class="{'bgc-blue-100':contact.checked, 'disabled': contact.disabled}" ng-mouseenter="hoverContact(contacts.indexOf(contact), true)" ng-mouseleave="hoverContact(contacts.indexOf(contact), false)">
       
       <div class="list-row__primary">
@@ -25,20 +25,20 @@
           </div>
         </div>
         <div ng-hide="contact.hidepic" ng-click="hoverContact(contacts.indexOf(contact), true)">
-          <img ng-show="contact.card.hasPhoto[0].value" ng-src="{{contact.card.hasPhoto[0].value}}" alt="Photo of {{contact.card.fn[0].value}}" width="40" height="40" class="img-round">
-          <img ng-hide="contact.card.hasPhoto[0].value" src="images/generic_photo.png" alt="Photo of {{contact.card.fn[0].value}}" width="40" height="40" class="img-round" />
+          <img ng-show="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" alt="Photo of {{contact.fn[0].value}}" width="40" height="40" class="img-round">
+          <img ng-hide="contact.hasPhoto[0].value" src="images/generic_photo.png" alt="Photo of {{contact.fn[0].value}}" width="40" height="40" class="img-round" />
         </div>
       </div>
 
       <div class="list-row__content truncate" ng-click="hoverContact(contacts.indexOf(contact), true)">
           <div class="display-block">
-            {{contact.card.fn[0].value}}
+            {{contact.fn[0].value}}
           </div>
           <div class="display-block fs-body-1 tc-black-2">
-            {{contact.card.hasEmail[0].value}}
+            {{contact.hasEmail[0].value}}
           </div>
           <div class="display-block fs-body-1 tc-black-2">
-            {{contact.card.hasTelephone[0].value}}
+            {{contact.hasTelephone[0].value}}
           </div>
       </div>
 
