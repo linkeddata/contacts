@@ -9,7 +9,7 @@
     </div>
   </div>
 
-  <div class="row contact mb" ng-repeat="contact in contacts | filter: filters.contacts | orderBy:orderByName">
+  <div class="row contact mb" ng-repeat="contact in contacts | unique: '$$hashKey' | filter: filters.contacts | orderBy:orderByName">
     <div class="card list-row list-row--multi-line" ng-class="{'bgc-blue-100':contact.checked, 'disabled': contact.disabled}">
       
       <div class="list-row__primary">

@@ -19,6 +19,7 @@ var scope, gg;
 $rdf.Fetcher.crossSiteProxyTemplate=PROXY;
 
 var Contacts = angular.module('Contacts', [
+    'ui.filters',
     'lumx',
     'angularFileUpload',
     'ngImgCrop'
