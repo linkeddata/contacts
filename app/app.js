@@ -91,7 +91,8 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.deleteContactField = function(elem, item) {
-        elem.splice(item, 1);
+        $scope.contact[elem][item].value = '';
+        $scope.contact[elem][item].hidden = true;
     };
 
     $scope.viewContact = function(id) {
@@ -114,14 +115,33 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
         // contact exists => patching it
         if ($scope.contact.uri !== undefined) {
-            $scope.contacts[$scope.contact.id] = angular.copy($scope.contact);
+            console.log($scope.contact);
             //@@TODO send PATCH
+            var query = $scope.updateContact($scope.contact, true);
+            if (query.length === 0) {
+                return;
+            }
+            $scope.sendSPARQLPatch($scope.contact.uri, query).then(function(result) {
+                            // all done
+                            if (result >= 200 && result < 400) {
+                                for (var i=0; i<$scope.contacts.length; i++) {
+                                    if ($scope.contacts[i].uri == $scope.contact.uri) {
+                                        console.log($scope.contacts[i].fn[0].value);
+                                        $scope.contacts[i] = angular.copy($scope.contact);
+                                    }
+                                };
+                                $scope.saveLocalStorage();
+                                $scope.notify('success', 'Contact updated');
+                                $scope.$apply();
+                            } else {
+                                $scope.notify('error', 'Failed to update contact -- HTTP', status);
+                            }
 
-            $scope.notify('success', 'Contact updated');
+                        });
         } else {
+            // new contact => assign ID and POST to container
             $scope.contact.id = $scope.contacts.length;
-            
-       
+
             // writing new contact
             var g = new $rdf.graph();
             g.add($rdf.sym(''), RDF('type'), VCARD('Individual'));
@@ -141,8 +161,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             });
 
             var triples = new $rdf.Serializer(g).toN3(g);
-
-            console.log("Writing to "+$scope.contact.workspace);
 
             $http({
                 method: 'POST',
@@ -517,6 +535,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.updateObject = function(object, update, force) {
+        console.log(object);
         // do not update if value hasn't changed
         if (object.value == object.prev && !force) {
           return;
@@ -539,9 +558,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 newS['object']['value'] = object.value;
             } else {
                 val = object.value;
-                if (newS['predicate']['value'] == FOAF('mbox').value) {
+                if (newS['predicate']['value'] == VCARD('hasEmail').value) {
                     val = "mailto:"+val;
-                } else if (newS['predicate']['value'] == FOAF('phone').value) {
+                } else if (newS['predicate']['value'] == VCARD('hasTelephone').value) {
                     val = "tel:"+val;
                 }
                 newS['object']['uri'] = newS['object']['value'] = val;
@@ -575,7 +594,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     }
                 }
             }
-            console.log(query);
 
             // send PATCH request
             if (graphURI && graphURI.length > 0) {
@@ -591,6 +609,96 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
     };
    
+    $scope.updateContact = function(contact, force) {
+        function toNT(s) {
+            var ret = '<'+s.subject.value+'> <'+s.predicate.uri+'> ';
+            ret += (s.object.value)?'<'+s.object.value+'>':'"'+s.object.value+'"';
+            return ret;
+        };
+
+        // iterate through all the elements of a contact
+        var query = '';
+        var insQuery = '';
+        var delQuery = '';
+        var graphURI = '';
+        for (var i=0; i<$scope.vcardElems.length; i++) {
+            var elem = $scope.vcardElems[i];
+            if (contact[elem.name] === undefined) {
+                continue;
+            }
+            for (var j=0; j<contact[elem.name].length; j++) {
+                var object = contact[elem.name][j];
+                console.log(object);
+                if (object.value == object.prev) {
+                    continue;
+                }
+
+                if (!object.failed && object.value) {
+                    object.prev = angular.copy(object.value);
+                }
+
+                if (object.statement) {
+                    var oldS = angular.copy(object.statement);
+                    var newS = object.statement;
+                    if (!newS['object'].uri) {
+                        newS['object']['value'] = object.value;
+                    } else {
+                        val = object.value;
+                        if (newS['predicate']['value'] == VCARD('hasEmail').value) {
+                            val = "mailto:"+val;
+                        } else if (newS['predicate']['value'] == VCARD('hasTelephone').value) {
+                            val = "tel:"+val;
+                        }
+                        newS['object']['uri'] = newS['object']['value'] = val;
+                    }
+                }
+
+                object.locked = true;
+                if (oldS && oldS['object']['value'] && oldS['object']['value'].length > 0) {
+                    if (delQuery.length > 0) {
+                        delQuery += " ;\n";
+                    }
+                    delQuery += "DELETE DATA { " + toNT(oldS) + " }";
+                    // also delete object from contact
+                    contact[elem.name].splice(j, 1);
+                }
+                if (object.value && object.value.length > 0) {
+                    if (insQuery.length > 0) {
+                        insQuery += " ;\n";
+                    }
+                    insQuery += "INSERT DATA { " + toNT(newS) + " }";
+                }
+                if (graphURI.length == 0) {
+                    if (newS && newS['why']['value'].length > 0) {
+                        graphURI = newS['why']['value'];
+                    } else {
+                        graphURI = newS['subject']['value'];
+                    }
+                }
+            }
+        }
+        console.log(delQuery, insQuery);
+        query += delQuery;
+        console.log(query);
+        if (insQuery.length > 0) {
+            query += " ;\n";
+        }
+        query += insQuery;
+        console.log(query);
+
+        return query;
+        // send PATCH request
+        // if (graphURI && graphURI.length > 0) {
+        //     $scope.sendSPARQLPatch(graphURI, query, object, oldS).then(function(status) {
+        //         if (status == 200) {
+        //             $scope.saveLocalStorage();
+        //             $scope.notify('success', 'Updated contact');
+        //         } else if (status >= 400) {
+        //             $scope.notify('error', 'Could not update contact');
+        //         }
+        //     });
+        // }
+    };
 
     // Sends SPARQL patches over the wire
     $scope.sendSPARQLPatch = function (uri, query, obj, oldStatement) {

@@ -185,7 +185,7 @@
 
         <div flex-item>
           <div ng-if="contact.editing" ng-repeat="elem in vcardElems">
-            <div ng-if="elem.display" ng-repeat="item in contact[elem.name]">
+            <div ng-if="elem.display" ng-repeat="item in contact[elem.name]|filter:{hidden:'!'}">
               <lx-text-field ng-if="!elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
                 <input type="text" ng-model="item.value">
               </lx-text-field>
@@ -193,7 +193,7 @@
                 <textarea ng-model="item.value"></textarea>
               </lx-text-field>
 
-              <button class="btn btn--l btn--grey btn--icon form-icon" lx-ripple ng-click="deleteContactField(contact[elem.name], contact[elem.name].indexOf(item))">
+              <button class="btn btn--l btn--grey btn--icon form-icon" lx-ripple ng-click="deleteContactField(elem.name, contact[elem.name].indexOf(item))">
                 <span aria-hidden="true" class="mdi mdi-close"></span>
               </button>
             </div>
