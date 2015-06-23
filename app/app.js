@@ -37,9 +37,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.vcardElems = [ 
         { name: 'fn', label:'Name', icon: 'account', link: false, textarea: false, display: true },
         { name: 'uid', label: 'WebID', icon: 'web', link: true, textarea: false, display: true },
-        { name: 'hasPhoto', label:'Photo', icon: 'camera', link: false, textarea: false, display: false },
-        { name: 'hasEmail', label:'Email', icon: 'email', link: true, textarea: false, display: true  },
-        { name: 'hasTelephone', label:'Phone', icon: 'phone', link: true, textarea: false, display: true },
+        { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false },
+        { name: 'hasEmail', label:'Email', icon: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true  },
+        { name: 'hasTelephone', label:'Phone', icon: 'phone', prefixURI: 'tel:', link: true, textarea: false, display: true },
         { name: 'hasNote', label:'Note', icon: 'file-document-box', link: false, textarea: true, display: true }
     ];
 
@@ -106,7 +106,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         $scope.contact.id = id;
         $scope.contact.editing = true;
         $scope.openDialog('contactInfo');
-        console.log($scope.contact);
     };
 
     $scope.saveContact = function() {
@@ -114,23 +113,66 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         if ($scope.contact.id !== undefined) {
             $scope.contacts[$scope.contact.id] = angular.copy($scope.contact);
             delete $scope.contacts[$scope.contact.id].id;
-            $scope.notify('success', 'Contact updated');
         } else {
             $scope.contacts.push(angular.copy($scope.contact));
-            $scope.notify('success', 'Contact added');
         }
         $scope.saveLocalStorage();
         LxDialogService.close('contactInfo');
 
         //@@TODO write to server
+        // contact exists => patching it
+        if ($scope.contact.id !== undefined && $scope.contact.uri) {
+            $scope.notify('success', 'Contact updated');
+        } else {
+            // writing new contact
+            var g = new $rdf.graph();
+            g.add($rdf.sym(''), RDF('type'), VCARD('Individual'));
+            $scope.vcardElems.forEach(function(elem) {
+                if ($scope.contact[elem.name] && $scope.contact[elem.name].length > 0) {
+                    $scope.contact[elem.name].forEach(function(item) {
+                        if (item.value.length > 0) {
+                            if (elem.prefixURI) {
+                                var object = $rdf.sym(elem.prefixURI+item.value);
+                            } else {
+                                var object = $rdf.lit(item.value);
+                            }
+                            g.add($rdf.sym(''), VCARD(elem.name), object);
+                        }
+                    });
+                }
+            });
+
+            var triples = new $rdf.Serializer(g).toN3(g);
+            console.log(triples);
 
 
+            $http({
+                method: 'POST',
+                url: $scope.contact.workspace,
+                withCredentials: true,
+                headers: {
+                    "Content-Type": "text/turtle"
+                },
+                data: triples
+            }).
+            success(function(data, status, headers) {
+                if (headers('Location')) {
+                    $scope.contacts[$scope.contacts.length-1].uri = headers('Location');
+                }
+                $scope.notify('success', 'Contact added');
+            }).
+            error(function(data, status, headers) {
+                console.log('Error saving contact on sever - '+status, data);
+                $scope.notify('error', 'Failed to write contact to server -- HTTP '+status);
+            });
+        }        
     };
 
     $scope.resetContact = function() {
         delete $scope.contact;
         $scope.contact = {};
         $scope.contact.editing = true;
+        $scope.contact.workspace = $scope.my.config.workspaces[0];
         $scope.vcardElems.forEach(function(elem) {
             var statement = new $rdf.st(
                 $rdf.sym(''),
@@ -171,6 +213,10 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         $scope.selectNone();
         // save modified contacts list
         $scope.saveLocalStorage();
+    };
+
+    $scope.selectWorkspace = function(ws) {
+        $scope.contact.workspace = $scope.selects.workspace = ws;
     };
 
     // Load a user's profile
@@ -385,6 +431,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     var subject = contacts[i]['subject']
                     var contact = {};
                     contact.uri = subject.value;
+                    contact.workspace = uri;
                     var newElement = function(arr, prop) {
                         if (arr.length > 0) {
                             contact[prop.name] = [];
@@ -434,121 +481,68 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
     };
 
-    $scope.ContactElement.prototype.updateObject = function(update, force) {
-        // do not update if value hasn't changed
-        if (this.value == this.prev && !force) {
-          return;
-        }
-
-        $scope.changeInProgress = true;
-
-        if (!this.failed && this.value) {
-          this.prev = angular.copy(this.value);
-        }
-        var oldS = angular.copy(this.statement);
-        if (this.statement) {
-          if (this.statement['object']['termType'] == 'literal') {
-            this.statement['object']['value'] = this.value;
-          } else if (this.statement['object']['termType'] == 'symbol') {
-            val = this.value;
-            if (this.statement['predicate'].compareTerm(FOAF('mbox')) == 0) {
-              val = "mailto:"+val;
-            } else if (this.statement['predicate'].compareTerm(FOAF('phone')) == 0) {
-              val = "tel:"+val;
-            }
-            this.statement['object']['uri'] = val;
-            this.statement['object']['value'] = val;
-          }
-        }
-
-        if (update) {
-          this.locked = true;
-          var query = '';
-          var graphURI = '';
-          if (oldS && oldS['object']['value'].length > 0) {
-            var query = "DELETE DATA { " + oldS.toNT() + " }";
-            if (oldS['why'] && oldS['why']['value'].length > 0) {
-              graphURI = oldS['why']['value'];
-            } else {
-              graphURI = oldS['subject']['value'];
-            }
-            // add separator
-            if (this.value.length > 0) {
-              query += " ;\n";
-            }
-          }
-          if (this.value && this.value.length > 0) {
-            // should ask the user where the new triple should be saved
-            query += "INSERT DATA { " + this.statement.toNT() + " }";
-            if (graphURI.length == 0) {
-              if (this.statement && this.statement['why']['value'].length > 0) {
-                graphURI = this.statement['why']['value'];
-              } else {
-                graphURI = this.statement['subject']['value'];
-              }
-            }
-          }
-
-          // send PATCH request
-          if (graphURI && graphURI.length > 0) {
-            $scope.sendSPARQLPatch(graphURI, query, this, oldS);
-          }
-        }
-    };
-
-    // $scope.ProfileElement.prototype.deleteSubject = function (send) {
-    //     this.locked = true;
-    //     $scope.changeInProgress = true;
-    //     var query = '';
-    //     var graphURI = '';
-    //     var oldS = angular.copy(this.statement);
-    //     if (oldS['why'] && oldS['why']['value'].length > 0) {
-    //       graphURI = oldS['why']['value'];
-    //     } else {
-    //       graphURI = oldS['subject']['value'];
+    // $scope.ContactElement.prototype.updateObject = function(update, force) {
+    //     // do not update if value hasn't changed
+    //     if (this.value == this.prev && !force) {
+    //       return;
     //     }
-    //     $scope.profile.sources.forEach(function (src) {
-    //       // Delete outgoing arcs with the same subject
-    //       var needle = oldS['object']['value'];
-    //       var out = $scope.kb.statementsMatching($rdf.sym(needle), undefined, undefined, $rdf.sym(src.uri));
-    //       // Also delete incoming arcs
-    //       var inc = $scope.kb.statementsMatching(undefined, undefined, $rdf.sym(needle), $rdf.sym(src.uri));
-    //       for (i in out) {
-    //         var s = out[i];
-    //         // check type?
-    //         if (s['object'].termType == 'literal') {
-    //           var o = $rdf.lit(s['object']['value']);
-    //         } else if (s['object'].termType == 'symbol') {
-    //           var o = $rdf.sym(s['object']['value']);
+
+    //     $scope.changeInProgress = true;
+
+    //     if (!this.failed && this.value) {
+    //       this.prev = angular.copy(this.value);
+    //     }
+    //     var oldS = angular.copy(this.statement);
+    //     if (this.statement) {
+    //       if (this.statement['object']['termType'] == 'literal') {
+    //         this.statement['object']['value'] = this.value;
+    //       } else if (this.statement['object']['termType'] == 'symbol') {
+    //         val = this.value;
+    //         if (this.statement['predicate'].compareTerm(FOAF('mbox')) == 0) {
+    //           val = "mailto:"+val;
+    //         } else if (this.statement['predicate'].compareTerm(FOAF('phone')) == 0) {
+    //           val = "tel:"+val;
     //         }
-    //         statement = new $rdf.st(
-    //           s['subject'],
-    //           s['predicate'],
-    //           o,
-    //           s['why']
-    //         );
-    //         query += 'DELETE DATA { ' + statement.toNT() + " }";
-    //         if (i < out.length - 1 || inc.length > 0) {
-    //           query +=  " ;\n";
+    //         this.statement['object']['uri'] = val;
+    //         this.statement['object']['value'] = val;
+    //       }
+    //     }
+
+    //     if (update) {
+    //       this.locked = true;
+    //       var query = '';
+    //       var graphURI = '';
+    //       if (oldS && oldS['object']['value'].length > 0) {
+    //         var query = "DELETE DATA { " + oldS.toNT() + " }";
+    //         if (oldS['why'] && oldS['why']['value'].length > 0) {
+    //           graphURI = oldS['why']['value'];
+    //         } else {
+    //           graphURI = oldS['subject']['value'];
     //         }
-    //       };
-          
-    //       for (i in inc) {
-    //         var s = inc[i];
-    //         // check type?
-    //         query += 'DELETE DATA { ' + s.toNT() + " }";
-    //         if (i < inc.length - 1) {
+    //         // add separator
+    //         if (this.value.length > 0) {
     //           query += " ;\n";
     //         }
-    //       };
-    //     });
-    //     // Send patch to server
-    //     if (query.length > 0 && send) {
-    //       $scope.sendSPARQLPatch(graphURI, query, this);
+    //       }
+    //       if (this.value && this.value.length > 0) {
+    //         // should ask the user where the new triple should be saved
+    //         query += "INSERT DATA { " + this.statement.toNT() + " }";
+    //         if (graphURI.length == 0) {
+    //           if (this.statement && this.statement['why']['value'].length > 0) {
+    //             graphURI = this.statement['why']['value'];
+    //           } else {
+    //             graphURI = this.statement['subject']['value'];
+    //           }
+    //         }
+    //       }
+
+    //       // send PATCH request
+    //       if (graphURI && graphURI.length > 0) {
+    //         $scope.sendSPARQLPatch(graphURI, query, this, oldS);
+    //       }
     //     }
-    //     return query;
     // };
-    
+   
 
     // Sends SPARQL patches over the wire
     $scope.sendSPARQLPatch = function (uri, query, obj, oldStatement) {

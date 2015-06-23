@@ -217,8 +217,8 @@ li {
   width: 100%;
 }
 
-.top {
-
+.initial {
+  text-transform: initial!important;
 }
 
 *::-webkit-input-placeholder { /* WebKit browsers */
