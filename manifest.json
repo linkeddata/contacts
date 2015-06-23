@@ -2,7 +2,7 @@
   "name": "Contacts Application Manifest",
   "icons": [
     {
-      "src": "images/favicon.png",
+      "src": "images/icon.png",
       "sizes": "192x192",
       "type": "image/png",
       "density": "4.0"
