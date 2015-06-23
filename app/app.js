@@ -126,7 +126,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                             if (result >= 200 && result < 400) {
                                 for (var i=0; i<$scope.contacts.length; i++) {
                                     if ($scope.contacts[i].uri == $scope.contact.uri) {
-                                        console.log($scope.contacts[i].fn[0].value);
                                         $scope.contacts[i] = angular.copy($scope.contact);
                                     }
                                 };
@@ -502,7 +501,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     } 
 
                     // push contact to list
-                    console.log(contact);
                     $scope.contacts.push(contact);
                     $scope.$apply();
                 }
@@ -535,7 +533,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.updateObject = function(object, update, force) {
-        console.log(object);
         // do not update if value hasn't changed
         if (object.value == object.prev && !force) {
           return;
@@ -628,7 +625,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             }
             for (var j=0; j<contact[elem.name].length; j++) {
                 var object = contact[elem.name][j];
-                console.log(object);
                 if (object.value == object.prev) {
                     continue;
                 }
@@ -660,7 +656,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     }
                     delQuery += "DELETE DATA { " + toNT(oldS) + " }";
                     // also delete object from contact
-                    contact[elem.name].splice(j, 1);
+                    if (object.value.length === 0) {
+                        contact[elem.name].splice(j, 1);
+                    }
                 }
                 if (object.value && object.value.length > 0) {
                     if (insQuery.length > 0) {
@@ -677,14 +675,11 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 }
             }
         }
-        console.log(delQuery, insQuery);
         query += delQuery;
-        console.log(query);
         if (insQuery.length > 0) {
             query += " ;\n";
         }
         query += insQuery;
-        console.log(query);
 
         return query;
         // send PATCH request
@@ -758,7 +753,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // Initialize Apps workspace if user doesn't have one already
     $scope.initAppWorkspace = function() {
-        console.log($scope.storageURI);
         if ($scope.storageURI.checked) {
             var uri = $scope.storageURI.checked+'Applications';
             $scope.putLDP(uri, 'ldpc').then(function(status) {
