@@ -819,7 +819,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 $scope.notify('success', 'Created config file');
                 $scope.my.toInit = $scope.my.config.workspaces.length;
                 for (var i=0; i<$scope.my.config.workspaces.length; i++) {
-                    $scope.initDataContainers($scope.my.config.workspaces[i], "Contacts");
+                    $scope.initDataContainers($scope.my.config.workspaces[i], "contacts");
                 }
             }).
             error(function(data, status, headers) {
@@ -840,8 +840,10 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
         $scope.putLDP(uri, 'ldpc').then(function(status) {
             if (status === 201) {
+                console.log($scope.my.toInit, uri);
                 $scope.my.toInit--;
-                if ($scope.my.toInit === 0) {
+                console.log($scope.my.toInit, uri);
+                if ($scope.my.toInit >= 0) {
                     var query = "INSERT DATA { " + $scope.newStatement($rdf.sym('#conf'), SOLID('dataSource'), $rdf.sym(uri+'/')) + " }";
                     $scope.sendSPARQLPatch($scope.my.config.uri, query).then(function(result) {
                         // all done
