@@ -12,6 +12,7 @@ var DCT = $rdf.Namespace("http://purl.org/dc/terms/");
 var LDP = $rdf.Namespace("http://www.w3.org/ns/ldp#");
 var SOLID = $rdf.Namespace("http://www.w3.org/ns/solid/app#");
 var VCARD = $rdf.Namespace("http://www.w3.org/2006/vcard/ns#");
+var FAV = $rdf.Namespace("http://www.eclap.eu/schema/eclap/");
 
 var scope, gg;
 
@@ -40,7 +41,8 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false },
         { name: 'hasEmail', label:'Email', icon: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true  },
         { name: 'hasTelephone', label:'Phone', icon: 'phone', prefixURI: 'tel:', link: true, textarea: false, display: true },
-        { name: 'hasNote', label:'Note', icon: 'file-document-box', link: false, textarea: true, display: true }
+        { name: 'hasNote', label:'Note', icon: 'file-document-box', link: false, textarea: true, display: true },
+        { name: 'hasFavorite', label:'Favorite', icon: 'star-outline', link: false, textarea: false, display: false }
     ];
 
     // set init variables
@@ -468,8 +470,21 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     $scope.vcardElems.forEach(function(elem) {
                         newElement(g.statementsMatching(subject, VCARD(elem.name), undefined), elem);
                     });
-                    
+
+                    // set favorite value
+                    var fav = g.statementsMatching($rdf.sym($scope.my.webid), FAV('hasFavorite'), subject);
+                    if (fav.length > 0) {
+                        var ldpRes = g.statementsMatching($rdf.sym(uri+'*'), LDP('contains'), subject);
+                        if (ldpRes.length > 0) {
+                            var why = subject['value'];
+                        }
+                        contact['hasFavorite'] = [new $scope.ContactElement(
+                                new $rdf.st($rdf.sym($scope.my.webid), FAV('hasFavorite'), subject, $rdf.sym(why))
+                            )];
+                    } 
+
                     // push contact to list
+                    console.log(contact);
                     $scope.contacts.push(contact);
                     $scope.$apply();
                 }
@@ -484,8 +499,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         this.uploading = false;
         this.failed = false;
         this.picker = false;
-        this.statement = JSON.stringify(s);
-        this.value = this.prev = '';
+        this.statement = s;
+        this.value = '';
+        this.prev = '';
         if (s && s['object']['value']) {
             var val = s['object']['value']
             if (val.indexOf('tel:') >= 0) {
@@ -500,67 +516,80 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
     };
 
-    // $scope.ContactElement.prototype.updateObject = function(update, force) {
-    //     // do not update if value hasn't changed
-    //     if (this.value == this.prev && !force) {
-    //       return;
-    //     }
+    $scope.updateObject = function(object, update, force) {
+        // do not update if value hasn't changed
+        if (object.value == object.prev && !force) {
+          return;
+        }
 
-    //     $scope.changeInProgress = true;
+        if (!object.failed && object.value) {
+            object.prev = angular.copy(object.value);
+        }
 
-    //     if (!this.failed && this.value) {
-    //       this.prev = angular.copy(this.value);
-    //     }
-    //     var oldS = angular.copy(this.statement);
-    //     if (this.statement) {
-    //       if (this.statement['object']['termType'] == 'literal') {
-    //         this.statement['object']['value'] = this.value;
-    //       } else if (this.statement['object']['termType'] == 'symbol') {
-    //         val = this.value;
-    //         if (this.statement['predicate'].compareTerm(FOAF('mbox')) == 0) {
-    //           val = "mailto:"+val;
-    //         } else if (this.statement['predicate'].compareTerm(FOAF('phone')) == 0) {
-    //           val = "tel:"+val;
-    //         }
-    //         this.statement['object']['uri'] = val;
-    //         this.statement['object']['value'] = val;
-    //       }
-    //     }
+        function toNT(s) {
+            var ret = '<'+s.subject.value+'> <'+s.predicate.uri+'> ';
+            ret += (s.object.value)?'<'+s.object.value+'>':'"'+s.object.value+'"';
+            return ret;
+        };
+        
+        if (object.statement) {
+            var oldS = angular.copy(object.statement);
+            var newS = object.statement;
+            if (!newS['object'].uri) {
+                newS['object']['value'] = object.value;
+            } else {
+                val = object.value;
+                if (newS['predicate']['value'] == FOAF('mbox').value) {
+                    val = "mailto:"+val;
+                } else if (newS['predicate']['value'] == FOAF('phone').value) {
+                    val = "tel:"+val;
+                }
+                newS['object']['uri'] = newS['object']['value'] = val;
+            }
+        }
 
-    //     if (update) {
-    //       this.locked = true;
-    //       var query = '';
-    //       var graphURI = '';
-    //       if (oldS && oldS['object']['value'].length > 0) {
-    //         var query = "DELETE DATA { " + oldS.toNT() + " }";
-    //         if (oldS['why'] && oldS['why']['value'].length > 0) {
-    //           graphURI = oldS['why']['value'];
-    //         } else {
-    //           graphURI = oldS['subject']['value'];
-    //         }
-    //         // add separator
-    //         if (this.value.length > 0) {
-    //           query += " ;\n";
-    //         }
-    //       }
-    //       if (this.value && this.value.length > 0) {
-    //         // should ask the user where the new triple should be saved
-    //         query += "INSERT DATA { " + this.statement.toNT() + " }";
-    //         if (graphURI.length == 0) {
-    //           if (this.statement && this.statement['why']['value'].length > 0) {
-    //             graphURI = this.statement['why']['value'];
-    //           } else {
-    //             graphURI = this.statement['subject']['value'];
-    //           }
-    //         }
-    //       }
+        if (update) {
+            object.locked = true;
+            var query = '';
+            var graphURI = '';
+            if (oldS && oldS['object']['value'] && oldS['object']['value'].length > 0) {
+                var query = "DELETE DATA { " + toNT(oldS) + " }";
+                if (oldS['why'] && oldS['why']['value'].length > 0) {
+                    graphURI = oldS['why']['value'];
+                } else {
+                    graphURI = oldS['subject']['value'];
+                }
+                // add separator
+                if (object.value.length > 0) {
+                    query += " ;\n";
+                }
+            }
+            if (object.value && object.value.length > 0) {
+                // should ask the user where the new triple should be saved
+                query += "INSERT DATA { " + toNT(newS) + " }";
+                if (graphURI.length == 0) {
+                    if (newS && newS['why']['value'].length > 0) {
+                        graphURI = newS['why']['value'];
+                    } else {
+                        graphURI = newS['subject']['value'];
+                    }
+                }
+            }
+            console.log(query);
 
-    //       // send PATCH request
-    //       if (graphURI && graphURI.length > 0) {
-    //         $scope.sendSPARQLPatch(graphURI, query, this, oldS);
-    //       }
-    //     }
-    // };
+            // send PATCH request
+            if (graphURI && graphURI.length > 0) {
+                $scope.sendSPARQLPatch(graphURI, query, object, oldS).then(function(status) {
+                    if (status == 200) {
+                        $scope.saveLocalStorage();
+                        $scope.notify('success', 'Updated contact');
+                    } else if (status >= 400) {
+                        $scope.notify('error', 'Could not update contact');
+                    }
+                });
+            }
+        }
+    };
    
 
     // Sends SPARQL patches over the wire
@@ -749,8 +778,21 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.toggleFavorite = function(id) {
-        $scope.contacts[id].favorite = ($scope.contacts[id].favorite === 'favorite')?'':'favorite';
-        $scope.hoverContact(id, false);
+        if ($scope.contacts[id].hasFavorite) {
+            if ($scope.contacts[id].hasFavorite[0].value.length > 0) {
+                $scope.contacts[id].hasFavorite[0].value='';
+            } else {
+                $scope.contacts[id].hasFavorite[0].value = $scope.contacts[id].uri;
+            }
+        } else {
+            $scope.contacts[id].hasFavorite = [ new $scope.ContactElement(
+                                new $rdf.st($rdf.sym($scope.my.webid), FAV('hasFavorite'), $rdf.sym(''), $rdf.sym($scope.contacts[id].uri))
+                            )];
+            $scope.contacts[id].hasFavorite[0].value = $scope.contacts[id].uri;
+            
+        }
+        $scope.updateObject($scope.contacts[id].hasFavorite[0], true, true);
+        //$scope.saveLocalStorage();
     };
 
     // custom sort function
