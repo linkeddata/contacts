@@ -11,9 +11,11 @@
   src: local('Roboto'), local('Roboto-Regular'), url(fonts/roboto-regular.ttf) format('truetype');
 }
 
-body {
+html, body {
   font-family: 'Roboto', sans-serif;
+  font-weight: 300;
   position: relative;
+  height: 100%;
 }
 
 a {
@@ -24,13 +26,31 @@ li {
   line-height: 40px
 }
 
+#progress {
+  position: fixed;
+  width: 100%;
+  top: 3px;
+  z-index: 110;
+}
+
 .absolute-center {
   position: fixed;
   width: 90%;
   height: 80%;
   left: 5%;
-  top: 40%;
+  top: 30%;
   text-align: center;
+}
+
+.align-center {
+  text-align: center!important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.main {
+  position: relative;
+  height: auto; min-height: 100%;
 }
 
 .topbar {
@@ -48,14 +68,7 @@ li {
 
 .welcome {
   min-height: 100%;
-  min-height: 100%;
   width: 100%;
-  height: auto;
-  position: fixed;
-  top: 0;
-  left: 0;
-
-  display: flex;
   justify-content: center;
   align-items: center;
 }
@@ -76,7 +89,7 @@ li {
 }
 
 .contacts {
-  padding: 10px;
+  padding: 10px 10px 0 10px;
   display: inline-block;
   position: relative;
   width: 100%;
@@ -110,15 +123,52 @@ li {
   font-weight: 300;
 }
 
+.pick-area img:hover {
+  border: 3px solid #fff;
+}
+.pick-file {
+  position: absolute;
+  display: inline-block!important;
+  bottom: 0px;
+  opacity: 0.5;
+  left: 3px;
+  right: 3px;
+  width: 170px;
+  height: 50px;
+  border-radius: 3px;
+}
+.pick-file:hover {
+  opacity: 0.6;
+}
+
+.fs-title {
+  font-weight: 300;
+}
+
 .search-filter__input {
   padding: 0 10px 0 10px;
   background-color: #fff;
   color: #000!important;
 }
 
-.dialog__l {
-  width: 90%;
-  margin-left: -45%;
+.form-field {
+  margin-right: 40px!important;
+}
+
+.form-icon {
+  display: block;
+  position: relative;
+  float: right;
+  top: -45px;
+}
+
+.dialog {
+  top: 15px;
+}
+
+.checkbox-workspace {
+  position: relative;
+  top: 10px;
 }
 
 .checkbox__label {
@@ -129,6 +179,7 @@ li {
   width: 50px!important;
 }
 .list-row__primary {
+  display:block;
   width: 50px;
 }
 .list-row__primary img {
@@ -147,6 +198,29 @@ li {
   filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3F51B5', endColorstr='#03A9F4',GradientType=1 );
 }
 
+.disabled {
+  pointer-events: none;
+  opacity: 0.5;
+  background: #CCC;
+}
+
+.newimg {
+  width: 180px;
+  height: 180px;
+}
+
+.footer {
+  display: inline-block;
+  margin-bottom: 10px;
+  z-index: 10;
+  bottom: 0;
+  width: 100%;
+}
+
+.initial {
+  text-transform: initial!important;
+}
+
 *::-webkit-input-placeholder { /* WebKit browsers */
   color:    #ccc!important;
 }
@@ -162,7 +236,15 @@ li {
    color:    #ccc!important;
 }
 
+@media screen and (max-width: 1023px) {
+  .dialog--l {
+    width: 96%;
+    margin-left: -48%;
+  }
+}
+
 @media (max-width: 600px) {
+  .welcome { overflow: auto; }
   .welcome-title {
     position: relative;
     display: inline-block;
@@ -179,8 +261,17 @@ li {
     font-weight: 400;
     line-height: 40px;
   }
+  .truncate {
+    width: 180px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
 
   .toolbar {
     padding: 7px 5px 12px 5px;
+  }
+  .myname {
+    display: none;
   }
 }

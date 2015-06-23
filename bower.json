@@ -18,7 +18,8 @@
     "tests"
   ],
   "dependencies": {
-    "angular-material": "~0.10.0",
-    "lumx": "~0.3.39"
+    "lumx": "~0.3.39",
+    "ng-file-upload": "~3.0.7",
+    "ngImgCrop": "~0.3.2"
   }
 }

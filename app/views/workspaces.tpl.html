@@ -1,0 +1,35 @@
+<div class="p+ mt+">
+  <div ng-if="!initialized" class="card p++ mt+">
+    <h4>It appears this is the first time you are using this application. You may have to go through some configuration steps before you can use it.</h4>
+
+    <div ng-if="!my.config.appWorkspace || my.config.appWorkspace.length===0">
+      <p class="mt">I could not find a workspace in which to store configuration data for applications. Please select a storage space in which to create the workspace:</p>
+      <div class="radio-group mt+">
+        <div class="radio-button" ng-repeat="storage in my.config.storages">
+            <input type="radio" id="radio-{{$index}}" ng-model="storageURI.checked" value="{{storage.uri}}" class="radio-button__input">
+            <label for="radio-{{$index}}" class="radio-button__label">Storage {{$index+1}}</label>
+            <span class="radio-button__help">Location: {{storage.uri}}</span>
+        </div>
+      </div>
+      <button class="btn btn--l btn--blue btn--raised mt++" lx-ripple aria-label="Save preferences" ng-click="initAppWorkspace()" ng-disabled="!storageURI.checked">
+        <span>Create Apps workspace</span>
+      </button>
+    </div>
+
+    <div ng-if="my.config.appWorkspace && my.config.appWorkspace.length>0 && my.config.workspaces.length===0">
+      <p class="mt">I managed to find the following workspaces in your profile information. Please select those in which you would like to store contact data:</p>
+      <ul class="list">
+        <li class="list-row list-row--has-separator" ng-repeat="workspace in my.config.availableWorkspaces">
+          <div class="checkbox mt">
+            <input type="checkbox" id="ws-{{$index}}" class="checkbox__input" ng-model="workspace.checked">
+            <label for="ws-{{$index}}" class="checkbox__label">{{workspace.name}}</label>
+            <span class="checkbox__help">Location: {{workspace.uri}}</span>
+          </div>
+        </li>
+      </ul>
+      <button class="btn btn--l btn--blue btn--raised mt++" lx-ripple aria-label="Save preferences" ng-click="initApp()" ng-disabled="(my.config.availableWorkspaces | filter: checked != true).length < 1">
+        <span>Save preferences</span>
+      </button>
+    </div>
+  </div>
+</div>
