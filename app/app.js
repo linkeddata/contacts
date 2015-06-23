@@ -897,6 +897,11 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         //$scope.saveLocalStorage();
     };
 
+    $scope.scrollIntoView = function(id) {
+        var elem = document.getElementById(id);
+        elem.scrollIntoView({block: "start"});
+    }
+
     // custom sort function
     $scope.orderByName = function() {
         var arr = [];
@@ -1014,6 +1019,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     $scope.initialized = false;
                 }
                 $scope.contacts = data.contacts;
+                console.log(data.contacts);
             } else {
                 console.log("Deleting profile data because it expired");
                 localStorage.removeItem($scope.app.origin);
