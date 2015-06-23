@@ -1,7 +1,8 @@
 {
   "name": "mdi",
-  "version": "1.0.8-beta",
+  "version": "1.1.34",
   "main": [
+    "css/materialdesignicons.css",
     "fonts/*",
     "css/*",
     "scss/*",
@@ -33,13 +34,13 @@
     "icons",
     "webfont"
   ],
-  "_release": "1.0.8-beta",
+  "_release": "1.1.34",
   "_resolution": {
     "type": "version",
-    "tag": "v1.0.8-beta",
-    "commit": "dd5bf0392bf1b91192977806bfc03964640d7f31"
+    "tag": "v1.1.34",
+    "commit": "1d1ff96d817cb677f236e3cebc92ebf9bdcd9c9d"
   },
   "_source": "git://github.com/Templarian/MaterialDesign-Webfont.git",
-  "_target": "1.0.8-beta",
+  "_target": "*",
   "_originalSource": "mdi"
 }
