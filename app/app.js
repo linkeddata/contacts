@@ -95,7 +95,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.viewContact = function(id) {
         delete $scope.contact;
         $scope.contact = angular.copy($scope.contacts[id]);
-        $scope.contact.id = id;
         $scope.contact.editing = false;
         $scope.openDialog('contactInfo');
     };
@@ -103,27 +102,24 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.editContact = function(id) {
         delete $scope.contact;
         $scope.contact = angular.copy($scope.contacts[id]);
-        $scope.contact.id = id;
         $scope.contact.editing = true;
         $scope.openDialog('contactInfo');
     };
 
     $scope.saveContact = function() {
-        // if contact exists
-        if ($scope.contact.id !== undefined) {
-            $scope.contacts[$scope.contact.id] = angular.copy($scope.contact);
-            delete $scope.contacts[$scope.contact.id].id;
-        } else {
-            $scope.contacts.push(angular.copy($scope.contact));
-        }
-        
+        //@@TODO move this somewhere else
         LxDialogService.close('contactInfo');
 
-        //@@TODO write to server
         // contact exists => patching it
-        if ($scope.contact.id !== undefined && $scope.contact.uri) {
+        if ($scope.contact.uri !== undefined) {
+            $scope.contacts[$scope.contact.id] = angular.copy($scope.contact);
+            //@@TODO send PATCH
+
             $scope.notify('success', 'Contact updated');
         } else {
+            $scope.contact.id = $scope.contacts.length;
+            
+       
             // writing new contact
             var g = new $rdf.graph();
             g.add($rdf.sym(''), RDF('type'), VCARD('Individual'));
@@ -143,9 +139,8 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             });
 
             var triples = new $rdf.Serializer(g).toN3(g);
-            console.log(triples);
 
-
+            console.log("Writing to "+$scope.contact.workspace);
 
             $http({
                 method: 'POST',
@@ -158,13 +153,8 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             }).
             success(function(data, status, headers) {
                 if (headers('Location')) {
-                    for (var i=0; i<$scope.contacts.length; i++) {
-                        if (!$scope.contacts[i].uri) {
-                            $scope.contacts[i].uri = headers('Location');
-                        }
-                    }
-
-                    //$scope.contacts[$scope.contacts.length-1].uri = headers('Location');
+                    $scope.contact.uri = headers('Location');
+                    $scope.contacts.push(angular.copy($scope.contact));
                     $scope.saveLocalStorage();
                     $scope.notify('success', 'Contact added');
                 }
@@ -173,7 +163,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 console.log('Error saving contact on sever - '+status, data);
                 $scope.notify('error', 'Failed to write contact to server -- HTTP '+status);
             });
-        }        
+        }
     };
 
     $scope.resetContact = function() {
@@ -196,7 +186,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         if (ids.length === 1) {
             var plural = '';
             var id = ids[0];
-            var text = $scope.contacts[id].fn.value +' ?';
+            var text = $scope.contacts[id].fn[0].value +' ?';
         } else if (ids.length > 1) {
             var plural = 's';
             var text = ids.length +' contacts?';
@@ -214,12 +204,11 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
         var i = ids.length;
         while (i--) {
+            var uri = $scope.contacts[ids[i]].uri;
             $scope.contacts.splice(ids[i], 1);
-            //@@TODO also delete from server
-            console.log("Deleting: "+ids[i].uri);
             $http({
               method: 'DELETE', 
-              url: ids[i].uri,
+              url: uri,
               withCredentials: true
             }).
             success(function(data, status, headers) {
@@ -229,9 +218,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             }).
             error(function(data, status) {
                 if (status == 401) {
-                    console.log('Forbidden', 'Authentication required to delete '+ids[i].uri);
+                    console.log('Forbidden', 'Authentication required to delete '+uri);
                 } else if (status == 403) {
-                    console.log('Forbidden', 'You are not allowed to delete '+ids[i].uri);
+                    console.log('Forbidden', 'You are not allowed to delete '+uri);
                 } else if (status == 409) {
                     console.log('Failed', 'Conflict detected. In case of directory, check if not empty.');
                 } else {
@@ -459,6 +448,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 for (var i=0; i<contacts.length; i++) {
                     var subject = contacts[i]['subject']
                     var contact = {};
+                    contact.id = i;
                     contact.uri = subject.value;
                     contact.workspace = uri;
                     var newElement = function(arr, prop) {
