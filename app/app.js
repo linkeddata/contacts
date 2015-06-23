@@ -116,7 +116,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
         // contact exists => patching it
         if ($scope.contact.uri !== undefined) {
-            console.log($scope.contact);
             //@@TODO send PATCH
             var query = $scope.updateContact($scope.contact, true);
             if (query.length === 0) {
@@ -1020,7 +1019,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     $scope.initialized = false;
                 }
                 $scope.contacts = data.contacts;
-                console.log(data.contacts);
             } else {
                 console.log("Deleting profile data because it expired");
                 localStorage.removeItem($scope.app.origin);
