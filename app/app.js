@@ -116,7 +116,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         } else {
             $scope.contacts.push(angular.copy($scope.contact));
         }
-        $scope.saveLocalStorage();
+        
         LxDialogService.close('contactInfo');
 
         //@@TODO write to server
@@ -146,6 +146,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             console.log(triples);
 
 
+
             $http({
                 method: 'POST',
                 url: $scope.contact.workspace,
@@ -157,9 +158,16 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             }).
             success(function(data, status, headers) {
                 if (headers('Location')) {
-                    $scope.contacts[$scope.contacts.length-1].uri = headers('Location');
+                    for (var i=0; i<$scope.contacts.length; i++) {
+                        if (!$scope.contacts[i].uri) {
+                            $scope.contacts[i].uri = headers('Location');
+                        }
+                    }
+
+                    //$scope.contacts[$scope.contacts.length-1].uri = headers('Location');
+                    $scope.saveLocalStorage();
+                    $scope.notify('success', 'Contact added');
                 }
-                $scope.notify('success', 'Contact added');
             }).
             error(function(data, status, headers) {
                 console.log('Error saving contact on sever - '+status, data);
@@ -208,11 +216,32 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         while (i--) {
             $scope.contacts.splice(ids[i], 1);
             //@@TODO also delete from server
+            console.log("Deleting: "+ids[i].uri);
+            $http({
+              method: 'DELETE', 
+              url: ids[i].uri,
+              withCredentials: true
+            }).
+            success(function(data, status, headers) {
+                $scope.notify('success', 'Contact deleted');
+                 // save modified contacts list
+                $scope.saveLocalStorage();
+            }).
+            error(function(data, status) {
+                if (status == 401) {
+                    console.log('Forbidden', 'Authentication required to delete '+ids[i].uri);
+                } else if (status == 403) {
+                    console.log('Forbidden', 'You are not allowed to delete '+ids[i].uri);
+                } else if (status == 409) {
+                    console.log('Failed', 'Conflict detected. In case of directory, check if not empty.');
+                } else {
+                    console.log('Failed '+status, data);
+                }
+                $scope.notify('error', 'Failed to delete contact from server -- HTTP '+status);
+            });
         }
         // hide select bar 
         $scope.selectNone();
-        // save modified contacts list
-        $scope.saveLocalStorage();
     };
 
     $scope.selectWorkspace = function(ws) {
