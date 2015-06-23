@@ -840,9 +840,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
         $scope.putLDP(uri, 'ldpc').then(function(status) {
             if (status === 201) {
-                console.log($scope.my.toInit, uri);
                 $scope.my.toInit--;
-                console.log($scope.my.toInit, uri);
                 if ($scope.my.toInit >= 0) {
                     var query = "INSERT DATA { " + $scope.newStatement($rdf.sym('#conf'), SOLID('dataSource'), $rdf.sym(uri+'/')) + " }";
                     $scope.sendSPARQLPatch($scope.my.config.uri, query).then(function(result) {
