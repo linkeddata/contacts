@@ -94,7 +94,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.addContactField = function(name) {
-        if ($scope.contact[name].length >= 0 && $scope.vcardElems.isUnique(name)) {
+        if ($scope.contact[name] && $scope.contact[name].length >= 0 && $scope.vcardElems.isUnique(name)) {
             return;
         }
         var statement = new $rdf.st(
