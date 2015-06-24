@@ -1,17 +1,17 @@
 <div ng-show="show.contact" id="contact_info" class="contact-info bgc-white-1" ng-class="show.posClass">
   <div class="toolbar topbar bgc-blue-A700 tc-white-1">
     <div class="toolbar__left toolbar__label">
-      <a class="btn btn--l" lx-ripple aria-label="Back" lx-tooltip="Back" tooltip-position="bottom" ng-click="hideContactInformation()">
+      <a class="btn btn--l" lx-ripple aria-label="Back" ng-click="hideContactInformation()">
         <span aria-hidden="true" class="mdi mdi-arrow-left"></span>
         Back
       </a>
     </div>
     <div class="toolbar__right">
-      <a ng-if="contact.editing" class="btn btn--l" lx-ripple ng-click="saveContact()">
+      <a ng-if="contact.editing" class="btn btn--l" aria-label="Save changes" lx-ripple ng-click="saveContact()">
         <span aria-hidden="true" class="mdi mdi-content-save"></span>
         Save
       </a>
-      <a ng-if="!contact.editing" class="btn btn--l" lx-ripple ng-click="contact.editing=true">
+      <a ng-if="!contact.editing" class="btn btn--l" aria-label="Edit contact" lx-ripple ng-click="contact.editing=true">
         <span aria-hidden="true" class="mdi mdi-pencil"></span>
         Edit
       </a>
