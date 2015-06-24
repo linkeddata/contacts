@@ -209,6 +209,18 @@ li {
   height: 180px;
 }
 
+.crop-area {
+  display: inline-block;
+  overflow: hidden;
+  width:200px;
+  height:200px;
+}
+.cropped-area {
+  display: inline-block;
+  overflow: hidden;
+  width:100px;
+}
+
 .footer {
   display: inline-block;
   margin-bottom: 10px;

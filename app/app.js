@@ -188,6 +188,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.resetContact = function() {
         delete $scope.contact;
         $scope.contact = {};
+        $scope.contact.pictureFile = {}
         $scope.contact.editing = true;
         $scope.contact.workspace = $scope.my.config.workspaces[0];
         $scope.vcardElems.forEach(function(elem) {
@@ -255,6 +256,65 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.selectWorkspace = function(ws) {
         $scope.contact.workspace = $scope.selects.workspace = ws;
     };
+
+    //// IMAGE HANDLING
+    // select file for picture
+    $scope.handleFileSelect = function(file) {
+        if (file) {
+            $scope.pictureName = file.name;
+            $scope.imageType = file.type;
+            var reader = new FileReader();
+            reader.onload = function (evt) {
+                $scope.$apply(function($scope){
+                    $scope.originalImage=evt.target.result;
+                });
+            };
+            reader.readAsDataURL(file);
+        }
+    };
+
+    $scope.dataURItoBlob = function(dataURI) {
+        var data = dataURI.split(',')[1];
+        // var binary = atob(data);
+        var binary;
+        if (dataURI.split(',')[0].indexOf('base64') >= 0)
+            binary = atob(data);
+        else
+            binary = decodeURI(data);
+
+        var buffer = new ArrayBuffer(binary.length);
+        var ia = new Uint8Array(buffer);
+        for (var i = 0; i < binary.length; i++) {
+            ia[i] = binary.charCodeAt(i);
+        }
+        var blob = new Blob([ia], {type: $scope.imageType});
+
+        return blob;
+        // new File() is not supported by Safari for now
+        // return new File([blob.buffer], $scope.pictureName, {
+        //   lastModified: new Date(0),
+        //   type: $scope.imageType
+        // });
+    };
+
+    $scope.savePicture = function() {
+        //@@TODO change why
+        $scope.contact.hasPhoto = [
+            new $scope.ContactElement(
+                new $rdf.st($rdf.sym($scope.contact.uri), VCARD('hasPhoto'), $rdf.lit(angular.copy($scope.croppedImage)), $rdf.sym($scope.contact.uri))
+        )];
+        LxDialogService.close('picture-cropper');
+    };
+
+    $scope.$watch('contact.pictureFile.file', function (newFile, oldFile) {
+        if (newFile !== undefined) {
+            $scope.originalImage = undefined;
+            $scope.imageName = '';
+            $scope.croppedImage = '2';
+            $scope.handleFileSelect(newFile[0]);
+            LxDialogService.open('picture-cropper');
+        }
+    });
 
     // Load a user's profile
     // string uri  - URI of resource containing profile information

@@ -162,10 +162,10 @@
     <div class="dialog__content p">
       <div flex-container="row" flex-gutter="24">
         <div flex-item="3" class="mt ml">
-          <div ng-if="contact.editing" ng-file-drop ng-model="contact.pictureFile" class="profile-picture" 
+          <div ng-if="contact.editing" ng-file-drop ng-model="contact.pictureFile.file" class="profile-picture" 
             drag-over-class="dragover" ng-multiple="false" allow-dir="false"
             ng-accept="'.jpg,.jpeg,.png'" ng-capture="camera">
-            <div ng-file-select ng-model="contact.pictureFile" accept="image/*" ng-multiple="false" ng-capture="camera">
+            <div ng-file-select ng-model="contact.pictureFile.file" accept="image/*" ng-multiple="false" ng-capture="camera">
               <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center img-round"/>
               <img ng-if="!contact.hasPhoto[0].value || contact.hasPhoto[0].value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
               <div class="valign align-center">
@@ -255,6 +255,25 @@
     <div ng-if="!contact.editing" class="dialog__actions">
       <button class="btn btn--m btn--black btn--flat" lx-ripple ng-click="contact.editing=true">Edit</button>
       <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Close</button>
+    </div>
+  </lx-dialog>
+
+  <!-- Picture cropper -->
+
+  <lx-dialog class="dialog dialog--s" auto-close="true" id="picture-cropper">
+    <div class="dialog__content p">
+      <div class="crop-area">
+        <img-crop image="originalImage" area-type="square" result-image-format="{{imageType}}" result-image="croppedImage"></img-crop>
+      </div>  
+      <div class="cropped-area">
+        <img id="result-image" class="valign" ng-src="{{croppedImage}}" alt="Profile image" />
+      </div>
+    </div>
+    <div class="dialog__actions">
+      <div flex-item>
+        <button class="btn btn--m btn--black btn--flat" lx-ripple ng-click="savePicture()">Save</button>
+        <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Cancel</button>
+      </div>
     </div>
   </lx-dialog>
 
