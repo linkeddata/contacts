@@ -51,6 +51,12 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         $scope.initialized = true;
         $scope.loggedIn = false;
         $scope.loginTLSButtonText = "Login";
+        // display elements object
+        $scope.show = {
+            contact: false,
+            topbar: true,
+            list: true
+        };
 
         // search filter object
         $scope.filters = {};
@@ -96,28 +102,40 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         $scope.contact[elem][item].hidden = true;
     };
 
+    $scope.hideContactInformation = function() {
+        $scope.contact.editing = false;
+        $scope.show.contact = false;
+        $scope.show.list = true;
+        $scope.show.topbar = true;
+    };
+    $scope.showContactInformation = function() {
+        $scope.show.contact = true;
+        $scope.show.list = false;
+        $scope.show.topbar = false;
+    };
+
     $scope.viewContact = function(id) {
         delete $scope.contact;
         $scope.contact = angular.copy($scope.contacts[id]);
         $scope.contact.editing = false;
-        $scope.openDialog('contactInfo');
+        $scope.showContactInformation();
     };
 
     $scope.editContact = function(id) {
         delete $scope.contact;
         $scope.contact = angular.copy($scope.contacts[id]);
         $scope.contact.editing = true;
-        $scope.openDialog('contactInfo');
+        $scope.showContactInformation();
     };
 
     $scope.saveContact = function() {
         //@@TODO move this somewhere else
-        LxDialogService.close('contactInfo');
+        console.log($scope.contact);
 
         // contact exists => patching it
         if ($scope.contact.uri !== undefined) {
-            //@@TODO send PATCH
             var query = $scope.updateContact($scope.contact, true);
+            console.log("Query",query);
             if (query.length === 0) {
                 return;
             }
@@ -126,11 +144,13 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                             if (result >= 200 && result < 400) {
                                 for (var i=0; i<$scope.contacts.length; i++) {
                                     if ($scope.contacts[i].uri == $scope.contact.uri) {
+                                        delete $scope.contact.pictureFile;
                                         $scope.contacts[i] = angular.copy($scope.contact);
                                     }
                                 };
                                 $scope.saveLocalStorage();
                                 $scope.notify('success', 'Contact updated');
+                                $scope.hideContactInformation();
                                 $scope.$apply();
                             } else {
                                 $scope.notify('error', 'Failed to update contact -- HTTP', status);
@@ -173,7 +193,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             success(function(data, status, headers) {
                 if (headers('Location')) {
                     $scope.contact.uri = headers('Location');
+                    delete $scope.contact.pictureFile;
                     $scope.contacts.push(angular.copy($scope.contact));
+                    $scope.hideContactInformation();
                     $scope.saveLocalStorage();
                     $scope.notify('success', 'Contact added');
                 }
@@ -571,10 +593,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // Contact element object
     $scope.ContactElement = function(s) {
-        this.locked = false;
-        this.uploading = false;
         this.failed = false;
-        this.picker = false;
         this.statement = s;
         this.value = '';
         this.prev = '';
@@ -669,7 +688,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     $scope.updateContact = function(contact, force) {
         function toNT(s) {
             var ret = '<'+s.subject.value+'> <'+s.predicate.uri+'> ';
-            ret += (s.object.value)?'<'+s.object.value+'>':'"'+s.object.value+'"';
+            ret += (s.object.uri)?'<'+s.object.value+'>':'"""'+s.object.value+'"""';
             return ret;
         };
 
@@ -680,12 +699,13 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         var graphURI = '';
         for (var i=0; i<$scope.vcardElems.length; i++) {
             var elem = $scope.vcardElems[i];
+            console.log(elem);
             if (contact[elem.name] === undefined) {
                 continue;
             }
             for (var j=0; j<contact[elem.name].length; j++) {
                 var object = contact[elem.name][j];
-                if (object.value == object.prev) {
+                if (object.value == object.prev && !force) {
                     continue;
                 }
 
@@ -709,7 +729,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                     }
                 }
 
-                object.locked = true;
                 if (oldS && oldS['object']['value'] && oldS['object']['value'].length > 0) {
                     if (delQuery.length > 0) {
                         delQuery += " ;\n";
@@ -1097,6 +1116,13 @@ Contacts.directive('contacts',function(){
       replace : true,
       restrict : 'E',
       templateUrl: 'app/views/contacts.tpl.html'
+    }; 
+});
+Contacts.directive('contact',function(){
+    return {
+      replace : true,
+      restrict : 'E',
+      templateUrl: 'app/views/contact.tpl.html'
     }; 
 });
 Contacts.directive('workspaces',function(){

@@ -66,6 +66,13 @@ li {
   z-index: 100;
 }
 
+.contact-info {
+  display: block;
+  width: 100%;
+  top: 0;
+  opacity: 200;
+}
+
 .welcome {
   min-height: 100%;
   width: 100%;
@@ -282,6 +289,9 @@ li {
 
   .toolbar {
     padding: 7px 5px 12px 5px;
+  }
+  .long-label {
+    display: none;
   }
   .myname {
     display: none;
