@@ -1,0 +1,110 @@
+<div ng-show="show.contact" id="contact_info" class="contact-info bgc-white-1" ng-class="show.posClass">
+  <div class="toolbar topbar bgc-blue-A700 tc-white-1">
+    <div class="toolbar__left toolbar__label">
+      <a class="btn btn--l" lx-ripple aria-label="Back" lx-tooltip="Back" tooltip-position="bottom" ng-click="hideContactInformation()">
+        <span aria-hidden="true" class="mdi mdi-arrow-left"></span>
+        Back
+      </a>
+    </div>
+    <div class="toolbar__right">
+      <a ng-if="contact.editing" class="btn btn--l" lx-ripple ng-click="saveContact()">
+        <span aria-hidden="true" class="mdi mdi-content-save"></span>
+        Save
+      </a>
+      <a ng-if="!contact.editing" class="btn btn--l" lx-ripple ng-click="contact.editing=true">
+        <span aria-hidden="true" class="mdi mdi-pencil"></span>
+        Edit
+      </a>
+    </div>
+  </div>
+  <div class="dialog__content contacts mb++">
+    <div flex-container="row" flex-gutter="24">
+      <div flex-item="3" class="mt ml">
+        <div ng-if="contact.editing" ng-file-drop ng-model="contact.pictureFile.file" class="profile-picture" 
+          drag-over-class="dragover" ng-multiple="false" allow-dir="false"
+          ng-accept="'.jpg,.jpeg,.png'" ng-capture="camera">
+          <div ng-file-select ng-model="contact.pictureFile.file" accept="image/*" ng-multiple="false" ng-capture="camera">
+            <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center img-round"/>
+            <img ng-if="!contact.hasPhoto[0].value || contact.hasPhoto[0].value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
+            <div class="valign align-center">
+              <spinner class="valign spinner" ng-show="contact.hasPhoto.uploading"></spinner>
+              <button class="btn btn--l btn--black" lx-ripple>
+                <span aria-hidden="true" class="mdi mdi-camera"></span>
+                <span class="valign">Change photo</span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <div ng-if="!contact.editing" class="profile-picture">
+          <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center img-round"/>
+            <img ng-if="!contact.hasPhoto[0].value || contact.hasPhoto[0].value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
+        </div>
+      </div>
+
+      <div flex-item>
+        <div ng-if="contact.editing" ng-repeat="elem in vcardElems">
+          <div ng-if="elem.display" ng-repeat="item in contact[elem.name]|filter:{hidden:'!'}">
+            <div class="long-label">{{elem.label}}</div>
+            <lx-text-field ng-if="!elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
+              <input id="{{elem.name + $index}}" type="text" ng-model="item.value" ng-focus="scrollIntoView(elem.name + $index)">
+            </lx-text-field>
+            <lx-text-field ng-if="elem.textarea" label="{{elem.label}}">
+              <textarea id="{{elem.name + $index}}" ng-model="item.value" ng-focus="scrollIntoView(elem.name + $index)"></textarea>
+            </lx-text-field>
+
+            <button class="btn btn--l btn--grey btn--icon form-icon" lx-ripple ng-click="deleteContactField(elem.name, contact[elem.name].indexOf(item))">
+              <span aria-hidden="true" class="mdi mdi-close"></span>
+            </button>
+          </div>
+        </div>
+
+        <div ng-if="!contact.editing">
+            <div ng-repeat="elem in vcardElems">
+              <div ng-if="contact[elem.name].length > 0 && elem.display" class="list-row">
+                <div class="list-row__primary">
+                    <i class="icon icon--s icon--grey icon--flat mdi mdi-{{elem.icon}} top"></i>
+                </div>
+                <div class="list-row__content">
+                    <div><strong>{{elem.label}}</strong></div>
+                    <div ng-repeat="item in contact[elem.name]" class="truncate">
+                      <span ng-if="!elem.link">{{item.value}}</span>
+                      <a ng-if="elem.link" href="{{item.uri}}">{{item.value}}</a>
+                    </div>
+                </div>
+              </div>
+            </div>
+        </div>
+
+        <lx-dropdown ng-if="contact.editing">
+          <a class="btn btn--l btn--black" lx-ripple lx-dropdown-toggle aria-label="Select fields to add">
+            <span>Add field</span>
+            <span aria-hidden="true" class="mdi mdi-chevron-down tc-grey-800"></span>
+          </a>
+        <lx-dropdown-menu>
+          <ul>
+            <li ng-repeat="elem in vcardElems|filter:{display: true}"><a class="dropdown-link" ng-click="addContactField(elem.name)"><span aria-hidden="true" class="mr mdi mdi-{{elem.icon}}"></span>{{elem.label}}</a></li>
+          </ul>
+        </lx-dropdown-menu>
+      </lx-dropdown>
+      </div>
+    </div>
+  </div>
+  <div ng-if="contact.editing" class="dialog__actions">
+    <div ng-if="!contact.uri && my.config.workspaces.length > 1">
+      <lx-dropdown>
+        <a class="btn btn--l btn--black initial" lx-ripple lx-dropdown-toggle aria-label="Select fields to add">
+          <span>Workspace</span>
+          <span ng-if="contact.workspace">{{contact.workspace}}</span>
+          <span ng-if="!contact.workspace">{{selects.workspace}}</span>
+          <span aria-hidden="true" class="mdi mdi-chevron-down tc-grey-800"></span>
+        </a>
+        <lx-dropdown-menu>
+          <ul>
+            <li ng-repeat="ws in my.config.workspaces"><a class="dropdown-link" ng-click="selectWorkspace(ws)">{{ws}}</a></li>
+          </ul>
+        </lx-dropdown-menu>
+      </lx-dropdown>
+    </div>
+  </div>
+</div>
