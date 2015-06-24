@@ -118,11 +118,14 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         if ($scope.contact.editing) {
             $scope.contact.editing = false;
         }
+
+        $scope.show.posClass = 'slide-out';
         $scope.show.contact = false;
         $scope.show.list = true;
         $scope.show.topbar = true;
     };
     $scope.showContactInformation = function() {
+        $scope.show.posClass = 'slide-in';
         $scope.show.contact = true;
         $scope.show.list = false;
         $scope.show.topbar = false;

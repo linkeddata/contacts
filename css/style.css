@@ -72,6 +72,38 @@ li {
   top: 0;
   padding-bottom: 20px;
   opacity: 100;
+  z-index: 150;
+}
+.slide-in {
+  animation-duration: 0.3s;
+  animation-name: slidein;
+}
+.slide-out {
+  animation-duration: 0.3s;
+  animation-name: slideout;
+}
+
+@keyframes slidein {
+  from {
+    margin-right: 100%;
+    width: 300%; 
+  }
+
+  to {
+    margin-right: 0%;
+    width: 100%;
+  }
+}
+@keyframes slideout {
+  from {
+    margin-right: 0%;
+    width: 100%; 
+  }
+
+  to {
+    margin-right: 100%;
+    width: 300%;
+  }
 }
 
 .welcome {
