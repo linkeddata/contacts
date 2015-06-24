@@ -37,14 +37,23 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // list of vocabularies used for vcard data
     $scope.vcardElems = [ 
-        { name: 'fn', label:'Name', icon: 'account', link: false, textarea: false, display: true },
-        { name: 'uid', label: 'WebID', icon: 'web', link: true, textarea: false, display: true },
-        { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false },
-        { name: 'hasEmail', label:'Email', icon: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true  },
-        { name: 'hasTelephone', label:'Phone', icon: 'phone', prefixURI: 'tel:', link: true, textarea: false, display: true },
-        { name: 'hasNote', label:'Note', icon: 'file-document-box', link: false, textarea: true, display: true },
-        { name: 'hasFavorite', label:'Favorite', icon: 'star-outline', link: false, textarea: false, display: false }
+        { name: 'fn', label:'Name', icon: 'account', link: false, textarea: false, display: true, unique: true },
+        { name: 'uid', label: 'WebID', icon: 'web', link: true, textarea: false, display: true, unique: true },
+        { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true },
+        { name: 'hasEmail', label:'Email', icon: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false },
+        { name: 'hasTelephone', label:'Phone', icon: 'phone', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false },
+        { name: 'hasNote', label:'Note', icon: 'file-document-box', link: false, textarea: true, display: true, unique: true },
+        { name: 'hasFavorite', label:'Favorite', icon: 'star-outline', link: false, textarea: false, display: false, unique: true }
     ];
+    $scope.vcardElems.isUnique = function(name) {
+        for (var i=0; i<$scope.vcardElems.length; i++) {
+            var elem = $scope.vcardElems[i];
+            if (elem.name == name && elem.unique === true) {
+                return true;
+            }
+        };
+        return false;
+    };
 
     // set init variables
     $scope.init = function() {
@@ -85,6 +94,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.addContactField = function(name) {
+        if ($scope.contact[name].length >= 0 && $scope.vcardElems.isUnique(name)) {
+            return;
+        }
         var statement = new $rdf.st(
                 $rdf.sym(''),
                 VCARD(name),
@@ -103,7 +115,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     };
 
     $scope.hideContactInformation = function() {
-        $scope.contact.editing = false;
+        if ($scope.contact.editing) {
+            $scope.contact.editing = false;
+        }
         $scope.show.contact = false;
         $scope.show.list = true;
         $scope.show.topbar = true;
@@ -123,7 +137,11 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     $scope.editContact = function(id) {
         delete $scope.contact;
-        $scope.contact = angular.copy($scope.contacts[id]);
+        if (id) {
+            $scope.contact = angular.copy($scope.contacts[id]);
+        } else {
+            $scope.resetContact();
+        }
         $scope.contact.editing = true;
         $scope.showContactInformation();
     };

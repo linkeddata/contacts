@@ -1,7 +1,7 @@
 <div class="contact-info bgc-white-1" ng-if="show.contact">
-  <div class="toolbar bgc-blue-A700 tc-white-1">
+  <div class="toolbar topbar bgc-blue-A700 tc-white-1">
     <div class="toolbar__left toolbar__label">
-      <a class="btn btn--l" lx-ripple aria-label="Back" lx-tooltip="Back" tooltip-position="bottom" ng-click="hideContactEditor()">
+      <a class="btn btn--l" lx-ripple aria-label="Back" lx-tooltip="Back" tooltip-position="bottom" ng-click="hideContactInformation()">
         <span aria-hidden="true" class="mdi mdi-arrow-left"></span>
         Back
       </a>
@@ -12,12 +12,12 @@
         Save
       </a>
       <a ng-if="!contact.editing" class="btn btn--l" lx-ripple ng-click="contact.editing=true">
-        <span aria-hidden="true" class="mdi mdi-content-save"></span>
+        <span aria-hidden="true" class="mdi mdi-pencil"></span>
         Edit
       </a>
     </div>
   </div>
-  <div class="dialog__content p">
+  <div class="dialog__content contacts mb++">
     <div flex-container="row" flex-gutter="24">
       <div flex-item="3" class="mt ml">
         <div ng-if="contact.editing" ng-file-drop ng-model="contact.pictureFile.file" class="profile-picture" 
@@ -45,7 +45,7 @@
       <div flex-item>
         <div ng-if="contact.editing" ng-repeat="elem in vcardElems">
           <div ng-if="elem.display" ng-repeat="item in contact[elem.name]|filter:{hidden:'!'}">
-            <span class="long-label">{{elem.label}}</span>
+            <div class="long-label">{{elem.label}}</div>
             <lx-text-field ng-if="!elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
               <input id="{{elem.name + $index}}" type="text" ng-model="item.value" ng-focus="scrollIntoView(elem.name + $index)">
             </lx-text-field>
