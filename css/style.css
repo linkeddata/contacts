@@ -226,6 +226,9 @@ li {
   width: 55px!important;
   height: 55px!important;
 }
+.dialog--s {
+  left: 40%;
+}
 
 .grad-bg {
   background: rgb(63, 81, 181);
@@ -292,6 +295,10 @@ li {
   .dialog--l {
     width: 96%;
     margin-left: -48%;
+  }
+  .dialog--s {
+    width: 96%;
+    margin-left: -38%;
   }
 }
 

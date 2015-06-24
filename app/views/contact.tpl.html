@@ -7,8 +7,8 @@
       </a>
     </div>
     <div class="toolbar__right">
-      <a ng-if="contact.editing" class="btn btn--l" aria-label="Save changes" lx-ripple ng-click="saveContact()">
-        <span aria-hidden="true" class="mdi mdi-content-save"></span>
+      <a ng-if="contact.editing && contact.fn[0].value.length > 0" class="btn btn--l" aria-label="Save changes" lx-ripple ng-click="saveContact()">
+        <span aria-hidden="true" class="mdi mdi-check"></span>
         Save
       </a>
       <a ng-if="!contact.editing" class="btn btn--l" aria-label="Edit contact" lx-ripple ng-click="contact.editing=true">
