@@ -602,17 +602,20 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
                 var thisApp = g.statementsMatching(undefined, SOLID('homepage'), $rdf.sym($scope.app.homepage))[0];
                 if (thisApp) {
                     var dataSources = g.statementsMatching(thisApp.subject, SOLID('dataSource'), undefined);
-                    dataSources.forEach(function(source) {
-                        if (source.object.value.length > 0) {
-                            if (!$scope.my.config.workspaces) {
-                                $scope.my.config.workspaces = [];
+                    if (dataSources.length > 0) {
+                        $scope.sourcesToLoad = dataSources.length;
+                        dataSources.forEach(function(source) {
+                            if (source.object.value.length > 0) {
+                                if (!$scope.my.config.workspaces) {
+                                    $scope.my.config.workspaces = [];
+                                }
+                                $scope.my.config.workspaces.push(source.object.value);
+                                // Load contacts from sources
+                                $scope.loadContacts(source.object.value);
                             }
-                            $scope.my.config.workspaces.push(source.object.value);
-                            // Load contacts from sources
-                            $scope.loadContacts(source.object.value);
-                        }
-                    });
-                    $scope.saveLocalStorage();
+                        });
+                        $scope.saveLocalStorage();
+                    }
                 } else {
                     $scope.initialized = false;
                     $scope.$apply();
@@ -675,10 +678,14 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
 
                     // push contact to list
                     $scope.contacts.push(contact);
-                    $scope.$apply();
                 }
                 $scope.saveLocalStorage();
             }
+            $scope.sourcesToLoad--;
+            if ($scope.sourcesToLoad===0) {
+                $scope.loaded = true;
+            }
+            $scope.$apply();
         });
     };
 

@@ -1,5 +1,10 @@
 <div class="contacts" ng-if="initialized && show.list">
-  <div ng-if="contacts.length===0" class="row card align-center p+ mt">
+  <div ng-if="!loaded" class="row align-center p+ mt">
+    <lx-progress type="circular" color="#5fa2db"></lx-progress>
+    <span>...Loading</span>
+  </div>
+
+  <div ng-if="loaded && contacts.length===0" class="row card align-center p+ mt">
     <h3>You don't have any contacts yet.</h3>
     <div>
       <button class="btn btn--l btn--blue btn--raised mt+" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="editContact()">
@@ -8,7 +13,7 @@
       </button>
     </div>
   </div>
-
+  
   <div class="row contact mb" ng-repeat="contact in contacts | unique: '$$hashKey' | filterBy: ['fn', 'hasEmail', 'hasTelephone']: filters.search | orderBy:orderByName">
     <div class="card list-row list-row--multi-line" ng-class="{'bgc-blue-100':contact.checked, 'disabled': contact.disabled}">
       
