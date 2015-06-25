@@ -17,7 +17,7 @@
       </a>
     </div>
   </div>
-  <div class="dialog__content contacts mb++">
+  <div class="dialog__content contacts mb++ pb++">
     <div flex-container="row" flex-gutter="24">
       <div flex-item="3" class="mt ml">
         <div ng-if="contact.editing" ng-file-drop ng-model="contact.pictureFile.file" class="profile-picture" 
@@ -44,36 +44,48 @@
 
       <div flex-item>
         <div ng-if="contact.editing" ng-repeat="elem in vcardElems">
-          <div ng-if="elem.display" ng-repeat="item in contact[elem.name]|filter:{hidden:'!'}">
-            <div class="long-label">{{elem.label}}</div>
-            <lx-text-field ng-if="!elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
-              <input id="{{elem.name + $index}}" type="text" ng-model="item.value" ng-focus="scrollIntoView(elem.name + $index)">
-            </lx-text-field>
-            <lx-text-field ng-if="elem.textarea" label="{{elem.label}}">
-              <textarea id="{{elem.name + $index}}" ng-model="item.value" ng-focus="scrollIntoView(elem.name + $index)"></textarea>
-            </lx-text-field>
+          <div ng-if="elem.display" ng-repeat="item in contact[elem.name]">
+            <div ng-if="!item.hidden">
+              <div class="long-label">{{elem.label}}</div>
+              <lx-text-field ng-if="!elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
+                <input id="{{elem.name + $index}}" ng-change="space2dash(elem.name, item)" type="text" ng-model="item.value">
+              </lx-text-field>
+              <lx-text-field ng-if="elem.textarea" label="{{elem.label}}">
+                <textarea id="{{elem.name + $index}}" ng-model="item.value"></textarea>
+              </lx-text-field>
 
-            <button class="btn btn--l btn--grey btn--icon form-icon" lx-ripple ng-click="deleteContactField(elem.name, contact[elem.name].indexOf(item))">
-              <span aria-hidden="true" class="mdi mdi-close"></span>
-            </button>
+              <button class="btn btn--l btn--grey btn--icon form-icon" lx-ripple ng-click="deleteContactField(elem.name, contact[elem.name].indexOf(item))">
+                <span aria-hidden="true" class="mdi mdi-close"></span>
+              </button>
+            </div>
           </div>
         </div>
 
         <div ng-if="!contact.editing">
-            <div ng-repeat="elem in vcardElems">
-              <div ng-if="contact[elem.name].length > 0 && elem.display" class="list-row">
-                <div class="list-row__primary">
-                    <i class="icon icon--s icon--grey icon--flat mdi mdi-{{elem.icon}} top"></i>
+          <div class="list-row">
+            <div class="list-row__primary">
+                <i class="icon icon--s icon--grey icon--flat mdi mdi-link top"></i>
+            </div>
+            <div class="list-row__content">
+                <div class="truncate">
+                  <a href="{{contact.uri}}">{{contact.uri}}</a>
                 </div>
-                <div class="list-row__content">
-                    <div><strong>{{elem.label}}</strong></div>
-                    <div ng-repeat="item in contact[elem.name]" class="truncate">
-                      <span ng-if="!elem.link">{{item.value}}</span>
-                      <a ng-if="elem.link" href="{{item.uri}}">{{item.value}}</a>
-                    </div>
-                </div>
+            </div>
+          </div>
+          <div ng-repeat="elem in vcardElems">
+            <div ng-if="contact[elem.name].length > 0 && elem.display" class="list-row">
+              <div class="list-row__primary">
+                  <i class="icon icon--s icon--grey icon--flat mdi mdi-{{elem.icon}} top"></i>
+              </div>
+              <div class="list-row__content">
+                  <div><strong>{{elem.label}}</strong></div>
+                  <div ng-repeat="item in contact[elem.name]" class="truncate">
+                    <span ng-if="!elem.link">{{item.value}}</span>
+                    <a ng-if="elem.link" href="{{item.uri}}">{{item.value}}</a>
+                  </div>
               </div>
             </div>
+          </div>
         </div>
 
         <lx-dropdown ng-if="contact.editing">
