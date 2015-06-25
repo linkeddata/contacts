@@ -50,7 +50,7 @@
               <lx-text-field ng-if="!elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
                 <input id="{{elem.name + $index}}" ng-change="space2dash(elem.name, item)" type="text" ng-model="item.value">
               </lx-text-field>
-              <lx-text-field ng-if="elem.textarea" label="{{elem.label}}">
+              <lx-text-field ng-if="elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
                 <textarea id="{{elem.name + $index}}" ng-model="item.value"></textarea>
               </lx-text-field>
 
@@ -90,7 +90,7 @@
 
         <lx-dropdown ng-if="contact.editing">
           <a class="btn btn--l btn--black" lx-ripple lx-dropdown-toggle aria-label="Select fields to add">
-            <span>Add field</span>
+            <span>Add another field</span>
             <span aria-hidden="true" class="mdi mdi-chevron-down tc-grey-800"></span>
           </a>
         <lx-dropdown-menu>

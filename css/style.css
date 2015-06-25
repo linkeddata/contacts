@@ -190,6 +190,7 @@ li {
   padding: 0 10px 0 10px;
   background-color: #fff;
   color: #000!important;
+  border: 0;
 }
 .clear-search {
   left: -35px;
