@@ -51,8 +51,11 @@
           </button>
         </div>
 
-        <div ng-if="initialized" class="toolbar__left" aria-label="Filter contacts" lx-tooltip="Filter contacts" tooltip-position="bottom">
-          <lx-search-filter theme="dark" filter-width="220px" placeholder="Filter..." model="filters.contacts"></lx-search-filter>
+        <div ng-if="initialized" class="toolbar__left" aria-label="Filter contacts">
+          <input type="text" class="search ml" ng-model="filters.search">
+          <button ng-if="filters.search.length > 0" class="btn btn--m btn--flat btn--icon" lx-ripple aria-label="Clear search box" ng-click="filters.search=''">
+            <span aria-hidden="true" class="mdi mdi-close-circle tc-white-1"></span>
+          </button>
         </div>
 
         <div class="toolbar__right toolbar__label">
@@ -63,7 +66,7 @@
           </div>
           <lx-dropdown position="right" from-top>
             <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Menu">
-              <span aria-hidden="true" class="mdi mdi-dots-vertical tc-white-1"></span>
+              <span aria-hidden="true" class="mdi mdi-menu tc-white-1"></span>
             </button>
             <lx-dropdown-menu>
               <ul>

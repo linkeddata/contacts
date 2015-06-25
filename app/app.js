@@ -19,14 +19,62 @@ var gg;
 
 $rdf.Fetcher.crossSiteProxyTemplate=PROXY;
 
-var Contacts = angular.module('Contacts', [
+var App = angular.module('Contacts', [
     'ui.filters',
     'lumx',
     'angularFileUpload',
     'ngImgCrop'
 ]);
 
-Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService, LxProgressService, LxDialogService) {
+App.filter('filterBy', ['$parse', function ($parse) {
+    return function (collection, property, search) {
+        var prop, getter;
+
+        function hasPattern(word, pattern) {
+            if(pattern === '') {
+                return word;
+            }
+            if(word.indexOf(pattern) === -1) {
+                return false;
+            }
+        };
+        function toArray(object) {
+            return angular.isArray(object)?object:Object.keys(object).map(function(key) {
+                return object[key];
+            });
+        }
+
+        if (search === '') {
+            return collection;
+        }
+        collection = (angular.isObject(collection)) ? toArray(collection) : collection;
+
+        if(!angular.isArray(collection) || angular.isUndefined(property)
+            || angular.isUndefined(search)) {
+            return collection;
+        }
+
+        getter = $parse('value');
+
+        return collection.filter(function(elm) {
+            search = search.toLowerCase();
+            var results = property.map(function(property){
+                for (i in elm[property]) {
+                    var item = elm[property][i];
+                    prop = getter(item);
+                    if(!angular.isString(prop)) {
+                        return false;
+                    }
+                    prop = prop.toLowerCase();
+                    return prop;      
+                }
+            }).join(' ');
+            return hasPattern(results, search) !== false;
+        });
+    };
+}]);
+
+App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxProgressService, LxDialogService) {
     $scope.app = {};
     $scope.app.origin = window.location.origin;
     $scope.app.homepage = "https://linkeddata.github.io/contacts/";
@@ -38,13 +86,13 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     // list of vocabularies used for vcard data
     $scope.vcardElems = [ 
-        { name: 'fn', label:'Name', icon: 'account', link: false, textarea: false, display: true, unique: true },
-        { name: 'uid', label: 'WebID', icon: 'web', link: true, textarea: false, display: true, unique: true },
-        { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true },
-        { name: 'hasEmail', label:'Email', icon: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false },
-        { name: 'hasTelephone', label:'Phone', icon: 'phone', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false },
-        { name: 'hasNote', label:'Note', icon: 'file-document-box', link: false, textarea: true, display: true, unique: true },
-        { name: 'hasFavorite', label:'Favorite', icon: 'star-outline', link: true, textarea: false, display: false, unique: true }
+        { name: 'fn', label:'Name', icon: 'account', link: false, textarea: false, display: true, unique: true, filter: true },
+        { name: 'uid', label: 'WebID', icon: 'web', link: true, textarea: false, display: true, unique: true, filter: false },
+        { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true, filter: false },
+        { name: 'hasEmail', label:'Email', icon: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false, filter: true },
+        { name: 'hasTelephone', label:'Phone', icon: 'phone', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false, filter: true },
+        { name: 'hasNote', label:'Note', icon: 'file-document-box', link: false, textarea: true, display: true, unique: true, filter: false },
+        { name: 'hasFavorite', label:'Favorite', icon: 'star-outline', link: true, textarea: false, display: false, unique: true, filter: false }
     ];
     $scope.vcardElems.isUnique = function(name) {
         for (var i=0; i<$scope.vcardElems.length; i++) {
@@ -102,7 +150,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         element.prev = '';
         element.statement = s;
         if (s && s.object.value) {
-            var val = s.object.value;
+            var val = decodeURIComponent(s.object.value);
             if (val.indexOf('tel:') >= 0) {
                 val = val.slice(4, val.length);
             } else if (val.indexOf('mailto:') >= 0) {
@@ -173,7 +221,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
 
     $scope.saveContact = function() {
         // contact exists => patching it
-        console.log('saving contact:',$scope.contact);
         if ($scope.contact.uri !== undefined) {
             var query = $scope.updateContact($scope.contact).then(function(status) {
                 if (status == -1) {
@@ -649,7 +696,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
             )];
             $scope.contacts[id].hasFavorite[0].value = $scope.contacts[id].uri;
         }
-        console.log($scope.contacts[id].hasFavorite[0]);
         $scope.updateContact($scope.contacts[id]).then(function(status) {
             if (status == -1) {
                 $scope.notify('warning', 'Failed to update contact', status);
@@ -690,6 +736,9 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 if (object.value == object.prev && !force) {
                     continue;
                 }
+                if (object.value) {
+                    object.value.trim();
+                }
 
                 if (!object.failed && object.value) {
                     object.prev = angular.copy(object.value);
@@ -698,7 +747,7 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 if (object.statement) {
                     var oldS = angular.copy(object.statement);
                     var newS = object.statement;
-                    var val = (elem.prefixURI)?elem.prefixURI+object.value:object.value;
+                    var val = (elem.prefixURI)?elem.prefixURI+encodeURIComponent(object.value):object.value;
                     newS['object']['uri'] = newS['object']['value'] = val;
                 }
 
@@ -714,7 +763,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
                 }
                 if (object.value && object.value.length > 0) {
                     if (insQuery.length > 0) {
-                        console.log('insQ',insQuery);
                         insQuery += " ;\n";
                     }
                     insQuery += "INSERT DATA { " + toNT(newS, elem.link) + " }";
@@ -738,8 +786,6 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         }
         query += insQuery;
 
-        console.log('Updated contact:',contact);
-        console.log(query);
         return new Promise(function(resolve) {
             $scope.sendSPARQLPatch(contact.uri, query).then(function(status) {
                 // all done               
@@ -986,6 +1032,24 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
         $scope.selects.contacts = [];
     };
 
+    $scope.space2dash = function(elem, obj) {
+        if (elem == 'hasTelephone') {
+            obj.value = (!obj.value) ? '' : obj.value.replace(/\s+/g, '-');
+        }
+    }
+
+    // // expensive filter
+    // $scope.filterbyProperty = function(contact) {
+    //     angular.forEach($scope.vcardElems, function(elem) {
+    //         if (elem.filter) {
+    //             if (filters.contacts) {
+
+    //             }
+    //         }
+    //     });
+    //     return false;
+    // });
+
     // Dialogues
     $scope.openDialog = function(elem, reset) {
         if (reset) {
@@ -1071,21 +1135,21 @@ Contacts.controller('Main', function($scope, $http, $sce, LxNotificationService,
     }
 });
 
-Contacts.directive('contacts',function(){
+App.directive('contacts',function(){
     return {
       replace : true,
       restrict : 'E',
       templateUrl: 'app/views/contacts.tpl.html'
     }; 
 });
-Contacts.directive('contact',function(){
+App.directive('contact',function(){
     return {
       replace : true,
       restrict : 'E',
       templateUrl: 'app/views/contact.tpl.html'
     }; 
 });
-Contacts.directive('workspaces',function(){
+App.directive('workspaces',function(){
     return {
       replace : true,
       restrict : 'E',

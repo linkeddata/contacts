@@ -185,10 +185,15 @@ li {
   font-weight: 300;
 }
 
-.search-filter__input {
+.search {
+  width: 180px;
   padding: 0 10px 0 10px;
   background-color: #fff;
   color: #000!important;
+}
+.clear-search {
+  left: -35px;
+  top: 3px;
 }
 
 .form-field {
