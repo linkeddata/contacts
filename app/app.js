@@ -91,7 +91,7 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
         { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true, filter: false },
         { name: 'hasEmail', label:'Email', icon: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false, filter: true },
         { name: 'hasTelephone', label:'Phone', icon: 'phone', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false, filter: true },
-        { name: 'hasNote', label:'Note', icon: 'file-document-box', link: false, textarea: true, display: true, unique: true, filter: false },
+        { name: 'hasNote', label:'Note', icon: 'file-document', link: false, textarea: true, display: true, unique: true, filter: false },
         { name: 'hasFavorite', label:'Favorite', icon: 'star-outline', link: true, textarea: false, display: false, unique: true, filter: false }
     ];
     $scope.vcardElems.isUnique = function(name) {

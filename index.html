@@ -52,7 +52,7 @@
         </div>
 
         <div ng-if="initialized" class="toolbar__left" aria-label="Filter contacts">
-          <input type="text" class="search ml" ng-model="filters.search">
+          <input type="text" class="search ml" ng-model="filters.search" placeholder="Filter...">
           <button ng-if="filters.search.length > 0" class="btn btn--m btn--flat btn--icon" lx-ripple aria-label="Clear search box" ng-click="filters.search=''">
             <span aria-hidden="true" class="mdi mdi-close-circle tc-white-1"></span>
           </button>
