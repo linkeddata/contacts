@@ -679,16 +679,16 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
                     // push contact to list
                     $scope.contacts.push(contact);
                 }
-                $scope.saveLocalStorage();
+
             }
             $scope.sourcesToLoad--;
             if ($scope.sourcesToLoad===0) {
-                $scope.loaded = true;
+                $scope.my.config.loaded = true;
             }
+            $scope.saveLocalStorage();
             $scope.$apply();
         });
     };
-
 
     $scope.toggleFavorite = function(id) {
         if ($scope.contacts[id].hasFavorite && $scope.contacts[id].hasFavorite[0]) {
