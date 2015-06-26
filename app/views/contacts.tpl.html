@@ -22,7 +22,7 @@
           <span aria-hidden="true" class="icon icon--l icon--flat mdi" ng-class="contact.hasFavorite[0].value.length>0?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
         </button>
       </div>
-      <div class="list-row__primary mr+">
+      <div class="list-row__primary mr++">
         <div>
           <img ng-show="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" alt="Photo of {{contact.fn[0].value}}" width="40" height="40" class="img-round">
           <img ng-hide="contact.hasPhoto[0].value" src="images/generic_photo.png" alt="Photo of {{contact.fn[0].value}}" width="40" height="40" class="img-round" />
@@ -31,17 +31,13 @@
 
       <div class="list-row__content truncate">
           <div class="display-block">
-            <div class="inline-block tc-black max-200" ng-class="{'truncate':contact.hasNote[0].value}">{{contact.fn[0].value}}</div>
-            <div ng-if="contact.hasNote[0].value" class="inline-block hide-small fs-body-1 tc-black-2 ml+">
-              "{{contact.hasNote[0].value}}"
-            </div>
-
+            {{contact.fn[0].value}}
           </div>
           <div class="display-block fs-body-1 tc-black-2">
-            <div class="inline-block max-200" ng-class="{'truncate':contact.uid[0].value}">{{contact.hasEmail[0].value}}</div>
-            <div class="inline-block hide-small fs-body-1 tc-black-2 ml+">
-              {{contact.uid[0].value}}
-            </div>
+            {{contact.uid[0].value}}
+          </div>
+          <div class="display-block fs-body-1 tc-black-2">
+            {{contact.hasEmail[0].value}}
           </div>
           <div class="display-block fs-body-1 tc-black-2">
             {{contact.hasTelephone[0].value}}

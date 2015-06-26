@@ -224,9 +224,12 @@ li {
 .row__primary {
   width: 50px!important;
 }
+.list-row {
+  padding: 0;
+}
 .list-row__primary {
   display:block;
-  width: 50px;
+  width: 40px;
 }
 .list-row__primary img {
   width: 55px!important;
