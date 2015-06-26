@@ -31,14 +31,14 @@
 
       <div class="list-row__content truncate">
           <div class="display-block">
-            <div class="inline-block tc-black max-200" ng-class="'truncate':contact.hasNote[0].value">{{contact.fn[0].value}}</div>
+            <div class="inline-block tc-black max-200" ng-class="{'truncate':contact.hasNote[0].value}">{{contact.fn[0].value}}</div>
             <div ng-if="contact.hasNote[0].value" class="inline-block hide-small fs-body-1 tc-black-2 ml+">
               "{{contact.hasNote[0].value}}"
             </div>
 
           </div>
           <div class="display-block fs-body-1 tc-black-2">
-            <div class="inline-block max-200" ng-class="'truncate':contact.uid[0].value">{{contact.hasEmail[0].value}}</div>
+            <div class="inline-block max-200" ng-class="{'truncate':contact.uid[0].value}">{{contact.hasEmail[0].value}}</div>
             <div class="inline-block hide-small fs-body-1 tc-black-2 ml+">
               {{contact.uid[0].value}}
             </div>
