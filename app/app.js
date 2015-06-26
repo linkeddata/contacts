@@ -900,6 +900,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                             // all done
                             $scope.my.config.appWorkspace = uri+'/';
                             $scope.saveLocalStorage();
+                            $scope.initApp();
                             $scope.notify('success', 'Created configuration workspace');
                             $scope.$apply();
                         });
