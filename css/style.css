@@ -246,6 +246,10 @@ li {
   background: linear-gradient(135deg,  rgba(63, 81, 181, 1) 0%,rgba(123, 214, 255, 1) 100%);
 }
 
+.inline-block {
+  display: inline-block!important;
+}
+
 .disabled {
   pointer-events: none;
   opacity: 0.5;
@@ -267,6 +271,16 @@ li {
   display: inline-block;
   overflow: hidden;
   width:100px;
+}
+
+.truncate {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.max-200 {
+  width: 200px;
 }
 
 .footer {
@@ -325,11 +339,6 @@ li {
     font-weight: 400;
     line-height: 40px;
   }
-  .truncate {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
 
   .toolbar {
     padding: 7px 5px 12px 5px;
@@ -337,7 +346,7 @@ li {
   .long-label {
     display: none;
   }
-  .myname {
+  .hide-small {
     display: none;
   }
 }
