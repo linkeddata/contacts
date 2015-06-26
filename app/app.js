@@ -204,6 +204,7 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
     $scope.viewContact = function(id) {
         delete $scope.contact;
         $scope.contact = angular.copy($scope.contacts[id]);
+        console.log($scope.contact);
         $scope.contact.editing = false;
         $scope.showContactInformation();
     };
