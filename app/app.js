@@ -46,7 +46,10 @@ App.filter('filterBy', ['$parse', function ($parse) {
 
         if (search === '') {
             return collection;
+        } else if (search && search.length < 2) {
+            return collection;
         }
+
         collection = (angular.isObject(collection)) ? toArray(collection) : collection;
 
         if(!angular.isArray(collection) || angular.isUndefined(property)
@@ -204,7 +207,6 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
     $scope.viewContact = function(id) {
         delete $scope.contact;
         $scope.contact = angular.copy($scope.contacts[id]);
-        console.log($scope.contact);
         $scope.contact.editing = false;
         $scope.showContactInformation();
     };
