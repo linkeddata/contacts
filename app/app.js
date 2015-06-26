@@ -86,7 +86,9 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
     $scope.app.name = "Contacts";
     $scope.app.description = "A personal address book manager";
 
-    $scope.loginWidget = $sce.trustAsResourceUrl('https://linkeddata.github.io/signup/index.html?ref='+$scope.app.origin);
+    $scope.originalImage = undefined;
+    $scope.croppedImage = '';
+
 
     // list of vocabularies used for vcard data
     $scope.vcardElems = [ 
@@ -373,7 +375,8 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
     // select file for picture
     $scope.handleFileSelect = function(file) {
         if (file) {
-            $scope.pictureName = file.name;
+            $scope.originalImage = undefined;
+            $scope.croppedImage = {value: ''};
             $scope.imageType = file.type;
             var reader = new FileReader();
             reader.onload = function (evt) {
@@ -409,6 +412,13 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
         // });
     };
 
+    $scope.$watch('contact.pictureFile.file', function (newFile, oldFile) {
+        if (newFile !== undefined) {
+            $scope.handleFileSelect(newFile[0]);
+            LxDialogService.open('picture-cropper');
+        }
+    });
+
     $scope.savePicture = function() {
         if (!$scope.contact.hasPhoto) {
             $scope.contact.hasPhoto = [
@@ -416,19 +426,12 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
                     new $rdf.st($rdf.sym($scope.contact.uri), VCARD('hasPhoto'), $rdf.sym(''), $rdf.sym(''))
             )];
         }
-        $scope.contact.hasPhoto[0].value = angular.copy($scope.croppedImage);
+        $scope.contact.hasPhoto[0].value = angular.copy($scope.croppedImage.value);
+        $scope.originalImage = undefined;
+        $scope.croppedImage = {value: ''};
+
         LxDialogService.close('picture-cropper');
     };
-
-    $scope.$watch('contact.pictureFile.file', function (newFile, oldFile) {
-        if (newFile !== undefined) {
-            $scope.originalImage = undefined;
-            $scope.imageName = '';
-            $scope.croppedImage = '2';
-            $scope.handleFileSelect(newFile[0]);
-            LxDialogService.open('picture-cropper');
-        }
-    });
 
     // Load a user's profile
     // string uri  - URI of resource containing profile information
@@ -785,7 +788,10 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
                     }
                     insQuery += "INSERT DATA { " + toNT(newS, elem.link) + " }";
                 }
-                if (graphURI.length == 0) {
+                if (!graphURI) {
+                    graphURI = '';
+                }
+                if (graphURI.length === 0) {
                     if (newS && newS['why']['value'].length > 0) {
                         graphURI = newS['why']['value'];
                     } else {
