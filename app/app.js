@@ -78,7 +78,7 @@ App.filter('filterBy', ['$parse', function ($parse) {
     };
 }]);
 
-App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxProgressService, LxDialogService) {
+App.controller('Main', function($scope, $http, $timeout, LxNotificationService, LxProgressService, LxDialogService) {
     $scope.app = {};
     $scope.app.origin = window.location.origin;
     $scope.app.homepage = "https://linkeddata.github.io/contacts/";
@@ -183,6 +183,11 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
         }
         var field = $scope.ContactElement(statement);
         $scope.contact[name].push(field);
+        var pos = $scope.contact[name].length-1;
+        // focus new element
+        $timeout(function(){
+                angular.element('#'+name+pos.toString()).focus();
+            }, 0);
     };
 
     $scope.deleteContactField = function(elem, item) {
@@ -1005,11 +1010,6 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
             LxNotificationService.error(text);
         }
     };
-
-    $scope.scrollIntoView = function(id) {
-        var elem = document.getElementById(id);
-        elem.scrollIntoView({block: "start"});
-    }
 
     // custom sort function
     $scope.orderByName = function() {
