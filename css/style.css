@@ -244,7 +244,6 @@ li {
   background: -o-linear-gradient(-45deg,  rgba(63, 81, 181, 1) 0%,rgba(3, 169, 244, 1) 100%);
   background: -ms-linear-gradient(-45deg,  rgba(63, 81, 181, 1) 0%,rgba(3, 169, 244, 1) 100%);
   background: linear-gradient(135deg,  rgba(63, 81, 181, 1) 0%,rgba(3, 169, 244, 1) 100%);
-  filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#3F51B5', endColorstr='#03A9F4',GradientType=1 );
 }
 
 .disabled {

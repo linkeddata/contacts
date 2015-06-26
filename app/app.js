@@ -46,7 +46,10 @@ App.filter('filterBy', ['$parse', function ($parse) {
 
         if (search === '') {
             return collection;
+        } else if (search && search.length < 2) {
+            return collection;
         }
+
         collection = (angular.isObject(collection)) ? toArray(collection) : collection;
 
         if(!angular.isArray(collection) || angular.isUndefined(property)
