@@ -1,3 +1,4 @@
+var AUTHENDPOINT = "https://rww.io/";
 var PROXY = "https://rww.io/proxy.php?uri={uri}";
 var TIMEOUT = 5000;
 var DEBUG = true;
@@ -1077,7 +1078,7 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
         $scope.loginTLSButtonText = 'Logging in...';
         $http({
           method: 'HEAD',
-          url: "https://deiu.me/",
+          url: AUTHENDPOINT,
           withCredentials: true
         }).success(function(data, status, headers) {
           // add dir to local list
