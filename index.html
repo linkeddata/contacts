@@ -155,10 +155,10 @@
   <lx-dialog class="dialog dialog--s" auto-close="true" id="picture-cropper">
     <div class="dialog__content p">
       <div class="crop-area">
-        <img-crop image="originalImage" area-type="square" result-image-format="{{imageType}}" result-image="croppedImage"></img-crop>
+        <img-crop image="originalImage" area-type="square" result-image-format="{{imageType}}" result-image-size="180" result-image="croppedImage.value"></img-crop>
       </div>  
       <div class="cropped-area">
-        <img id="result-image" class="valign" ng-src="{{croppedImage}}" alt="Profile image" />
+        <img id="result-image" class="valign" ng-src="{{croppedImage.value}}" alt="Profile image" />
       </div>
     </div>
     <div class="dialog__actions">
