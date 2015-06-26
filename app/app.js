@@ -644,7 +644,8 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         LxProgressService.linear.show('#E1F5FE', '#progress');
         var g = new $rdf.graph();
         var f = new $rdf.fetcher(g, TIMEOUT);
-
+        console.log("Loading from:",uri);
+        console.log("Left:",$scope.sourcesToLoad);
         f.nowOrWhenFetched(uri+'*',undefined,function(ok, body, xhr) {
             LxProgressService.linear.hide('#progress');
             var contacts = g.statementsMatching(undefined, RDF('type'), VCARD('Individual'));
@@ -981,6 +982,10 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                         $scope.saveLocalStorage();
                         $scope.$apply();
                     });
+                }
+                if ($scope.my.toInit === 0) {
+                    $scope.initialized = true;
+                    $scope.my.config.loaded = true;
                 }
             } else if (status === 406) {
                 console.log("HTTP " + status + ": failed to create ldpc for "+uri+". Retrying with "+name+attempt.toString());
