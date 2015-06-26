@@ -694,6 +694,13 @@ App.controller('Main', function($scope, $http, $sce, LxNotificationService, LxPr
         });
     };
 
+    $scope.refresh = function() {
+        var webid = angular.copy($scope.my.webid);
+        $scope.init();
+        $scope.loggedIn = true;
+        $scope.getProfile(webid);
+    };
+
     $scope.toggleFavorite = function(id) {
         if ($scope.contacts[id].hasFavorite && $scope.contacts[id].hasFavorite[0]) {
             if ($scope.contacts[id].hasFavorite[0].value.length > 0) {
