@@ -1,4 +1,4 @@
-var AUTHENDPOINT = "https://rww.io/";
+var AUTHENDPOINT = "https://databox.me/";
 var PROXY = "https://rww.io/proxy.php?uri={uri}";
 var TIMEOUT = 5000;
 var DEBUG = true;
