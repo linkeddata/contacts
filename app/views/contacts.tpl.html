@@ -18,7 +18,7 @@
     <div class="card list-row list-row--multi-line" ng-class="{'bgc-blue-100':contact.checked, 'disabled': contact.disabled}">
       
       <div class="list-row__primary">
-        <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" ng-click="toggleFavorite(contacts.indexOf(contact))">
+        <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" ng-click="toggleFavorite(contact.uri)">
           <span aria-hidden="true" class="icon icon--l icon--flat mdi" ng-class="contact.hasFavorite[0].value.length>0?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
         </button>
       </div>
