@@ -92,13 +92,13 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
 
     // map of vocabularies used for vcard data
     $scope.vcardElems = [ 
-        { name: 'fn', label:'Full name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true, filter: true },
-        { name: 'uid', label: 'WebID', icon: 'web', type: 'url',link: true, textarea: false, display: true, unique: true, filter: false },
-        { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true, filter: false },
-        { name: 'hasEmail', label:'Email', icon: 'email', type: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false, filter: true },
-        { name: 'hasTelephone', label:'Phone', icon: 'phone', type: 'tel', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false, filter: true },
-        { name: 'hasNote', label:'Note', icon: 'file-document', link: false, textarea: true, display: true, unique: true, filter: false },
-        { name: 'hasFavorite', label:'Favorite', icon: 'star-outline', link: true, textarea: false, display: false, unique: true, filter: false }
+        { name: 'fn', label:'Full name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true },
+        { name: 'uid', label: 'WebID', icon: 'web', type: 'url',link: true, textarea: false, display: true, unique: true },
+        { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true },
+        { name: 'hasEmail', label:'Email', icon: 'email', type: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false},
+        { name: 'hasTelephone', label:'Phone', icon: 'phone', type: 'tel', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false},
+        { name: 'hasNote', label:'Note', icon: 'file-document', link: false, textarea: true, display: true, unique: true },
+        { name: 'hasFavorite', label:'Favorite', icon: 'star-outline', link: true, textarea: false, display: false, unique: true }
     ];
     $scope.vcardElems.isUnique = function(name) {
         for (var i=0; i<$scope.vcardElems.length; i++) {
@@ -1059,18 +1059,6 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
             obj.value = (!obj.value) ? '' : obj.value.replace(/\s+/g, '-');
         }
     }
-
-    // // expensive filter
-    // $scope.filterbyProperty = function(contact) {
-    //     angular.forEach($scope.vcardElems, function(elem) {
-    //         if (elem.filter) {
-    //             if (filters.contacts) {
-
-    //             }
-    //         }
-    //     });
-    //     return false;
-    // });
 
     // Dialogues
     $scope.openDialog = function(elem, reset) {
