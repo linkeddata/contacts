@@ -90,9 +90,9 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
     $scope.croppedImage = '';
 
 
-    // list of vocabularies used for vcard data
+    // map of vocabularies used for vcard data
     $scope.vcardElems = [ 
-        { name: 'fn', label:'Name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true, filter: true },
+        { name: 'fn', label:'Full name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true, filter: true },
         { name: 'uid', label: 'WebID', icon: 'web', type: 'url',link: true, textarea: false, display: true, unique: true, filter: false },
         { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true, filter: false },
         { name: 'hasEmail', label:'Email', icon: 'email', type: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false, filter: true },
@@ -131,10 +131,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
 
         // user model
         $scope.my = {
-            config: {
-                workspaces: [],
-                availableWorkspaces: []
-            }
+            config: {}
         };
 
         // chosen storage URI for the app workspace
@@ -145,7 +142,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         $scope.contact = {};
 
         // list of contacts
-        $scope.contacts = [];
+        $scope.contacts = {};
     };
 
     // Contact element object
@@ -239,10 +236,10 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 if (status == -1) {
                     $scope.notify('error', 'Failed to update contact', status);
                 } else if (status >= 200 && status < 400) {
-                    for (var i=0; i<$scope.contacts.length; i++) {
-                        if ($scope.contacts[i].uri == $scope.contact.uri) {
+                    for (var uri in $scope.contacts) {
+                        if (uri === $scope.contact.uri) {
                             delete $scope.contact.pictureFile;
-                            $scope.contacts[i] = angular.copy($scope.contact);
+                            $scope.contacts[uri] = angular.copy($scope.contact);
                         }
                     };
                     $scope.saveLocalStorage();
@@ -254,9 +251,6 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 }
             });
         } else {
-            // new contact => assign ID and POST to container
-            $scope.contact.id = $scope.contacts.length;
-
             // writing new contact
             var g = new $rdf.graph();
             g.add($rdf.sym(''), RDF('type'), VCARD('VCard'));
@@ -293,7 +287,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 if (headers('Location')) {
                     $scope.contact.uri = headers('Location') + "#card";
                     delete $scope.contact.pictureFile;
-                    $scope.contacts.push(angular.copy($scope.contact));
+                    $scope.contacts[$scope.contact.uri] = angular.copy($scope.contact);
                     $scope.hideContactInformation();
                     $scope.saveLocalStorage();
                     $scope.notify('success', 'Contact added');
@@ -345,14 +339,14 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         }
         var i = ids.length;
         while (i--) {
-            var uri = $scope.contacts[ids[i]].uri;
-            $scope.contacts.splice(ids[i], 1);
+            var uri = ids[i];
             $http({
               method: 'DELETE', 
               url: uri,
               withCredentials: true
             }).
             success(function(data, status, headers) {
+                delete $scope.contacts[uri];
                 $scope.notify('success', 'Contact deleted');
                  // save modified contacts list
                 $scope.saveLocalStorage();
@@ -461,6 +455,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         var webidRes = $rdf.sym(webid);
         // Show loading bar
         LxProgressService.linear.show('#E1F5FE', '#progress');
+        $scope.loadingText = "...Loading profiles";
         // Fetch user data
         f.nowOrWhenFetched(docURI,undefined,function(ok, body, xhr) {
             if (!ok) {
@@ -554,6 +549,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
 
                 // Get workspaces
                 if (!$scope.my.config.availableWorkspaces || $scope.my.config.availableWorkspaces.length === 0) {
+                    $scope.my.config.availableWorkspaces = [];
                     var workspaces = g.statementsMatching(webidRes, PIM('workspace'), undefined);
                     if (workspaces && workspaces.length > 0) {
                         // check if user has an app config workspace
@@ -613,6 +609,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
             // Fetch user data
             f.nowOrWhenFetched($scope.my.config.appWorkspace+'*',undefined,function(ok, body, xhr) {
                 LxProgressService.linear.hide('#progress');
+                $scope.loadingText = "...Loading app config";
                 var thisApp = g.statementsMatching(undefined, SOLID('homepage'), $rdf.sym($scope.app.homepage))[0];
                 if (thisApp) {
                     var dataSources = g.statementsMatching(thisApp.subject, SOLID('dataSource'), undefined);
@@ -646,10 +643,8 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         LxProgressService.linear.show('#E1F5FE', '#progress');
         var g = new $rdf.graph();
         var f = new $rdf.fetcher(g, TIMEOUT);
-        console.log("Loading from:",uri);
-        console.log("Left:",$scope.sourcesToLoad);
+        $scope.loadingText = "...Loading contacts";
         f.nowOrWhenFetched(uri+'*',undefined,function(ok, body, xhr) {
-            LxProgressService.linear.hide('#progress');
             var contacts = g.statementsMatching(undefined, RDF('type'), VCARD('Individual'));
             if (contacts && contacts.length > 0) {
                 for (var i=0; i<contacts.length; i++) {
@@ -692,9 +687,9 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                     } 
 
                     // push contact to list
-                    $scope.contacts.push(contact);
+                    $scope.contacts[contact.uri] = contact;
                 }
-
+                LxProgressService.linear.hide('#progress');
             }
             $scope.sourcesToLoad--;
             if ($scope.sourcesToLoad===0) {
@@ -707,7 +702,8 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
 
     $scope.refresh = function() {
         var webid = angular.copy($scope.my.webid);
-        $scope.init();
+        // $scope.init();
+        $scope.my.config = {};
         $scope.loggedIn = true;
         $scope.getProfile(webid);
     };
@@ -1019,21 +1015,6 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         }
     };
 
-    // custom sort function
-    $scope.orderByName = function() {
-        var arr = [];
-
-        function compare(a, b) {
-            if (a.fn[0].value < b.fn[0].value)
-                return -1;
-            if (a.fn[0].value > b.fn[0].value)
-                return 1;
-            return 0
-        };
-
-        $scope.contacts.sort(compare);
-    };
-
     $scope.manageSelection = function(id, force) {
         if ($scope.contacts[id].checked || force === true) {
             $scope.contacts[id].checked = true;
@@ -1051,14 +1032,14 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
 
     $scope.selectAll = function() {
         $scope.selects.contacts = [];
-        for (var i = $scope.contacts.length - 1; i >= 0; i--) {
+        for (var i in $scope.contacts) {
            $scope.contacts[i].checked = true;
            $scope.selects.contacts.push(i);
         }
     };
 
     $scope.selectNone = function() {
-        for (var i = $scope.contacts.length - 1; i >= 0; i--) {
+        for (var i in $scope.contacts) {
            $scope.contacts[i].checked = false;
         }
         $scope.selects.contacts = [];

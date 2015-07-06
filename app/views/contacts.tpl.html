@@ -1,10 +1,10 @@
 <div class="contacts" ng-if="initialized && show.list">
   <div ng-if="!my.config.loaded" class="row align-center p+ mt">
     <lx-progress type="circular" color="#5fa2db"></lx-progress>
-    <span>...Loading</span>
+    <span>...{{loadingText}}</span>
   </div>
 
-  <div ng-if="my.config.loaded && contacts.length===0" class="row card align-center p+ mt">
+  <div ng-if="my.config.loaded && Object.keys(contacts).length===0" class="row card align-center p+ mt">
     <h3>You don't have any contacts yet.</h3>
     <div>
       <button class="btn btn--l btn--blue btn--raised mt+" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="editContact()">
@@ -14,7 +14,7 @@
     </div>
   </div>
   
-  <div class="row contact mb" ng-repeat="contact in contacts | unique: '$$hashKey' | filterBy: ['fn', 'hasEmail', 'hasTelephone']: filters.search | orderBy:orderByName">
+  <div class="row contact mb" ng-repeat="contact in contacts | unique: 'uri' | filterBy: ['fn', 'hasEmail', 'hasTelephone']: filters.search | orderBy:['fn[0].value']">
     <div class="card list-row list-row--multi-line" ng-class="{'bgc-blue-100':contact.checked, 'disabled': contact.disabled}">
       
       <div class="list-row__primary">
@@ -52,8 +52,8 @@
 
       <div class="list-row__secondary mt" ng-show="selects.contacts.length > 0">
           <div class="checkbox">
-            <input type="checkbox" id="cb-{{contacts.indexOf(contact)}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection(contacts.indexOf(contact))">
-            <label for="cb-{{contacts.indexOf(contact)}}" class="checkbox__label"></label>
+            <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection(contact.uri)">
+            <label for="cb-{{$index}}" class="checkbox__label"></label>
           </div>
         </div>
       <div class="list-row__secondary mt" ng-hide="selects.contacts.length > 0">
@@ -63,11 +63,11 @@
           </button>
           <lx-dropdown-menu>
             <ul>
-              <li><a class="dropdown-link" ng-click="viewContact(contacts.indexOf(contact))"><span aria-hidden="true" class="mdi mdi-eye mr"></span>View contact</a></li>
-              <li><a class="dropdown-link" ng-click="editContact(contacts.indexOf(contact))"><span aria-hidden="true" class="mdi mdi-pencil mr"></span>Edit contact</a></li>
-              <li><a class="dropdown-link" ng-click="manageSelection(contacts.indexOf(contact), true)"><span aria-hidden="true" class="mdi mdi-checkbox-marked-outline mr"></span>Select contact</a></li>
+              <li><a class="dropdown-link" ng-click="viewContact(contact.uri)"><span aria-hidden="true" class="mdi mdi-eye mr"></span>View contact</a></li>
+              <li><a class="dropdown-link" ng-click="editContact(contact.uri)"><span aria-hidden="true" class="mdi mdi-pencil mr"></span>Edit contact</a></li>
+              <li><a class="dropdown-link" ng-click="manageSelection(contact.uri, true)"><span aria-hidden="true" class="mdi mdi-checkbox-marked-outline mr"></span>Select contact</a></li>
               <li class="dropdown-divider"></li>
-              <li><a class="dropdown-link" ng-click="confirmDelete([contacts.indexOf(contact)])"><span aria-hidden="true" class="mdi mdi-delete mr"></span>Delete</a></li>
+              <li><a class="dropdown-link" ng-click="confirmDelete([contact.uri])"><span aria-hidden="true" class="mdi mdi-delete mr"></span>Delete</a></li>
             </ul>
           </lx-dropdown-menu>
         </lx-dropdown>
