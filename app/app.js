@@ -92,11 +92,11 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
 
     // list of vocabularies used for vcard data
     $scope.vcardElems = [ 
-        { name: 'fn', label:'Name', icon: 'account', link: false, textarea: false, display: true, unique: true, filter: true },
-        { name: 'uid', label: 'WebID', icon: 'web', link: true, textarea: false, display: true, unique: true, filter: false },
+        { name: 'fn', label:'Name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true, filter: true },
+        { name: 'uid', label: 'WebID', icon: 'web', type: 'url',link: true, textarea: false, display: true, unique: true, filter: false },
         { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true, filter: false },
-        { name: 'hasEmail', label:'Email', icon: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false, filter: true },
-        { name: 'hasTelephone', label:'Phone', icon: 'phone', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false, filter: true },
+        { name: 'hasEmail', label:'Email', icon: 'email', type: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false, filter: true },
+        { name: 'hasTelephone', label:'Phone', icon: 'phone', type: 'tel', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false, filter: true },
         { name: 'hasNote', label:'Note', icon: 'file-document', link: false, textarea: true, display: true, unique: true, filter: false },
         { name: 'hasFavorite', label:'Favorite', icon: 'star-outline', link: true, textarea: false, display: false, unique: true, filter: false }
     ];
