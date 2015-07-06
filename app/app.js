@@ -165,8 +165,19 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         return element;
     };
 
+    $scope.focusElement = function(id) {
+        $timeout(function(){
+                angular.element('#'+id.toString()).focus();
+            }, 0);
+    }
+
     $scope.addContactField = function(name) {
         if ($scope.contact[name] && $scope.contact[name].length > 0 && $scope.vcardElems.isUnique(name)) {
+            if ($scope.contact[name][0].hidden) {
+                $scope.contact[name][0].hidden = false;
+                // focus new element
+                $scope.focusElement(name+'0');
+            }
             return;
         }
         var statement = new $rdf.st(
@@ -182,9 +193,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         $scope.contact[name].push(field);
         var pos = $scope.contact[name].length-1;
         // focus new element
-        $timeout(function(){
-                angular.element('#'+name+pos.toString()).focus();
-            }, 0);
+        $scope.focusElement(name+pos);
     };
 
     $scope.deleteContactField = function(elem, item) {
@@ -455,7 +464,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         var webidRes = $rdf.sym(webid);
         // Show loading bar
         LxProgressService.linear.show('#E1F5FE', '#progress');
-        $scope.loadingText = "...Loading profiles";
+        $scope.loadingText = "...Loading profile";
         // Fetch user data
         f.nowOrWhenFetched(docURI,undefined,function(ok, body, xhr) {
             if (!ok) {
