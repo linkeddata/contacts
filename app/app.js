@@ -210,6 +210,8 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         $scope.show.contact = true;
         $scope.show.list = false;
         $scope.show.topbar = false;
+        // scroll to top
+        window.scrollTo(0, 0);
     };
 
     $scope.viewContact = function(id) {
