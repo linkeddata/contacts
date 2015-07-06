@@ -3,7 +3,7 @@
   "icons": [
     {
       "src": "images/icon.png",
-      "sizes": "192x192",
+      "sizes": "256x256",
       "type": "image/png",
       "density": "4.0"
     }
