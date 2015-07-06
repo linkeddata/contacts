@@ -14,7 +14,7 @@
     </div>
   </div>
   
-  <div class="row contact mb" ng-repeat="contact in contacts | unique: 'uri' | filterBy: ['fn', 'hasEmail', 'hasTelephone']: filters.search | orderBy:['fn[0].value']">
+  <div class="row contact mb" ng-repeat="contact in contacts | unique: 'uri' | filterBy: ['fn', 'hasEmail', 'hasTelephone']: filters.search | orderBy:['hasFavorite[0].value', 'fn[0].value']">
     <div class="card list-row list-row--multi-line" ng-class="{'bgc-blue-100':contact.checked, 'disabled': contact.disabled}">
       
       <div class="list-row__primary">
