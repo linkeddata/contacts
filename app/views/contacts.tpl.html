@@ -1,7 +1,7 @@
 <div class="contacts" ng-if="initialized && show.list">
   <div ng-if="!my.config.loaded" class="row align-center p+ mt">
     <lx-progress type="circular" color="#5fa2db"></lx-progress>
-    <span>...{{loadingText}}</span>
+    <span>{{loadingText}}</span>
   </div>
 
   <div ng-if="my.config.loaded && Object.keys(contacts).length===0" class="row card align-center p+ mt">
