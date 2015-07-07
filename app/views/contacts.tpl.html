@@ -13,32 +13,32 @@
       </button>
     </div>
   </div>
-  
+
   <div class="row contact mb" ng-repeat="contact in contacts | unique: 'uri' | filterBy: ['fn', 'hasEmail', 'hasTelephone']: filters.search | orderBy:['hasFavorite[0].value', 'fn[0].value']">
     <div class="card list-row list-row--multi-line" ng-class="{'bgc-blue-100':contact.checked, 'disabled': contact.disabled}">
-      
+
       <div class="list-row__primary">
         <button class="mt btn btn--l btn--black btn--icon" lx-ripple aria-label="Toggle favorite" ng-click="toggleFavorite(contact.uri)">
           <span aria-hidden="true" class="icon icon--l icon--flat mdi" ng-class="contact.hasFavorite[0].value.length>0?['icon--green', 'mdi-star']:['icon--grey', 'mdi-star-outline']"></span>
         </button>
       </div>
       <div class="list-row__primary mr++">
-        <div>
+        <div class="pointer" ng-click="viewContact(contact.uri)" lx-tooltip="View contact" tooltip-position="bottom" >
           <img ng-show="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" alt="Photo of {{contact.fn[0].value}}" width="40" height="40" class="img-round">
           <img ng-hide="contact.hasPhoto[0].value" src="images/generic_photo.png" alt="Photo of {{contact.fn[0].value}}" width="40" height="40" class="img-round" />
         </div>
       </div>
 
       <div class="list-row__content truncate">
-          <div class="display-block">
-            {{contact.fn[0].value}}
-          </div>
-          <div class="display-block fs-body-1 tc-black-2">
-            {{contact.hasEmail[0].value}}
-          </div>
-          <div class="display-block fs-body-1 tc-black-2">
-            {{contact.hasTelephone[0].value}}
-          </div>
+        <div class="display-block">
+          {{contact.fn[0].value}}
+        </div>
+        <div class="display-block fs-body-1 tc-black-2">
+          {{contact.hasEmail[0].value}}
+        </div>
+        <div class="display-block fs-body-1 tc-black-2">
+          {{contact.hasTelephone[0].value}}
+        </div>
       </div>
 
       <!-- <div class="list-row__content truncate">
@@ -51,11 +51,11 @@
       </div> -->
 
       <div class="list-row__secondary mt" ng-show="selects.contacts.length > 0">
-          <div class="checkbox">
-            <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection(contact.uri)">
-            <label for="cb-{{$index}}" class="checkbox__label"></label>
-          </div>
+        <div class="checkbox">
+          <input type="checkbox" id="cb-{{$index}}" class="checkbox__input" ng-model="contact.checked" ng-click="manageSelection(contact.uri)">
+          <label for="cb-{{$index}}" class="checkbox__label"></label>
         </div>
+      </div>
       <div class="list-row__secondary mt" ng-hide="selects.contacts.length > 0">
         <lx-dropdown position="right" from-top>
           <button class="btn btn--l btn--black btn--icon" lx-ripple lx-dropdown-toggle aria-label="Actions">
