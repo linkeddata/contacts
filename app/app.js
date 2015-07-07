@@ -70,7 +70,7 @@ App.filter('filterBy', ['$parse', function ($parse) {
                         return false;
                     }
                     prop = prop.toLowerCase();
-                    return prop;      
+                    return prop;
                 }
             }).join(' ');
             return hasPattern(results, search) !== false;
@@ -91,7 +91,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
 
 
     // map of vocabularies used for vcard data
-    $scope.vcardElems = [ 
+    $scope.vcardElems = [
         { name: 'fn', label:'Full name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true },
         { name: 'uid', label: 'WebID', icon: 'web', type: 'url',link: true, textarea: false, display: true, unique: true },
         { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true },
@@ -350,7 +350,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         while (i--) {
             var uri = ids[i];
             $http({
-              method: 'DELETE', 
+              method: 'DELETE',
               url: uri,
               withCredentials: true
             }).
@@ -373,7 +373,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 $scope.notify('error', 'Failed to delete contact from server -- HTTP '+status);
             });
         }
-        // hide select bar 
+        // hide select bar
         $scope.selectNone();
     };
 
@@ -521,7 +521,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                     }
                     $scope.my.name = name.value;
                 }
-                
+
                 // Get profile picture
                 if (!$scope.my.picture || $scope.my.picture.length == 0) {
                     var img = g.any(webidRes, FOAF('img'));
@@ -530,7 +530,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                         pic = img;
                     } else {
                         // check if profile uses depic instead
-                        var depic = g.any(webidRes, FOAF('depiction'));  
+                        var depic = g.any(webidRes, FOAF('depiction'));
                         if (depic) {
                             pic = depic;
                         }
@@ -580,7 +580,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                             if (!$scope.my.config.availableWorkspaces) {
                                 $scope.my.config.availableWorkspaces = [];
                             }
-                            $scope.my.config.availableWorkspaces.push({ 
+                            $scope.my.config.availableWorkspaces.push({
                                 uri: ws['object']['value'],
                                 name: (wsTitle)?wsTitle.value:'Untitled workspace'
                             });
@@ -693,7 +693,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                                 new $rdf.st($rdf.sym($scope.my.webid), FAV('hasFavorite'), subject, $rdf.sym(why)),
                                 true
                             ) ];
-                    } 
+                    }
 
                     // push contact to list
                     $scope.contacts[contact.uri] = contact;
@@ -742,7 +742,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
             }
         });
     };
-   
+
     $scope.updateContact = function(contact, force) {
         function toNT(s, isUri) {
             var object = (isUri)?$rdf.sym(s.object.value):$rdf.lit(s.object.value);
@@ -825,7 +825,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
 
         return new Promise(function(resolve) {
             $scope.sendSPARQLPatch(contact.uri, query).then(function(status) {
-                // all done               
+                // all done
                 resolve(status);
             });
         });
@@ -872,7 +872,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
             var containerURI = uri;
             var linkHeader = (type=='ldpc')?'<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"':'<http://www.w3.org/ns/ldp#Resource>; rel="type"';
             $http({
-                method: 'PUT',
+                method: 'POST',
                 url: uri,
                 headers: {
                     'Content-Type': 'text/turtle',
@@ -944,7 +944,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 url: $scope.my.config.appWorkspace,
                 withCredentials: true,
                 headers: {
-                    "Content-Type": "text/turtle", 
+                    "Content-Type": "text/turtle",
                     "Slug": "Contacts"
                 },
                 data: triples
@@ -1150,20 +1150,19 @@ App.directive('contacts',function(){
       replace : true,
       restrict : 'E',
       templateUrl: 'app/views/contacts.tpl.html'
-    }; 
+    };
 });
 App.directive('contact',function(){
     return {
       replace : true,
       restrict : 'E',
       templateUrl: 'app/views/contact.tpl.html'
-    }; 
+    };
 });
 App.directive('workspaces',function(){
     return {
       replace : true,
       restrict : 'E',
       templateUrl: 'app/views/workspaces.tpl.html'
-    }; 
+    };
 });
-

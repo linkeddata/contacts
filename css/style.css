@@ -86,7 +86,7 @@ li {
 @keyframes slidein {
   from {
     margin-right: 100%;
-    width: 300%; 
+    width: 300%;
   }
 
   to {
@@ -97,7 +97,7 @@ li {
 @keyframes slideout {
   from {
     margin-right: 0%;
-    width: 100%; 
+    width: 100%;
   }
 
   to {
@@ -257,6 +257,9 @@ li {
   pointer-events: none;
   opacity: 0.5;
   background: #CCC;
+}
+.pointer {
+  cursor: pointer;
 }
 
 .newimg {
