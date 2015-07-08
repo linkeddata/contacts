@@ -107,7 +107,7 @@
         </lx-dropdown>
       </div>
       <div class="toolbar__right">
-        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Merge contacts" lx-tooltip="Merge" tooltip-position="bottom" ng-show="selects.contacts.length > 1" ng-click="mergeSelected()">
+        <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Merge contacts" lx-tooltip="Merge" tooltip-position="bottom" ng-show="selects.contacts.length > 1" ng-click="confirmMerge(selects.contacts)">
           <span aria-hidden="true" class="mdi mdi-numeric-1-box-multiple-outline tc-grey-800"></span>
         </button>
         <button class="btn btn--l btn--black btn--icon" lx-ripple aria-label="Delete contacts" lx-tooltip="Delete" tooltip-position="bottom" ng-click="confirmDelete(selects.contacts)">

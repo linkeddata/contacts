@@ -93,17 +93,18 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
     // map of vocabularies used for vcard data
     $scope.vcardElems = [
         { name: 'fn', label:'Full name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true },
-        { name: 'uid', label: 'WebID', icon: 'web', type: 'url',link: true, textarea: false, display: true, unique: true },
+        { name: 'uid', label: 'WebID', icon: 'web', type: 'url', link: true, textarea: false, display: true, unique: true },
         { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true },
         { name: 'hasEmail', label:'Email', icon: 'email', type: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false},
         { name: 'hasTelephone', label:'Phone', icon: 'phone', type: 'tel', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false},
+        { name: 'hasURL', label:'URL', icon: 'link', type: 'url', link: true, textarea: false, display: true, unique: false},
         { name: 'hasNote', label:'Note', icon: 'file-document', link: false, textarea: true, display: true, unique: true },
         { name: 'hasFavorite', label:'Favorite', icon: 'star-outline', link: true, textarea: false, display: false, unique: true }
     ];
     $scope.vcardElems.isUnique = function(name) {
         for (var i=0; i<$scope.vcardElems.length; i++) {
             var elem = $scope.vcardElems[i];
-            if (elem.name == name && elem.unique === true) {
+            if (elem.name === name && elem.unique === true) {
                 return true;
             }
         };
@@ -238,10 +239,10 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         $scope.showContactInformation();
     };
 
-    $scope.saveContact = function() {
+    $scope.saveContact = function(force) {
         // contact exists => patching it
         if ($scope.contact.uri !== undefined) {
-            var query = $scope.updateContact($scope.contact).then(function(status) {
+            var query = $scope.updateContact($scope.contact, force).then(function(status) {
                 if (status == -1) {
                     $scope.notify('error', 'Failed to update contact', status);
                 } else if (status >= 200 && status < 400) {
@@ -254,6 +255,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                     $scope.saveLocalStorage();
                     $scope.notify('success', 'Contact updated');
                     $scope.hideContactInformation();
+                    $scope.selectNone();
                     $scope.$apply();
                 } else {
                     $scope.notify('error', 'Failed to update contact -- HTTP', status);
@@ -276,6 +278,8 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                                 var object = $rdf.lit(value);
                             }
                             g.add($rdf.sym('#card'), VCARD(elem.name), object);
+                        } else {
+                            delete $scope.contact[elem.name];
                         }
                     });
                 }
@@ -326,7 +330,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         });
     }
 
-    $scope.confirmDelete = function(ids, type) {
+    $scope.confirmDelete = function(ids) {
         if (ids.length === 1) {
             var plural = '';
             var id = ids[0];
@@ -346,9 +350,8 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         if (!ids || ids.length === 0) {
             return;
         }
-        var i = ids.length;
-        while (i--) {
-            var uri = ids[i];
+
+        function deleteContact(uri) {
             $http({
               method: 'DELETE',
               url: uri,
@@ -361,20 +364,118 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 $scope.saveLocalStorage();
             }).
             error(function(data, status) {
-                if (status == 401) {
+                if (status == 404) {
+                    delete $scope.contacts[uri];
+                    $scope.saveLocalStorage();
+                    $scope.notify('success', 'Contact deleted');
+                } else if (status == 401) {
+                    $scope.notify('error', 'Failed to delete contact from server -- HTTP '+status);
                     console.log('Forbidden', 'Authentication required to delete '+uri);
                 } else if (status == 403) {
+                    $scope.notify('error', 'Failed to delete contact from server -- HTTP '+status);
                     console.log('Forbidden', 'You are not allowed to delete '+uri);
                 } else if (status == 409) {
+                    $scope.notify('error', 'Failed to delete contact from server -- HTTP '+status);
                     console.log('Failed', 'Conflict detected. In case of directory, check if not empty.');
                 } else {
+                    $scope.notify('error', 'Failed to delete contact from server -- HTTP '+status);
                     console.log('Failed '+status, data);
                 }
-                $scope.notify('error', 'Failed to delete contact from server -- HTTP '+status);
             });
+        };
+
+        for (i in ids) {
+            deleteContact(ids[i]);
         }
         // hide select bar
         $scope.selectNone();
+    };
+
+    $scope.confirmMerge = function(ids) {
+        LxNotificationService.confirm('Merge contacts?', 'Are you sure you want to merge the selected contacts?', { ok:'Merge', cancel:'Cancel'}, function(answer) {
+            if (answer === true) {
+                $scope.mergeContacts(ids);
+            }
+        });
+    };
+
+    $scope.mergeContacts = function(ids) {
+        if (!ids || ids.length === 0) {
+            return;
+        }
+        // merge function
+        var merge = function(obj2) {
+            // first set the URI if it doesn't exist
+            if (!$scope.contact.uri) {
+                $scope.contact.uri = obj2.uri;
+            }
+            // add existing properties from obj2
+            for (p in obj2) {
+                if (obj2.hasOwnProperty(p)) {
+                    if (Object.prototype.toString.call(obj2[p]) === "[object Array]") {
+                        for (var i in obj2[p]) {
+                            if (!$scope.contact[p]) {
+                                $scope.contact[p] = [];
+                            }
+                            var uniq = $scope.vcardElems.isUnique(p);
+                            // if (uniq && $scope.contact[p].length > 0) {
+                            //     break;
+                            // }
+                            var prop = obj2[p][i];
+                            if (prop.value && prop.value.length > 0) {
+                                // iterate over first object props
+                                if ($scope.contact[p].length > 0) {
+                                    for (e in $scope.contact[p]) {
+                                        // add only new values
+                                        if (uniq && $scope.contact[p][e] && $scope.contact[p][e].value.length < prop.value.length) {
+                                            $scope.contact[p][e].prev = angular.copy($scope.contact[p][e].value);
+                                            $scope.contact[p][e].value = prop.value;
+                                        } else if (!uniq && $scope.contact[p][e] && $scope.contact[p][e].value !== prop.value) {
+                                            var statement = new $rdf.st(
+                                                    $rdf.sym($scope.contact.uri),
+                                                    VCARD(p),
+                                                    $rdf.sym(prop.value),
+                                                    $rdf.sym($scope.contact.uri)
+                                                );
+                                            var newElem = $scope.ContactElement(statement);
+                                            $scope.contact[p].push(newElem);
+                                        }
+                                    }
+                                } else {
+                                    var statement = new $rdf.st(
+                                            $rdf.sym($scope.contact.uri),
+                                            VCARD(p),
+                                            $rdf.sym(prop.value),
+                                            $rdf.sym($scope.contact.uri)
+                                        );
+                                    var newElem = $scope.ContactElement(statement);
+                                    $scope.contact[p].push(newElem);
+                                }
+                            }
+                        }
+                    } else {
+                        // copy new props from obj2
+                        if (!$scope.contact[p]) {
+                            $scope.contact[p] = obj2[p];
+                        }
+                    }
+                }
+            }
+        };
+
+        $scope.contact = {};
+        for (var i in ids) {
+            merge($scope.contacts[ids[i]]);
+        }
+        $scope.saveContact(true);
+
+        var toDelete = [];
+        for (var i=0; i<ids.length; i++) {
+            if (ids[i] !== $scope.contact.uri) {
+                toDelete.push(ids[i]);
+            }
+        }
+        $scope.deleteContacts(toDelete);
     };
 
     $scope.selectWorkspace = function(ws) {
@@ -494,20 +595,20 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                     var sameAs = g.statementsMatching(webidRes, OWL('sameAs'), undefined);
                     if (sameAs.length > 0) {
                         sameAs.forEach(function(same){
-                            $scope.getProfile(same['object']['value'], webid);
+                            $scope.getProfile(same.object.value, webid);
                         });
                     }
                     var seeAlso = g.statementsMatching(webidRes, OWL('seeAlso'), undefined);
                     if (seeAlso.length > 0) {
                         seeAlso.forEach(function(see){
-                            $scope.getProfile(see['object']['value'], webid);
+                            $scope.getProfile(see.object.value, webid);
                         });
                     }
                     var prefs = g.statementsMatching(webidRes, PIM('preferencesFile'), undefined);
                     if (prefs.length > 0) {
-                        if (prefs[0]['object']['value']) {
-                            $scope.getProfile(prefs[0]['object']['value'], webid);
-                            $scope.my.config.preferencesFile = prefs[0]['object']['value'];
+                        if (prefs[0].object.value) {
+                            $scope.getProfile(prefs[0].object.value, webid);
+                            $scope.my.config.preferencesFile = prefs[0].object.value;
                         }
                     }
                     $scope.my.toLoad = sameAs.length + seeAlso.length + prefs.length + 1;
@@ -548,7 +649,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                         for (var i=0; i<storages.length; i++) {
                             $scope.my.config.storages.push(
                                 {
-                                    uri: storages[i]['object']['value'],
+                                    uri: storages[i].object.value,
                                     checked: (i===0)?true:false
                                 }
                             );
@@ -564,7 +665,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                         // check if user has an app config workspace
                         var configWs = g.statementsMatching(undefined, RDF('type'), PIM('PreferencesWorkspace'))[0];
                         if (configWs) {
-                            $scope.my.config.appWorkspace = configWs['subject']['value'];
+                            $scope.my.config.appWorkspace = configWs.subject.value;
                             // Also get app data config
                             $scope.fetchAppConfig();
                         } else {
@@ -573,15 +674,15 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                         for (var i=0; i<workspaces.length; i++) {
                             var ws = workspaces[i];
                             // don't include the apps workspace in the suggestions list
-                            if (g.statementsMatching(ws['object'], RDF('type'), PIM('PreferencesWorkspace'))[0]) {
+                            if (g.statementsMatching(ws.object, RDF('type'), PIM('PreferencesWorkspace'))[0]) {
                                 continue;
                             }
-                            var wsTitle = g.any(ws['object'], DCT('title'));
+                            var wsTitle = g.any(ws.object, DCT('title'));
                             if (!$scope.my.config.availableWorkspaces) {
                                 $scope.my.config.availableWorkspaces = [];
                             }
                             $scope.my.config.availableWorkspaces.push({
-                                uri: ws['object']['value'],
+                                uri: ws.object.value,
                                 name: (wsTitle)?wsTitle.value:'Untitled workspace'
                             });
                         };
@@ -758,7 +859,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         var query = '';
         var insQuery = '';
         var delQuery = '';
-        var graphURI = '';
+        // var graphURI = '';
         for (var i=0; i<$scope.vcardElems.length; i++) {
             var elem = $scope.vcardElems[i];
             if (contact[elem.name] === undefined) {
@@ -773,27 +874,30 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 if (object.value) {
                     object.value.trim();
                 }
+                // also delete object from contact
+                if (object.value.length === 0) {
+                    toSplice.push(j);
+                }
 
                 if (!object.failed && object.value) {
                     object.prev = angular.copy(object.value);
                 }
 
                 if (object.statement) {
+                    if (object.statement.subject.value === "" && contact.uri && contact.uri.length > 0) {
+                        object.statement.subject.value = object.statement.subject.uri = contact.uri;
+                    }
                     var oldS = angular.copy(object.statement);
                     var newS = object.statement;
-                    var val = (elem.prefixURI)?elem.prefixURI+encodeURIComponent(object.value):object.value;
-                    newS['object']['uri'] = newS['object']['value'] = val;
+                    var val = (elem.prefixURI)?elem.prefixURI+object.value:object.value;
+                    newS.object.uri = newS.object.value = val;
                 }
 
-                if (oldS && oldS['object']['value'] && oldS['object']['value'].length > 0) {
+                if (oldS && oldS.object.value && oldS.object.value.length > 0) {
                     if (delQuery.length > 0) {
                         delQuery += " ;\n";
                     }
                     delQuery += "DELETE DATA { " + toNT(oldS, elem.link) + " }";
-                    // also delete object from contact
-                    if (object.value.length === 0) {
-                        toSplice.push(j);
-                    }
                 }
                 if (object.value && object.value.length > 0) {
                     if (insQuery.length > 0) {
@@ -801,16 +905,16 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                     }
                     insQuery += "INSERT DATA { " + toNT(newS, elem.link) + " }";
                 }
-                if (!graphURI) {
-                    graphURI = '';
-                }
-                if (graphURI.length === 0) {
-                    if (newS && newS['why']['value'].length > 0) {
-                        graphURI = newS['why']['value'];
-                    } else {
-                        graphURI = newS['subject']['value'];
-                    }
-                }
+                // if (!graphURI) {
+                //     graphURI = '';
+                // }
+                // if (graphURI.length === 0) {
+                //     if (newS && newS.why.value.length > 0) {
+                //         graphURI = newS.why.value;
+                //     } else {
+                //         graphURI = newS.subject.value;
+                //     }
+                // }
             }
             // remove empty elements
             for (e in toSplice) {
@@ -835,6 +939,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
     $scope.sendSPARQLPatch = function (uri, query, obj, oldStatement) {
         return new Promise(function(resolve) {
             if (!uri || !query || uri.length === 0 || query.length ===0) {
+                console.log("URI:",uri, "QUERY:",query);
                 resolve(-1);
             } else {
                 $http({
@@ -1124,7 +1229,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 $scope.loggedIn = true;
                 if ($scope.my.config.appWorkspace) {
                     // disabled for testing
-                    //$scope.fetchAppConfig();
+                    $scope.fetchAppConfig();
                 } else {
                     $scope.initialized = false;
                 }

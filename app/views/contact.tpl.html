@@ -20,7 +20,7 @@
   <div class="dialog__content contacts mb++ pb++">
     <div flex-container="row" flex-gutter="24">
       <div flex-item="3" class="mt ml">
-        <div ng-if="contact.editing" ng-file-drop ng-model="contact.pictureFile.file" class="profile-picture" 
+        <div ng-if="contact.editing" ng-file-drop ng-model="contact.pictureFile.file" class="profile-picture"
           drag-over-class="dragover" ng-multiple="false" allow-dir="false"
           ng-accept="'.jpg,.jpeg,.png'" ng-capture="camera">
           <div ng-file-select ng-model="contact.pictureFile.file" accept="image/*" ng-multiple="false" ng-capture="camera">
@@ -64,7 +64,7 @@
         <div ng-if="!contact.editing">
           <div class="list-row">
             <div class="list-row__primary">
-                <i class="icon icon--s icon--grey icon--flat mdi mdi-link top"></i>
+                <i class="icon icon--s icon--grey icon--flat mdi mdi-file top"></i>
             </div>
             <div class="list-row__content">
                 <div class="truncate">
