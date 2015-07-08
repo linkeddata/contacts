@@ -24,7 +24,7 @@
           drag-over-class="dragover" ng-multiple="false" allow-dir="false"
           ng-accept="'.jpg,.jpeg,.png'" ng-capture="camera">
           <div ng-file-select ng-model="contact.pictureFile.file" accept="image/*" ng-multiple="false" ng-capture="camera">
-            <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center img-round"/>
+            <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center"/>
             <img ng-if="!contact.hasPhoto[0].value || contact.hasPhoto[0].value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
             <div class="valign align-center">
               <spinner class="valign spinner" ng-show="contact.hasPhoto.uploading"></spinner>

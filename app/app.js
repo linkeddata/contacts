@@ -1180,6 +1180,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
 
     $scope.TLSlogin = function() {
         $scope.loginTLSButtonText = 'Logging in...';
+        console.log("AUTH:",AUTHENDPOINT);
         $http({
           method: 'HEAD',
           url: AUTHENDPOINT,
@@ -1187,6 +1188,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         }).success(function(data, status, headers) {
           // add dir to local list
           var user = headers('User');
+          console.log("USER:",user);
           if (user && user.length > 0 && user.slice(0,4) == 'http') {
             $scope.getProfile(user);
             $scope.loggedIn = true;
@@ -1227,10 +1229,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
             if (Date.now() < dateValid) {
                 $scope.my = data.profile;
                 $scope.loggedIn = true;
-                if ($scope.my.config.appWorkspace) {
-                    // disabled for testing
-                    $scope.fetchAppConfig();
-                } else {
+                if (!$scope.my.config.appWorkspace || $scope.my.config.appWorkspace.length === 0) {
                     $scope.initialized = false;
                 }
                 if ($scope.my.config.workspaces && $scope.my.config.workspaces.length === 0) {
