@@ -240,13 +240,7 @@ li {
 }
 
 .grad-bg {
-  background: rgb(63, 81, 181);
-  background: -moz-linear-gradient(-45deg,  rgba(63, 81, 181, 1) 0%, rgba(3, 169, 244, 1) 100%);
-  background: -webkit-gradient(linear, left top, right bottom, color-stop(0%,rgba(3, 169, 244, 1)), color-stop(100%,rgba(3, 169, 244, 1)));
-  background: -webkit-linear-gradient(-45deg,  rgba(63, 81, 181, 1) 0%,rgba(3, 169, 244, 1) 100%);
-  background: -o-linear-gradient(-45deg,  rgba(63, 81, 181, 1) 0%,rgba(3, 169, 244, 1) 100%);
-  background: -ms-linear-gradient(-45deg,  rgba(63, 81, 181, 1) 0%,rgba(3, 169, 244, 1) 100%);
-  background: linear-gradient(135deg,  rgba(63, 81, 181, 1) 0%,rgba(123, 214, 255, 1) 100%);
+  background: linear-gradient(90deg, rgba(89, 173, 235, 1) 1%, rgba(53, 206, 147, 1) 100%);
 }
 
 .inline-block {
