@@ -240,7 +240,7 @@ li {
 }
 
 .grad-bg {
-  background: linear-gradient(130deg, rgba(89, 173, 235, 1) 1%, rgba(53, 206, 147, 1) 100%);
+  background: linear-gradient(90deg, rgba(89, 173, 235, 1) 1%, rgba(53, 206, 147, 1) 100%);
 }
 
 .inline-block {
