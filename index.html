@@ -61,8 +61,8 @@
           <div class="toolbar__right fs-title" ng-show="loggedIn">
             <a href="{{my.webid|toProfileViewer}}">
                 <img class="myimg inline-block mr" ng-show="my.picture" ng-src="{{my.picture}}" alt="Photo of {{my.name}}" lx-tooltip="{{my.name}}" tooltip-position="bottom" />
-                <img class="myimg mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" lx-tooltip="{{my.name}}" tooltip-position="bottom" />
-                <span class="hide-small tc-white-1">{{my.name}}</span>
+                <img class="myimg inline-block mr" ng-hide="my.picture" src="images/generic_photo.png" alt="Photo of user" lx-tooltip="{{my.name}}" tooltip-position="bottom" />
+                <span class="hide-small inline-block tc-white-1">{{my.name}}</span>
             </a>
           </div>
           <lx-dropdown position="right" from-top>
