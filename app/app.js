@@ -942,7 +942,7 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
                 // }
             }
             // remove empty elements
-            for (e in toSplice) {
+            for (var e in toSplice) {
                 contact[elem.name].splice(toSplice[e], 1);
             }
         }
