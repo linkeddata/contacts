@@ -1,8 +1,8 @@
 <div class="p+ mt+">
-  <div ng-if="!initialized" class="card p++ mt+">
+  <div ng-if="!initialized" class="card align-center p++ mt++">
     <h4>It appears this is the first time you are using this application. You may have to go through some configuration steps before you can use it.</h4>
 
-    <div ng-if="!my.config.appWorkspace || my.config.appWorkspace.length===0">
+    <div ng-if="!my.config.appWorkspace || my.config.appWorkspace.length===0" class="align-left">
       <p class="mt">I could not find a workspace in which to store configuration data for applications. Please select a storage space in which to create the workspace:</p>
       <div class="radio-group mt+">
         <div class="radio-button" ng-repeat="storage in my.config.storages">
@@ -16,7 +16,7 @@
       </button>
     </div>
 
-    <div ng-if="my.config.appWorkspace && my.config.appWorkspace.length>0 && my.config.workspaces.length===0">
+    <div ng-if="my.config.appWorkspace && my.config.appWorkspace.length>0 && my.config.workspaces.length===0" class="align-left">
       <p class="mt">I managed to find the following workspaces in your profile information. Please select those in which you would like to store contact data:</p>
       <ul class="list">
         <li class="list-row list-row--has-separator" ng-repeat="workspace in my.config.availableWorkspaces">
