@@ -1,3 +1,5 @@
+'use strict';
+
 var AUTHENDPOINT = "https://databox.me/";
 var PROXY = "https://rww.io/proxy.php?uri={uri}";
 var TIMEOUT = 5000;
@@ -18,7 +20,7 @@ var FAV = $rdf.Namespace("http://www.eclap.eu/schema/eclap/");
 var scope = {};
 var gg;
 
-$rdf.Fetcher.crossSiteProxyTemplate=PROXY;
+$rdf.Fetcher.crossSiteProxyTemplate = PROXY;
 
 var App = angular.module('Contacts', [
     'ui.filters',
@@ -32,15 +34,15 @@ App.filter('filterBy', ['$parse', function ($parse) {
         var prop, getter;
 
         function hasPattern(word, pattern) {
-            if(pattern === '') {
+            if (pattern === '') {
                 return word;
             }
-            if(word.indexOf(pattern) === -1) {
+            if (word.indexOf(pattern) === -1) {
                 return false;
             }
-        };
+        }
         function toArray(object) {
-            return angular.isArray(object)?object:Object.keys(object).map(function(key) {
+            return angular.isArray(object) ? object : Object.keys(object).map(function (key) {
                 return object[key];
             });
         }
@@ -53,20 +55,21 @@ App.filter('filterBy', ['$parse', function ($parse) {
 
         collection = (angular.isObject(collection)) ? toArray(collection) : collection;
 
-        if(!angular.isArray(collection) || angular.isUndefined(property)
-            || angular.isUndefined(search)) {
+        if (!angular.isArray(collection) || angular.isUndefined(property)
+                || angular.isUndefined(search)) {
             return collection;
         }
 
         getter = $parse('value');
 
-        return collection.filter(function(elm) {
+        return collection.filter(function (elm) {
             search = search.toLowerCase();
-            var results = property.map(function(property){
+            var results = property.map(function (property) {
+                var i, item;
                 for (i in elm[property]) {
-                    var item = elm[property][i];
+                    item = elm[property][i];
                     prop = getter(item);
-                    if(!angular.isString(prop)) {
+                    if (!angular.isString(prop)) {
                         return false;
                     }
                     prop = prop.toLowerCase();
@@ -78,7 +81,13 @@ App.filter('filterBy', ['$parse', function ($parse) {
     };
 }]);
 
-App.controller('Main', function($scope, $http, $timeout, LxNotificationService, LxProgressService, LxDialogService) {
+App.filter('toProfileViewer', function() {
+  return function(string) {
+    return 'https://linkeddata.github.io/profile-editor/#/profile/view?webid='+encodeURIComponent(string);
+  };
+});
+
+App.controller('Main', function ($scope, $http, $timeout, LxNotificationService, LxProgressService, LxDialogService) {
     $scope.app = {};
     $scope.app.origin = window.location.origin;
     $scope.app.homepage = "https://linkeddata.github.io/contacts/";
@@ -92,27 +101,28 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
 
     // map of vocabularies used for vcard data
     $scope.vcardElems = [
-        { name: 'fn', label:'Full name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true },
+        { name: 'fn', label: 'Full name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true },
         { name: 'uid', label: 'WebID', icon: 'web', type: 'url', link: true, textarea: false, display: true, unique: true },
-        { name: 'hasPhoto', label:'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true },
-        { name: 'hasEmail', label:'Email', icon: 'email', type: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false},
-        { name: 'hasTelephone', label:'Phone', icon: 'phone', type: 'tel', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false},
-        { name: 'hasURL', label:'URL', icon: 'link', type: 'url', link: true, textarea: false, display: true, unique: false},
-        { name: 'hasNote', label:'Note', icon: 'file-document', link: false, textarea: true, display: true, unique: true },
-        { name: 'hasFavorite', label:'Favorite', icon: 'star-outline', link: true, textarea: false, display: false, unique: true }
+        { name: 'hasPhoto', label: 'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true },
+        { name: 'hasEmail', label: 'Email', icon: 'email', type: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false},
+        { name: 'hasTelephone', label: 'Phone', icon: 'phone', type: 'tel', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false},
+        { name: 'hasURL', label: 'URL', icon: 'link', type: 'url', link: true, textarea: false, display: true, unique: false},
+        { name: 'hasNote', label: 'Note', icon: 'file-document', link: false, textarea: true, display: true, unique: true },
+        { name: 'hasFavorite', label: 'Favorite', icon: 'star-outline', link: true, textarea: false, display: false, unique: true }
     ];
-    $scope.vcardElems.isUnique = function(name) {
-        for (var i=0; i<$scope.vcardElems.length; i++) {
-            var elem = $scope.vcardElems[i];
+    $scope.vcardElems.isUnique = function (name) {
+        var elem, i = 0;
+        for (i; i < $scope.vcardElems.length; i++) {
+            elem = $scope.vcardElems[i];
             if (elem.name === name && elem.unique === true) {
                 return true;
             }
-        };
+        }
         return false;
     };
 
     // set init variables
-    $scope.init = function() {
+    $scope.init = function () {
         $scope.initialized = true;
         $scope.loggedIn = false;
         $scope.loginTLSButtonText = "Login";
@@ -147,62 +157,62 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
     };
 
     // Contact element object
-    $scope.ContactElement = function(s, exists) {
-        var element = {};
+    $scope.ContactElement = function (s, exists) {
+        var val, element = {};
         element.failed = false;
         element.value = '';
         element.prev = '';
         element.statement = s;
         if (s && s.object.value) {
-            var val = decodeURIComponent(s.object.value);
+            val = decodeURIComponent(s.object.value);
             if (val.indexOf('tel:') >= 0) {
                 val = val.slice(4, val.length);
             } else if (val.indexOf('mailto:') >= 0) {
                 val = val.slice(7, val.length);
             }
             element.value = val;
-            element.prev = (exists)?val:'';
+            element.prev = (exists) ? val : '';
         }
         return element;
     };
 
-    $scope.focusElement = function(id) {
-        $timeout(function(){
-                angular.element('#'+id.toString()).focus();
-            }, 0);
-    }
+    $scope.focusElement = function (id) {
+        $timeout(function () {
+            angular.element('#' + id.toString()).focus();
+        }, 0);
+    };
 
-    $scope.addContactField = function(name) {
+    $scope.addContactField = function (name) {
         if ($scope.contact[name] && $scope.contact[name].length > 0 && $scope.vcardElems.isUnique(name)) {
             if ($scope.contact[name][0].hidden) {
                 $scope.contact[name][0].hidden = false;
                 // focus new element
-                $scope.focusElement(name+'0');
+                $scope.focusElement(name + '0');
             }
             return;
         }
-        var statement = new $rdf.st(
-                $rdf.sym($scope.contact.uri),
-                VCARD(name),
-                $rdf.sym(''),
-                $rdf.sym('')
-            );
+        var field, pos, statement = new $rdf.st(
+            $rdf.sym($scope.contact.uri),
+            VCARD(name),
+            $rdf.sym(''),
+            $rdf.sym('')
+        );
         if (!$scope.contact[name]) {
             $scope.contact[name] = [];
         }
-        var field = $scope.ContactElement(statement);
+        field = $scope.ContactElement(statement);
         $scope.contact[name].push(field);
-        var pos = $scope.contact[name].length-1;
+        pos = $scope.contact[name].length - 1;
         // focus new element
-        $scope.focusElement(name+pos);
+        $scope.focusElement(name + pos);
     };
 
-    $scope.deleteContactField = function(elem, item) {
+    $scope.deleteContactField = function (elem, item) {
         $scope.contact[elem][item].value = '';
         $scope.contact[elem][item].hidden = true;
     };
 
-    $scope.hideContactInformation = function() {
+    $scope.hideContactInformation = function () {
         if ($scope.contact.editing) {
             $scope.contact.editing = false;
         }
@@ -212,7 +222,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         $scope.show.list = true;
         $scope.show.topbar = true;
     };
-    $scope.showContactInformation = function() {
+    $scope.showContactInformation = function () {
         $scope.show.posClass = 'slide-in';
         $scope.show.contact = true;
         $scope.show.list = false;
@@ -221,14 +231,14 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         window.scrollTo(0, 0);
     };
 
-    $scope.viewContact = function(id) {
+    $scope.viewContact = function (id) {
         delete $scope.contact;
         $scope.contact = angular.copy($scope.contacts[id]);
         $scope.contact.editing = false;
         $scope.showContactInformation();
     };
 
-    $scope.editContact = function(id) {
+    $scope.editContact = function (id) {
         delete $scope.contact;
         if (id !== undefined) {
             $scope.contact = angular.copy($scope.contacts[id]);
@@ -239,19 +249,20 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         $scope.showContactInformation();
     };
 
-    $scope.saveContact = function(force) {
+    $scope.saveContact = function (force) {
         // contact exists => patching it
         if ($scope.contact.uri !== undefined) {
-            var query = $scope.updateContact($scope.contact, force).then(function(status) {
-                if (status == -1) {
+            var query = $scope.updateContact($scope.contact, force).then(function (status) {
+                if (status === -1) {
                     $scope.notify('error', 'Failed to update contact', status);
                 } else if (status >= 200 && status < 400) {
-                    for (var uri in $scope.contacts) {
+                    var uri;
+                    for (uri in $scope.contacts) {
                         if (uri === $scope.contact.uri) {
                             delete $scope.contact.pictureFile;
                             $scope.contacts[uri] = angular.copy($scope.contact);
                         }
-                    };
+                    }
                     $scope.saveLocalStorage();
                     $scope.notify('success', 'Contact updated');
                     $scope.hideContactInformation();
@@ -263,19 +274,19 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
             });
         } else {
             // writing new contact
-            var g = new $rdf.graph();
+            var triples, g = new $rdf.graph();
             g.add($rdf.sym(''), RDF('type'), VCARD('VCard'));
             g.add($rdf.sym(''), VCARD('hasIndividual'), $rdf.sym('#card')); // hasIndividual doesn't exist!
             g.add($rdf.sym('#card'), RDF('type'), VCARD('Individual'));
-            $scope.vcardElems.forEach(function(elem) {
+            $scope.vcardElems.forEach(function (elem) {
                 if ($scope.contact[elem.name] && $scope.contact[elem.name].length > 0) {
-                    $scope.contact[elem.name].forEach(function(item) {
+                    $scope.contact[elem.name].forEach(function (item) {
                         if (item.value.length > 0) {
-                            var value = (elem.prefixURI)?elem.prefixURI+item.value:item.value;
+                            var object, value = (elem.prefixURI) ? elem.prefixURI + item.value : item.value;
                             if (elem.link) {
-                                var object = $rdf.sym(value);
+                                object = $rdf.sym(value);
                             } else {
-                                var object = $rdf.lit(value);
+                                object = $rdf.lit(value);
                             }
                             g.add($rdf.sym('#card'), VCARD(elem.name), object);
                         } else {
@@ -285,7 +296,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 }
             });
 
-            var triples = new $rdf.Serializer(g).toN3(g);
+            triples = new $rdf.Serializer(g).toN3(g);
 
             $http({
                 method: 'POST',
@@ -296,30 +307,30 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 },
                 data: triples
             }).
-            success(function(data, status, headers) {
-                if (headers('Location')) {
-                    $scope.contact.uri = headers('Location') + "#card";
-                    delete $scope.contact.pictureFile;
-                    $scope.contacts[$scope.contact.uri] = angular.copy($scope.contact);
-                    $scope.hideContactInformation();
-                    $scope.saveLocalStorage();
-                    $scope.notify('success', 'Contact added');
-                }
-            }).
-            error(function(data, status, headers) {
-                console.log('Error saving contact on sever - '+status, data);
-                $scope.notify('error', 'Failed to write contact to server -- HTTP '+status);
-            });
+                success(function (data, status, headers) {
+                    if (headers('Location')) {
+                        $scope.contact.uri = headers('Location') + "#card";
+                        delete $scope.contact.pictureFile;
+                        $scope.contacts[$scope.contact.uri] = angular.copy($scope.contact);
+                        $scope.hideContactInformation();
+                        $scope.saveLocalStorage();
+                        $scope.notify('success', 'Contact added');
+                    }
+                }).
+                error(function (data, status, headers) {
+                    console.log('Error saving contact on sever - ' + status, data);
+                    $scope.notify('error', 'Failed to write contact to server -- HTTP ' + status);
+                });
         }
     };
 
-    $scope.resetContact = function() {
+    $scope.resetContact = function () {
         delete $scope.contact;
         $scope.contact = {};
-        $scope.contact.pictureFile = {}
+        $scope.contact.pictureFile = {};
         $scope.contact.editing = true;
         $scope.contact.workspace = $scope.my.config.workspaces[0];
-        $scope.vcardElems.forEach(function(elem) {
+        $scope.vcardElems.forEach(function (elem) {
             var statement = new $rdf.st(
                 $rdf.sym(''),
                 VCARD(elem.name),
@@ -328,63 +339,65 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
             );
             $scope.contact[elem.name] = [ $scope.ContactElement(statement) ];
         });
-    }
+    };
 
-    $scope.confirmDelete = function(ids) {
+    $scope.confirmDelete = function (ids) {
+        var plural, id, text;
         if (ids.length === 1) {
-            var plural = '';
-            var id = ids[0];
-            var text = $scope.contacts[id].fn[0].value +' ?';
+            plural = '';
+            id = ids[0];
+            text = $scope.contacts[id].fn[0].value + ' ?';
         } else if (ids.length > 1) {
-            var plural = 's';
-            var text = ids.length +' contacts?';
+            plural = 's';
+            text = ids.length + ' contacts?';
         }
-        LxNotificationService.confirm('Delete contact'+plural+'?', 'Are you sure you want to delete '+text, { ok:'Delete', cancel:'Cancel'}, function(answer) {
+        LxNotificationService.confirm('Delete contact' + plural + '?', 'Are you sure you want to delete ' + text, { ok: 'Delete', cancel: 'Cancel'}, function (answer) {
             if (answer === true) {
                 $scope.deleteContacts(ids);
             }
         });
     };
 
-    $scope.deleteContacts = function(ids) {
+    $scope.deleteContacts = function (ids) {
         if (!ids || ids.length === 0) {
             return;
         }
 
         function deleteContact(uri) {
             $http({
-              method: 'DELETE',
-              url: uri,
-              withCredentials: true
+                method: 'DELETE',
+                url: uri,
+                withCredentials: true
             }).
-            success(function(data, status, headers) {
-                delete $scope.contacts[uri];
-                $scope.notify('success', 'Contact deleted');
-                 // save modified contacts list
-                $scope.saveLocalStorage();
-            }).
-            error(function(data, status) {
-                if (status == 404) {
+                success(function (data, status, headers) {
                     delete $scope.contacts[uri];
-                    $scope.saveLocalStorage();
                     $scope.notify('success', 'Contact deleted');
-                } else if (status == 401) {
-                    $scope.notify('error', 'Failed to delete contact from server -- HTTP '+status);
-                    console.log('Forbidden', 'Authentication required to delete '+uri);
-                } else if (status == 403) {
-                    $scope.notify('error', 'Failed to delete contact from server -- HTTP '+status);
-                    console.log('Forbidden', 'You are not allowed to delete '+uri);
-                } else if (status == 409) {
-                    $scope.notify('error', 'Failed to delete contact from server -- HTTP '+status);
-                    console.log('Failed', 'Conflict detected. In case of directory, check if not empty.');
-                } else {
-                    $scope.notify('error', 'Failed to delete contact from server -- HTTP '+status);
-                    console.log('Failed '+status, data);
-                }
-            });
+                     // save modified contacts list
+                    $scope.saveLocalStorage();
+                }).
+                error(function (data, status) {
+                    if (status === 404) {
+                        delete $scope.contacts[uri];
+                        $scope.saveLocalStorage();
+                        $scope.notify('success', 'Contact deleted');
+                        console.log($scope.contacts);
+                    } else if (status === 401) {
+                        $scope.notify('error', 'Failed to delete contact from server -- HTTP ' + status);
+                        console.log('Forbidden', 'Authentication required to delete ' + uri);
+                    } else if (status === 403) {
+                        $scope.notify('error', 'Failed to delete contact from server -- HTTP ' + status);
+                        console.log('Forbidden', 'You are not allowed to delete ' + uri);
+                    } else if (status === 409) {
+                        $scope.notify('error', 'Failed to delete contact from server -- HTTP ' + status);
+                        console.log('Failed', 'Conflict detected. In case of directory, check if not empty.');
+                    } else {
+                        $scope.notify('error', 'Failed to delete contact from server -- HTTP ' + status);
+                        console.log('Failed '+status, data);
+                    }
+                });
         };
 
-        for (i in ids) {
+        for (var i in ids) {
             deleteContact(ids[i]);
         }
         // hide select bar
@@ -392,7 +405,8 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
     };
 
     $scope.confirmMerge = function(ids) {
-        LxNotificationService.confirm('Merge contacts?', 'Are you sure you want to merge the selected contacts?', { ok:'Merge', cancel:'Cancel'}, function(answer) {
+        LxNotificationService.confirm('Merge contacts?', 'Are you sure you want to merge the selected contacts?', 
+                                      { ok: 'Merge', cancel: 'Cancel'}, function(answer) {
             if (answer === true) {
                 $scope.mergeContacts(ids);
             }
@@ -666,6 +680,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                         var configWs = g.statementsMatching(undefined, RDF('type'), PIM('PreferencesWorkspace'))[0];
                         if (configWs) {
                             $scope.my.config.appWorkspace = configWs.subject.value;
+                            console.log("PrefsWS:", configWs.subject.value);
                             // Also get app data config
                             $scope.fetchAppConfig();
                         } else {
@@ -686,6 +701,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                                 name: (wsTitle)?wsTitle.value:'Untitled workspace'
                             });
                         };
+                        console.log("Workspaces:",$scope.my.config.availableWorkspaces);
                     } else {
                         //@@TODO no workspaces found
                         // write to a container in storage?
@@ -710,6 +726,7 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
 
     // Fetch and look for our app in configuration resources
     $scope.fetchAppConfig = function() {
+        console.log("Fetching app config..");
         var g = new $rdf.graph();
         var f = new $rdf.fetcher(g, TIMEOUT);
 
@@ -720,6 +737,9 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
             f.nowOrWhenFetched($scope.my.config.appWorkspace+'*',undefined,function(ok, body, xhr) {
                 LxProgressService.linear.hide('#progress');
                 $scope.loadingText = "...Loading app config";
+                if (!$scope.my.config.workspaces) {
+                    $scope.my.config.workspaces = [];
+                }
                 var thisApp = g.statementsMatching(undefined, SOLID('homepage'), $rdf.sym($scope.app.homepage))[0];
                 if (thisApp) {
                     var dataSources = g.statementsMatching(thisApp.subject, SOLID('dataSource'), undefined);
@@ -727,23 +747,28 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                         $scope.sourcesToLoad = dataSources.length;
                         dataSources.forEach(function(source) {
                             if (source.object.value.length > 0) {
-                                if (!$scope.my.config.workspaces) {
-                                    $scope.my.config.workspaces = [];
-                                }
                                 $scope.my.config.workspaces.push(source.object.value);
                                 // Load contacts from sources
                                 $scope.loadContacts(source.object.value);
                             }
                         });
                         $scope.saveLocalStorage();
+                    } else {
+                        LxProgressService.linear.hide('#progress');
+                        $scope.my.config.loaded = true;
+                        $scope.$apply();
                     }
                 } else {
+                    console.log("Could not find app config file, initializing..");
+                    $scope.my.config.loaded = true;
                     $scope.initialized = false;
+                    $scope.saveLocalStorage();
                     $scope.$apply();
                 }
             });
         } else {
             LxProgressService.linear.hide('#progress');
+            $scope.my.config.loaded = true;
         }
     };
 
@@ -971,17 +996,22 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         });
     };
 
-    // LDP PUT helper function
-    $scope.putLDP = function(uri, type) {
+    // LDP helper function
+    $scope.newContainer = function(uri, slug, type) {
         return new Promise(function(resolve) {
             var containerURI = uri;
-            var linkHeader = (type=='ldpc')?'<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"':'<http://www.w3.org/ns/ldp#Resource>; rel="type"';
+            var linkHeader = (type==='ldpc')?'<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"':'<http://www.w3.org/ns/ldp#Resource>; rel="type"';
+            var resp = {
+                code: 0,
+                location: '',
+            };
             $http({
                 method: 'POST',
                 url: uri,
                 headers: {
                     'Content-Type': 'text/turtle',
                     'Link': linkHeader,
+                    'Slug': slug
                 },
                 withCredentials: true,
                 data: ''
@@ -989,41 +1019,16 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 if (headers("Location") && headers("Location").length > 0) {
                     containerURI = headers("Location");
                 }
-                resolve(status);
+                resp.code = status;
+                resp.location = containerURI;
+                resolve(resp);
             }).error(function(data, status, headers) {
-                resolve(status);
+                resp.code = status;
+                resp.location = containerURI;
+                resolve(resp);
             });
         });
     }
-
-    // Initialize Apps workspace if user doesn't have one already
-    $scope.initAppWorkspace = function() {
-        if ($scope.storageURI.checked) {
-            var uri = $scope.storageURI.checked+'Applications';
-            $scope.putLDP(uri, 'ldpc').then(function(status) {
-                if (status == 201) {
-                    if ($scope.my.config.preferencesFile) {
-                        // Add new workspace triples to the preferencesFile
-                        var query = "INSERT DATA { " + $scope.newStatement($rdf.sym($scope.my.webid), PIM('workspace'), $rdf.sym(uri+'/')) + " } ;\n";
-                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(uri+'/'), RDF('type'), PIM('Workspace')) + " } ;\n";
-                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(uri+'/'), RDF('type'), PIM('PreferencesWorkspace')) + " } ;\n";
-                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(uri+'/'), DCT('title'), $rdf.lit("App configuration workspace")) + " }";
-                        $scope.sendSPARQLPatch($scope.my.config.preferencesFile, query).then(function(result) {
-                            // all done
-                            $scope.my.config.appWorkspace = uri+'/';
-                            $scope.saveLocalStorage();
-                            $scope.initApp();
-                            $scope.notify('success', 'Created configuration workspace');
-                            $scope.$apply();
-                        });
-                    }
-                } else if (status >= 400) {
-                    console.log("HTTP " + status + ": failed to create ldpc for "+uri);
-                    $scope.notify('error', 'Failed to create config workspace -- HTTP '+status);
-                }
-            });
-        }
-    };
 
     // save app configuration if it's the first time the app runs
     $scope.initApp = function() {
@@ -1038,9 +1043,10 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
             g.add($rdf.sym('#conf'), SOLID('homepage'), $rdf.sym($scope.app.homepage));
             g.add($rdf.sym('#conf'), SOLID('icon'), $rdf.sym($scope.app.icon));
 
+            var toBeCreated = [];
             for (var i=0; i<$scope.my.config.availableWorkspaces.length; i++) {
                 if ($scope.my.config.availableWorkspaces[i].checked) {
-                    $scope.my.config.workspaces.push($scope.my.config.availableWorkspaces[i].uri);
+                    toBeCreated.push($scope.my.config.availableWorkspaces[i].uri);
                 }
             }
             var triples = new $rdf.Serializer(g).toN3(g);
@@ -1062,10 +1068,11 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                 }
                 // create containers
                 $scope.notify('success', 'Created config file');
-                $scope.my.toInit = $scope.my.config.workspaces.length;
-                for (var i=0; i<$scope.my.config.workspaces.length; i++) {
-                    $scope.initDataContainers($scope.my.config.workspaces[i], "contacts");
+                $scope.my.toInit = toBeCreated.length;
+                for (var i=0; i<toBeCreated.length; i++) {
+                    $scope.initDataContainers(toBeCreated[i], "contacts", 0);
                 }
+                $scope.contacts = {};
             }).
             error(function(data, status, headers) {
                 console.log('Error - '+status, data);
@@ -1074,23 +1081,54 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
         }
     };
 
-    $scope.initDataContainers = function(workspace, name, attempt) {
-        var uri = workspace+name;
-        // may have to retry in case of name conflict (406)
-        if (!attempt) {
-            var attempt = 1;
-        } else {
-            attempt++;
+    // Initialize Apps workspace if user doesn't have one already
+    $scope.initAppWorkspace = function() {
+        if ($scope.storageURI.checked) {
+            var uri = $scope.storageURI.checked;
+            $scope.newContainer(uri, 'Applications', 'ldpc').then(function(status) {
+                if (status.code == 201 && status.location && status.location.length > 0) {
+                    if ($scope.my.config.preferencesFile) {
+                        // Add new workspace triples to the preferencesFile
+                        var query = "INSERT DATA { " + $scope.newStatement($rdf.sym($scope.my.webid), PIM('workspace'), $rdf.sym(status.location)) + " } ;\n";
+                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(status.location), RDF('type'), PIM('Workspace')) + " } ;\n";
+                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(status.location), RDF('type'), PIM('PreferencesWorkspace')) + " } ;\n";
+                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(status.location), DCT('title'), $rdf.lit("App configuration workspace")) + " }";
+                        $scope.sendSPARQLPatch($scope.my.config.preferencesFile, query).then(function(result) {
+                            // all done
+                            $scope.my.config.appWorkspace = status.location;
+                            $scope.saveLocalStorage();
+                            $scope.initApp();
+                            $scope.notify('success', 'Created configuration workspace');
+                            $scope.$apply();
+                        });
+                    }
+                } else if (status.code >= 400) {
+                    console.log("HTTP " + status + ": failed to create ldpc for "+status.location);
+                    $scope.notify('error', 'Failed to create config workspace -- HTTP '+status.status);
+                }
+            });
         }
+    };
 
-        $scope.putLDP(uri, 'ldpc').then(function(status) {
-            if (status === 201) {
+    $scope.initDataContainers = function(workspace, name) {
+        if (!workspace || workspace.length === 0) {
+            console.log("Must provide workspace URI! Got:", workspace);
+            return;   
+        }
+        $scope.newContainer(workspace, name, 'ldpc').then(function(status) {
+            console.log("Status:",status);
+            if (status.code === 201) {
                 $scope.my.toInit--;
-                if ($scope.my.toInit >= 0) {
-                    var query = "INSERT DATA { " + $scope.newStatement($rdf.sym('#conf'), SOLID('dataSource'), $rdf.sym(uri+'/')) + " }";
+                if ($scope.my.toInit >= 0 && status.location && status.location.length > 0) {
+                    if (status.location.slice(status.location.length - 1) !== '/') {
+                        status.location += '/';
+                    }
+
+                    var query = "INSERT DATA { " + $scope.newStatement($rdf.sym('#conf'), SOLID('dataSource'), $rdf.sym(status.location)) + " }";
                     $scope.sendSPARQLPatch($scope.my.config.uri, query).then(function(result) {
                         // all done
                         $scope.notify('success', 'Data sources created');
+                        $scope.my.config.workspaces.push(status.location);
                         $scope.initialized = true;
                         $scope.saveLocalStorage();
                         $scope.$apply();
@@ -1100,13 +1138,13 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                     $scope.initialized = true;
                     $scope.my.config.loaded = true;
                 }
-            } else if (status === 406) {
-                console.log("HTTP " + status + ": failed to create ldpc for "+uri+". Retrying with "+name+attempt.toString());
+            } else if (status.code === 406) {
+                console.log("HTTP " + status + ": failed to create ldpc in "+workspace+". Retrying with "+name+attempt.toString());
                 $scope.initDataContainers(workspace, name+attempt.toString(), attempt);
             } else {
                 // error creating containers for contacts in workspace
                 $scope.notify('error', 'Failed to create LDPC -- HTTP '+status);
-                console.log("HTTP " + status + ": failed to create ldpc for "+uri);
+                console.log("HTTP " + status + ": failed to create ldpc in "+workspace);
             }
         });
     };
@@ -1177,7 +1215,13 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
           }
         });
     };
-
+    
+    $scope.nrContacts = function () {
+        Object.getOwnPropertyNames($scope.contacts);
+        return Object.getOwnPropertyNames($scope.contacts).length;
+    };
+    
+    // Login
     $scope.TLSlogin = function() {
         $scope.loginTLSButtonText = 'Logging in...';
         console.log("AUTH:",AUTHENDPOINT);
@@ -1236,6 +1280,8 @@ App.controller('Main', function($scope, $http, $timeout, LxNotificationService, 
                     $scope.initialized = false;
                 }
                 $scope.contacts = data.contacts;
+                $scope.my.config.loaded = true;
+                console.log("Loaded", $scope.nrContacts(), "contacts");
             } else {
                 console.log("Deleting profile data because it expired");
                 localStorage.removeItem($scope.app.origin);

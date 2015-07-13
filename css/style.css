@@ -48,6 +48,12 @@ li {
   margin-right: auto;
 }
 
+.align-left {
+  text-align: left!important;
+  margin-left: auto;
+  margin-right: auto;
+}
+
 .main {
   position: relative;
   height: auto; min-height: 100%;

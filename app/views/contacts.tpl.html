@@ -4,7 +4,7 @@
     <span>{{loadingText}}</span>
   </div>
 
-  <div ng-if="my.config.loaded && Object.keys(contacts).length===0" class="row card align-center p+ mt">
+  <div ng-if="my.config.loaded && nrContacts()===0" class="row card align-center p+ mt">
     <h3>You don't have any contacts yet.</h3>
     <div>
       <button class="btn btn--l btn--blue btn--raised mt+" lx-ripple aria-label="Add new contact" lx-tooltip="Add contact" tooltip-position="bottom" ng-click="editContact()">
@@ -40,15 +40,6 @@
           {{contact.hasTelephone[0].value}}
         </div>
       </div>
-
-      <!-- <div class="list-row__content truncate">
-          <div ng-if="contact.hasNote[0].value" class="display-block hide-small fs-body-1 tc-black-2 ml++">
-            "{{contact.hasNote[0].value}}"
-          </div>
-          <div class="display-block hide-small fs-body-1 tc-black-2 ml++">
-            {{contact.uid[0].value}}
-          </div>
-      </div> -->
 
       <div class="list-row__secondary mt" ng-show="selects.contacts.length > 0">
         <div class="checkbox">
