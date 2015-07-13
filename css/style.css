@@ -356,9 +356,9 @@ li {
     padding: 7px 5px 12px 5px;
   }
   .long-label {
-    display: none;
+    display: none !important;
   }
   .hide-small {
-    display: none;
+    display: none !important;
   }
 }
