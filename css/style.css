@@ -139,6 +139,7 @@ li {
   display: inline-block;
   position: relative;
   width: 100%;
+  min-height: 250px;
   top: 65px;
 }
 

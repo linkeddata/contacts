@@ -500,6 +500,7 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
     // select file for picture
     $scope.handleFileSelect = function(file) {
         if (file) {
+            LxDialogService.open('picture-cropper');
             $scope.originalImage = undefined;
             $scope.croppedImage = {value: ''};
             $scope.imageType = file.type;
@@ -539,8 +540,9 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
 
     $scope.$watch('contact.pictureFile.file', function (newFile, oldFile) {
         if (newFile !== undefined) {
+            $scope.originalImage = undefined;
+            $scope.croppedImage = {value: ''};
             $scope.handleFileSelect(newFile[0]);
-            LxDialogService.open('picture-cropper');
         }
     });
 
