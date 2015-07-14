@@ -768,6 +768,9 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
         var f = new $rdf.fetcher(g, TIMEOUT);
         $scope.loadingText = "...Loading contacts";
         f.nowOrWhenFetched(uri+'*',undefined,function(ok, body, xhr) {
+            if (!$scope.refreshContacts) {
+                $scope.refreshContacts = [];
+            }
             var contacts = g.statementsMatching(undefined, RDF('type'), VCARD('Individual'));
             if (contacts && contacts.length > 0) {
                 for (var i=0; i<contacts.length; i++) {
@@ -776,6 +779,10 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
                     contact.id = i;
                     contact.uri = subject.value;
                     contact.workspace = uri;
+
+                    // save list of URIs to check if some must be removed
+                    $scope.refreshContacts.push(contact.uri);
+                    // create a new element for a contact
                     var newElement = function(arr, elem) {
                         if (arr.length > 0) {
                             contact[elem.name] = [];
@@ -815,12 +822,23 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
             }
             $scope.sourcesToLoad--;
             if ($scope.sourcesToLoad===0) {
+                $scope.removeLocalsAfterRefresh();
                 $scope.my.config.loaded = true;
             }
             $scope.saveLocalStorage();
             $scope.$apply();
         });
     };
+
+    $scope.removeLocalsAfterRefresh = function() {
+        var toDelete = [];
+        for (var i in $scope.contacts) {
+            if ($scope.refreshContacts.indexOf(i) < 0) {
+                delete $scope.contacts[i];
+            }
+        }
+        $scope.refreshContacts = [];
+    }
 
     $scope.refresh = function() {
         var webid = angular.copy($scope.my.webid);
