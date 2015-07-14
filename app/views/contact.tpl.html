@@ -48,10 +48,10 @@
             <div ng-if="!item.hidden">
               <div class="long-label">{{elem.label}}</div>
               <lx-text-field ng-if="!elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
-                <input id="{{elem.name + $index}}" ng-change="space2dash(elem.name, item)" type="{{elem.type}}" ng-model="item.value" ng-click="focusElement(elem.name + $index)">
+                <input id="{{elem.name + $index}}" ng-change="space2dash(elem.name, item)" type="{{elem.type}}" ng-model="item.value" ng-click="focusElement(elem.name + $index)" ng-change="focusElement(elem.name + $index)">
               </lx-text-field>
               <lx-text-field ng-if="elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
-                <textarea id="{{elem.name + $index}}" ng-model="item.value" ng-click="focusElement(elem.name + $index)"></textarea>
+                <textarea id="{{elem.name + $index}}" ng-model="item.value" ng-click="focusElement(elem.name + $index)" ng-change="focusElement(elem.name + $index)"></textarea>
               </lx-text-field>
 
               <button class="btn btn--l btn--grey btn--icon form-icon" lx-ripple ng-click="deleteContactField(elem.name, contact[elem.name].indexOf(item))">

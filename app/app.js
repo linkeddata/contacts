@@ -87,7 +87,7 @@ App.filter('toProfileViewer', function() {
   };
 });
 
-App.controller('Main', function ($scope, $http, $timeout, LxNotificationService, LxDialogService) {
+App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificationService, LxDialogService) {
     $scope.app = {};
     $scope.app.origin = window.location.origin;
     $scope.app.homepage = "https://linkeddata.github.io/contacts/";
@@ -154,6 +154,47 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
 
         // list of contacts
         $scope.contacts = {};
+    };
+
+    $scope.connectToSocket = function(uri) {
+        var parser = document.createElement('a');
+        parser.href = uri;
+        parser.host; // => "example.com"
+        parser.pathname; // => "/pathname/"
+
+        var wss = 'wss://'+parser.host;
+        wss += parser.pathname;
+
+        var socket = new WebSocket(wss);
+        socket.onopen = function(){
+            this.send('sub ' + uri);
+        }
+        socket.onmessage = function(msg){
+            if (msg.data && msg.data.slice(0, 3) === 'pub') {
+                // resource updated
+                $scope.loadContacts(uri, true);
+            }
+        }
+        socket.onclose = function() {
+            console.log("Websocket connection closed. Restarting...");
+            $scope.connectToSocket(uri);
+        }
+        if (!$scope.webSockets) {
+            $scope.webSockets = {};
+        }
+        $scope.webSockets[uri] = socket;
+    };
+
+    $scope.setupWebSockets = function() {
+        if (!$scope.socketsStarted && $scope.my.config.workspaces && $scope.my.config.workspaces.length > 0) {
+            for (var i in $scope.my.config.workspaces) {
+                var uri = $scope.my.config.workspaces[i];
+                if (uri && uri.length > 0) {
+                    $scope.connectToSocket(uri);
+                }
+            }
+            $scope.socketsStarted = true;
+        }
     };
 
     // Contact element object
@@ -710,8 +751,6 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
 
                 if ($scope.my.toLoad === 0) {
                     $scope.saveLocalStorage();
-                    scope = $scope;
-                    gg = g;
                 }
 
                 $scope.$apply();
@@ -744,6 +783,8 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
                                 $scope.loadContacts(source.object.value);
                             }
                         });
+                        // start listening for changes
+                        $scope.setupWebSockets();
                         $scope.saveLocalStorage();
                     } else {
                         $scope.my.config.loaded = true;
@@ -763,7 +804,7 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
     };
 
     // load contacts from a data source
-    $scope.loadContacts = function(uri) {
+    $scope.loadContacts = function(uri, refresh) {
         var g = new $rdf.graph();
         var f = new $rdf.fetcher(g, TIMEOUT);
         $scope.loadingText = "...Loading contacts";
@@ -822,22 +863,25 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
             }
             $scope.sourcesToLoad--;
             if ($scope.sourcesToLoad===0) {
-                $scope.removeLocalsAfterRefresh();
                 $scope.my.config.loaded = true;
+                $scope.removeContactsAfterRefresh();
+            } else if (refresh) {
+                $scope.removeContactsAfterRefresh();
             }
             $scope.saveLocalStorage();
             $scope.$apply();
         });
     };
 
-    $scope.removeLocalsAfterRefresh = function() {
-        var toDelete = [];
-        for (var i in $scope.contacts) {
-            if ($scope.refreshContacts.indexOf(i) < 0) {
-                delete $scope.contacts[i];
+    $scope.removeContactsAfterRefresh = function() {
+        if ($scope.contacts && $scope.refreshContacts) {
+            for (var i in $scope.contacts) {
+                if ($scope.refreshContacts.indexOf(i) < 0) {
+                    delete $scope.contacts[i];
+                }
             }
+            $scope.refreshContacts = [];
         }
-        $scope.refreshContacts = [];
     }
 
     $scope.refresh = function() {
@@ -1286,6 +1330,9 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
                 }
                 $scope.contacts = data.contacts;
                 $scope.my.config.loaded = true;
+
+                $scope.setupWebSockets();
+
                 console.log("Loaded", $scope.nrContacts(), "contacts");
             } else {
                 console.log("Deleting profile data because it expired");
@@ -1298,6 +1345,21 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
             localStorage.removeItem($scope.app.origin);
         }
     }
+
+    $scope.online = window.navigator.onLine;
+    // Is offline
+    $window.addEventListener("offline", function () {
+        $scope.$apply(function() {
+            console.log("Offline -- lost connection");
+        });
+    }, false);
+    // Is online
+    $window.addEventListener("online", function () {
+        $scope.$apply(function() {
+            console.log("Online -- connection restored");
+            $scope.setupWebSockets();
+        });
+    }, false);    
 });
 
 App.directive('contacts',function(){
