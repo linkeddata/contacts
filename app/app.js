@@ -87,7 +87,7 @@ App.filter('toProfileViewer', function() {
   };
 });
 
-App.controller('Main', function ($scope, $http, $timeout, LxNotificationService, LxProgressService, LxDialogService) {
+App.controller('Main', function ($scope, $http, $timeout, LxNotificationService, LxDialogService) {
     $scope.app = {};
     $scope.app.origin = window.location.origin;
     $scope.app.homepage = "https://linkeddata.github.io/contacts/";
@@ -580,7 +580,6 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
         var docURI = (uri.indexOf('#') >= 0)?uri.slice(0, uri.indexOf('#')):uri;
         var webidRes = $rdf.sym(webid);
         // Show loading bar
-        LxProgressService.linear.show('#E1F5FE', '#progress');
         $scope.loadingText = "...Loading profile";
         // Fetch user data
         f.nowOrWhenFetched(docURI,undefined,function(ok, body, xhr) {
@@ -594,8 +593,6 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
                 if (!$scope.my.name) {
                     $scope.my.name = webid;
                 }
-                // Hide loading bar
-                LxProgressService.linear.hide('#progress');
                 $scope.loginTLSButtonText = "Login";
                 $scope.$apply();
                 // return promise
@@ -682,7 +679,6 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
                         var configWs = g.statementsMatching(undefined, RDF('type'), PIM('PreferencesWorkspace'))[0];
                         if (configWs) {
                             $scope.my.config.appWorkspace = configWs.subject.value;
-                            console.log("PrefsWS:", configWs.subject.value);
                             // Also get app data config
                             $scope.fetchAppConfig();
                         } else {
@@ -703,7 +699,6 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
                                 name: (wsTitle)?wsTitle.value:'Untitled workspace'
                             });
                         };
-                        console.log("Workspaces:",$scope.my.config.availableWorkspaces);
                     } else {
                         //@@TODO no workspaces found
                         // write to a container in storage?
@@ -714,8 +709,6 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
                 $scope.my.toLoad--;
 
                 if ($scope.my.toLoad === 0) {
-                    // Hide loading bar
-                    LxProgressService.linear.hide('#progress');
                     $scope.saveLocalStorage();
                     scope = $scope;
                     gg = g;
@@ -728,16 +721,13 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
 
     // Fetch and look for our app in configuration resources
     $scope.fetchAppConfig = function() {
-        console.log("Fetching app config..");
         var g = new $rdf.graph();
         var f = new $rdf.fetcher(g, TIMEOUT);
 
         // Show loading bar
-        LxProgressService.linear.show('#E1F5FE', '#progress');
         if ($scope.my.config.appWorkspace) {
             // Fetch user data
             f.nowOrWhenFetched($scope.my.config.appWorkspace+'*',undefined,function(ok, body, xhr) {
-                LxProgressService.linear.hide('#progress');
                 $scope.loadingText = "...Loading app config";
                 if (!$scope.my.config.workspaces) {
                     $scope.my.config.workspaces = [];
@@ -756,7 +746,6 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
                         });
                         $scope.saveLocalStorage();
                     } else {
-                        LxProgressService.linear.hide('#progress');
                         $scope.my.config.loaded = true;
                         $scope.$apply();
                     }
@@ -769,15 +758,12 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
                 }
             });
         } else {
-            LxProgressService.linear.hide('#progress');
             $scope.my.config.loaded = true;
         }
     };
 
     // load contacts from a data source
     $scope.loadContacts = function(uri) {
-        // Show loading bar
-        LxProgressService.linear.show('#E1F5FE', '#progress');
         var g = new $rdf.graph();
         var f = new $rdf.fetcher(g, TIMEOUT);
         $scope.loadingText = "...Loading contacts";
@@ -826,7 +812,6 @@ App.controller('Main', function ($scope, $http, $timeout, LxNotificationService,
                     // push contact to list
                     $scope.contacts[contact.uri] = contact;
                 }
-                LxProgressService.linear.hide('#progress');
             }
             $scope.sourcesToLoad--;
             if ($scope.sourcesToLoad===0) {
