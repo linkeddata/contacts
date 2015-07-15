@@ -446,7 +446,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
     };
 
     $scope.confirmMerge = function(ids) {
-        LxNotificationService.confirm('Merge contacts?', 'Are you sure you want to merge the selected contacts?', 
+        LxNotificationService.confirm('Merge contacts?', 'Are you sure you want to merge the selected contacts?',
                                       { ok: 'Merge', cancel: 'Cancel'}, function(answer) {
             if (answer === true) {
                 $scope.mergeContacts(ids);
@@ -1162,7 +1162,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
     $scope.initDataContainers = function(workspace, name) {
         if (!workspace || workspace.length === 0) {
             console.log("Must provide workspace URI! Got:", workspace);
-            return;   
+            return;
         }
         $scope.newContainer(workspace, name, 'ldpc').then(function(status) {
             console.log("Status:",status);
@@ -1264,12 +1264,12 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
           }
         });
     };
-    
+
     $scope.nrContacts = function () {
         Object.getOwnPropertyNames($scope.contacts);
         return Object.getOwnPropertyNames($scope.contacts).length;
     };
-    
+
     // Login
     $scope.TLSlogin = function() {
         $scope.loginTLSButtonText = 'Logging in...';
@@ -1359,7 +1359,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
             console.log("Online -- connection restored");
             $scope.setupWebSockets();
         });
-    }, false);    
+    }, false);
 });
 
 App.directive('contacts',function(){

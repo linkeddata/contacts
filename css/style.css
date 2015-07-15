@@ -353,6 +353,12 @@ li {
     line-height: 40px;
   }
 
+  .dialog--alert {
+    width: 350px;
+    margin-top: 150px;
+    margin-left: -175px;
+  }
+
   .toolbar {
     padding: 7px 5px 12px 5px;
   }
