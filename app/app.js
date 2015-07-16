@@ -186,9 +186,9 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
     };
 
     $scope.setupWebSockets = function() {
-        if (!$scope.socketsStarted && $scope.my.config.workspaces && $scope.my.config.workspaces.length > 0) {
-            for (var i in $scope.my.config.workspaces) {
-                var uri = $scope.my.config.workspaces[i].uri;
+        if (!$scope.socketsStarted && $scope.my.config.datasources && $scope.my.config.datasources.length > 0) {
+            for (var i in $scope.my.config.datasources) {
+                var uri = $scope.my.config.datasources[i].uri;
                 if (uri && uri.length > 0) {
                     $scope.connectToSocket(uri);
                 }
@@ -341,7 +341,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
 
             $http({
                 method: 'POST',
-                url: $scope.contact.workspace.uri,
+                url: $scope.contact.datasource.uri,
                 withCredentials: true,
                 headers: {
                     "Content-Type": "text/turtle"
@@ -370,7 +370,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         $scope.contact = {};
         $scope.contact.pictureFile = {};
         $scope.contact.editing = true;
-        $scope.contact.workspace = $scope.my.config.workspaces[0];
+        $scope.contact.datasource = $scope.my.config.datasources[0];
         $scope.vcardElems.forEach(function (elem) {
             var statement = new $rdf.st(
                 $rdf.sym(''),
@@ -533,8 +533,8 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         $scope.deleteContacts(toDelete);
     };
 
-    $scope.selectWorkspace = function(ws) {
-        $scope.contact.workspace = $scope.selects.workspace = ws;
+    $scope.selectDatasource = function(ds) {
+        $scope.contact.datasource = $scope.selects.datasource = ds;
     };
 
     //// IMAGE HANDLING
@@ -768,8 +768,8 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
             // Fetch user data
             f.nowOrWhenFetched($scope.my.config.appWorkspace+'*',undefined,function(ok, body, xhr) {
                 $scope.loadingText = "...Loading app config";
-                if (!$scope.my.config.workspaces) {
-                    $scope.my.config.workspaces = [];
+                if (!$scope.my.config.datasources) {
+                    $scope.my.config.datasources = [];
                 }
                 var thisApp = g.statementsMatching(undefined, SOLID('homepage'), $rdf.sym($scope.app.homepage))[0];
                 if (thisApp) {
@@ -780,10 +780,10 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
                         dataSources.forEach(function(source) {
                             if (source.object.value.length > 0) {
                                 // Check if inside own workspace
-                                var workspace = {};
-                                workspace.uri = source.object.value;
-                                workspace.checked = true;
-                                $scope.my.config.workspaces.push(workspace);
+                                var dataSource = {};
+                                dataSource.uri = source.object.value;
+                                dataSource.checked = true;
+                                $scope.my.config.datasources.push(dataSource);
                                 $scope.setParentWorkspace(source.object.value);
                                 // Load contacts from sources
                                 $scope.loadContacts(source.object.value);
@@ -825,7 +825,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
                     var contact = {};
                     contact.id = i;
                     contact.uri = subject.value;
-                    contact.workspace = { uri: uri };
+                    contact.datasource = { uri: uri };
 
                     // save list of URIs to check if some must be removed
                     $scope.refreshContacts.push(contact.uri);
@@ -884,7 +884,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
             var ws = $scope.my.config.availableWorkspaces[i];
             if (uri.indexOf(ws.uri) >= 0) {
                 ws.checked = true;
-                ws.dataSource = uri;
+                ws.datasource = uri;
             }
         }
         return '';
@@ -893,7 +893,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
     $scope.removeContactsAfterRefresh = function(dataSource) {
         if ($scope.contacts && $scope.refreshContacts) {
             for (var i in $scope.contacts) {
-                if ($scope.refreshContacts.indexOf(i) < 0 && $scope.contacts[i].workspace.uri === dataSource) {
+                if ($scope.refreshContacts.indexOf(i) < 0 && $scope.contacts[i].datasource.uri === dataSource) {
                     delete $scope.contacts[i];
                 }
             }
@@ -1221,7 +1221,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
                         // load contacts
                         $scope.loadContacts(status.location);
                         // all done
-                        $scope.my.config.workspaces.push({ uri: status.location });
+                        $scope.my.config.datasources.push({ uri: status.location });
                         $scope.setParentWorkspace(status.location);
                         $scope.initialized = true;
                         $scope.saveLocalStorage();
@@ -1256,11 +1256,11 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         for (var i=0; i < $scope.my.config.availableWorkspaces.length; i++) {
             var ws = $scope.my.config.availableWorkspaces[i];
             // remove datasources
-            if (!ws.checked && ws.dataSource) {
-                toDelete.push(ws.dataSource);
-                delete ws.dataSource;
+            if (!ws.checked && ws.datasource) {
+                toDelete.push(ws.datasource);
+                delete ws.datasource;
             }
-            if (ws.checked && !ws.dataSource) {
+            if (ws.checked && !ws.datasource) {
                 toAdd.push(ws.uri);
             }
         }
@@ -1285,11 +1285,11 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
             // deleted old dataSources, now remove contacts from view
             if (toDelete.length > 0) {
                 // remove sources from local cache
-                for (var i = $scope.my.config.workspaces.length - 1; i >= 0; i--) {
-                    var ws = $scope.my.config.workspaces[i];
+                for (var i = $scope.my.config.datasources.length - 1; i >= 0; i--) {
+                    var ws = $scope.my.config.datasources[i];
                     for (var d in toDelete) {
                         if (toDelete[d] === ws.uri) {
-                            $scope.my.config.workspaces.splice(i, 1);
+                            $scope.my.config.datasources.splice(i, 1);
                         }
                     }
                 }
@@ -1442,7 +1442,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
                 if (!$scope.my.config.appWorkspace || $scope.my.config.appWorkspace.length === 0) {
                     $scope.initialized = false;
                 }
-                if ($scope.my.config.workspaces && $scope.my.config.workspaces.length === 0) {
+                if ($scope.my.config.datasources && $scope.my.config.datasources.length === 0) {
                     $scope.initialized = false;
                 }
                 $scope.contacts = data.contacts;
