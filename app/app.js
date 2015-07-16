@@ -291,8 +291,6 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
     };
 
     $scope.saveContact = function (force) {
-        console.log($scope.contact);
-        return;
         // contact exists => patching it
         if ($scope.contact.uri !== undefined) {
             var query = $scope.updateContact($scope.contact, force).then(function (status) {
@@ -872,9 +870,9 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
             $scope.sourcesToLoad--;
             if ($scope.sourcesToLoad===0) {
                 $scope.my.config.loaded = true;
-                $scope.removeContactsAfterRefresh();
+                $scope.removeContactsAfterRefresh(uri);
             } else if (refresh) {
-                $scope.removeContactsAfterRefresh();
+                $scope.removeContactsAfterRefresh(uri);
             }
             $scope.saveLocalStorage();
             $scope.$apply();
@@ -892,10 +890,10 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         return '';
     }
 
-    $scope.removeContactsAfterRefresh = function() {
+    $scope.removeContactsAfterRefresh = function(dataSource) {
         if ($scope.contacts && $scope.refreshContacts) {
             for (var i in $scope.contacts) {
-                if ($scope.refreshContacts.indexOf(i) < 0) {
+                if ($scope.refreshContacts.indexOf(i) < 0 && $scope.contacts[i].workspace.uri === dataSource) {
                     delete $scope.contacts[i];
                 }
             }
@@ -1032,7 +1030,6 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
     $scope.sendSPARQLPatch = function (uri, query, obj, oldStatement) {
         return new Promise(function(resolve) {
             if (!uri || !query || uri.length === 0 || query.length ===0) {
-                console.log("URI:",uri, "QUERY:",query);
                 resolve(-1);
             } else {
                 $http({
@@ -1206,14 +1203,12 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         if (!name || name.length === 0) {
             name = 'contacts';
         }
-        console.log("Init data container in:",workspace);
         // Add type for the data source container
         var triples, g = new $rdf.graph();
         g.add($rdf.sym(''), RDF('type'), VCARD('AddressBook'));
         triples = new $rdf.Serializer(g).toN3(g);
 
         $scope.newContainer(workspace, name, triples, 'ldpc', VCARD('AddressBook').value).then(function(status) {
-            console.log("Status:",status);
             if (status.code === 200 || status.code === 201) {
                 $scope.my.toInit--;
                 if ($scope.my.toInit >= 0 && status.location && status.location.length > 0) {
@@ -1223,8 +1218,9 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
 
                     var query = "INSERT DATA { " + $scope.rdfStatementToNT($rdf.sym($scope.my.config.appConfigURI), SOLID('dataSource'), $rdf.sym(status.location)) + " }";
                     $scope.sendSPARQLPatch($scope.my.config.appConfigURI, query).then(function(result) {
+                        // load contacts
+                        $scope.loadContacts(status.location);
                         // all done
-                        $scope.notify('success', 'Data source created');
                         $scope.my.config.workspaces.push({ uri: status.location });
                         $scope.setParentWorkspace(status.location);
                         $scope.initialized = true;
@@ -1246,40 +1242,36 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         });
     };
 
-    $scope.addRemoteSource = function () {
-        if (!$scope.remoteSources) {
-            $scope.remoteSources = [];
-        }
-        $scope.remoteSources.push({uri: ''});
-        $scope.focusElement('source-'+String($scope.remoteSources.length-1));
-    }
+    // $scope.addRemoteSource = function () {
+    //     if (!$scope.remoteSources) {
+    //         $scope.remoteSources = [];
+    //     }
+    //     $scope.remoteSources.push({uri: ''});
+    //     $scope.focusElement('source-'+String($scope.remoteSources.length-1));
+    // };
 
     $scope.savePreferences = function () {
         var toDelete = [];
         var toAdd = [];
         for (var i=0; i < $scope.my.config.availableWorkspaces.length; i++) {
             var ws = $scope.my.config.availableWorkspaces[i];
-            console.log(ws.uri, ws.checked);
             // remove datasources
             if (!ws.checked && ws.dataSource) {
                 toDelete.push(ws.dataSource);
+                delete ws.dataSource;
             }
             if (ws.checked && !ws.dataSource) {
                 toAdd.push(ws.uri);
             }
-            // $scope.my.config.workspaces.forEach(function (w) {
-            //     if (!ws.checked && )
-            // });
-            // create new datasource ldpc
         }
         // also add remote sources
-        if ($scope.remoteSources && $scope.remoteSources.length > 0) {
-            $scope.remoteSources.forEach(function (src) {
-                if (src.uri && src.uri.length > 0) {
-                    toAdd.push(src.uri);
-                }
-            });
-        }
+        // if ($scope.remoteSources && $scope.remoteSources.length > 0) {
+        //     $scope.remoteSources.forEach(function (src) {
+        //         if (src.uri && src.uri.length > 0) {
+        //             toAdd.push(src.uri);
+        //         }
+        //     });
+        // }
 
         // delete dataSources
         var query = '';
@@ -1288,16 +1280,36 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
             if (i < toDelete.length - 1 || (i === toDelete.length - 1 && toDelete.length > 0)) {
                 query += " ;\n";
             }
-            console.log(query);
         }
         $scope.sendSPARQLPatch($scope.my.config.appConfigURI, query).then(function(result) {
-            // deleted old dataSources, time to create new ones
-            $scope.saveLocalStorage();
+            // deleted old dataSources, now remove contacts from view
+            if (toDelete.length > 0) {
+                // remove sources from local cache
+                for (var i = $scope.my.config.workspaces.length - 1; i >= 0; i--) {
+                    var ws = $scope.my.config.workspaces[i];
+                    for (var d in toDelete) {
+                        if (toDelete[d] === ws.uri) {
+                            $scope.my.config.workspaces.splice(i, 1);
+                        }
+                    }
+                }
+                // remove from view
+                for (var uri in $scope.contacts) {
+                    for (var i in toDelete) {
+                        if (uri.indexOf(toDelete[i]) >= 0) {
+                            delete $scope.contacts[uri];
+                        }
+                    }
+                }
+            }
+
+            // add new data sources
             $scope.my.toInit = toAdd.length;
             for (var i=0; i < toAdd.length; i++) {
                 $scope.initDataContainer(toAdd[i]);
             }
             // close dialog
+            $scope.saveLocalStorage();
             $scope.notify('success', 'Preferences updated');
             LxDialogService.close('preferences');
         });

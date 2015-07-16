@@ -183,7 +183,7 @@
       </div>
     </div>
     <div class="dialog__content p+">
-      <h4>Your data sources</h4>
+      <h4>Data sources</h4>
       <div>
         <ul class="list">
           <li class="list-row list-row--has-separator" ng-repeat="workspace in my.config.availableWorkspaces">
@@ -195,8 +195,7 @@
           </li>
         </ul>
       </div>
-
-      <h4 class="mt++">Add a remote source</h4>
+      <!-- <h4 class="mt++">Add a remote source</h4>
       <div ng-repeat="source in remoteSources" flex-item>
         <lx-text-field class="form-field" label="URL" fixed-label="true">
           <input id="source-{{$index}}" type="uri" ng-model="source.uri" ng-click="focusElement('source-'+String($index))" ng-change="focusElement('source-'+String($index))">
@@ -204,7 +203,7 @@
       </div>
       <button class="btn btn--l btn--green btn--fab" lx-ripple ng-click="addRemoteSource()">
         <span aria-hidden="true" class="mdi mdi-plus"></span>
-      </button>
+      </button> -->
     </div>
     <div class="dialog__actions">
       <button class="btn btn--m btn--black btn--flat" lx-ripple ng-click="savePreferences()">Save</button>
