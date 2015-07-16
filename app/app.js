@@ -1,5 +1,12 @@
 'use strict';
 
+/**
+    Missing VCARD terms:
+    class: VCard, AddressBook
+    property: hasWebID
+
+*/
+
 var AUTHENDPOINT = "https://databox.me/";
 var PROXY = "https://rww.io/proxy.php?uri={uri}";
 var TIMEOUT = 5000;
@@ -87,7 +94,9 @@ App.filter('toProfileViewer', function() {
   };
 });
 
-App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificationService, LxDialogService) {
+App.controller('Main', function ($scope, $http, $timeout, $window, $location, LxNotificationService, LxDialogService) {
+    console.log($location);
+
     $scope.app = {};
     $scope.app.origin = window.location.origin;
     $scope.app.homepage = "https://linkeddata.github.io/contacts/";
@@ -98,11 +107,10 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
     $scope.originalImage = undefined;
     $scope.croppedImage = '';
 
-
     // map of vocabularies used for vcard data
     $scope.vcardElems = [
         { name: 'fn', label: 'Full name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true },
-        { name: 'uid', label: 'WebID', icon: 'web', type: 'url', link: true, textarea: false, display: true, unique: true },
+        { name: 'hasWebID', label: 'WebID', icon: 'web', type: 'url', link: true, textarea: false, display: true, unique: true },
         { name: 'hasPhoto', label: 'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true },
         { name: 'hasEmail', label: 'Email', icon: 'email', type: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false},
         { name: 'hasTelephone', label: 'Phone', icon: 'phone', type: 'tel', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false},
@@ -253,17 +261,11 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         $scope.contact[elem][item].hidden = true;
     };
 
-    $scope.hideContactInformation = function () {
-        if ($scope.contact.editing) {
-            $scope.contact.editing = false;
+    $scope.showContactInformation = function (action) {
+        if (!action) {
+            action = 'view';
         }
-
-        $scope.show.posClass = 'slide-out';
-        $scope.show.contact = false;
-        $scope.show.list = true;
-        $scope.show.topbar = true;
-    };
-    $scope.showContactInformation = function () {
+        $location.path('/contact/'+action).search({ uri: $scope.contact.uri }).replace();
         $scope.show.posClass = 'slide-in';
         $scope.show.contact = true;
         $scope.show.list = false;
@@ -272,11 +274,22 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         window.scrollTo(0, 0);
     };
 
+    $scope.hideContactInformation = function () {
+        if ($scope.contact.editing) {
+            $scope.contact.editing = false;
+        }
+        $location.path('/').search({}).replace();
+        $scope.show.posClass = 'slide-out';
+        $scope.show.contact = false;
+        $scope.show.list = true;
+        $scope.show.topbar = true;
+    };
+
     $scope.viewContact = function (id) {
         delete $scope.contact;
         $scope.contact = angular.copy($scope.contacts[id]);
         $scope.contact.editing = false;
-        $scope.showContactInformation();
+        $scope.showContactInformation('view');
     };
 
     $scope.editContact = function (id) {
@@ -287,7 +300,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
             $scope.resetContact();
         }
         $scope.contact.editing = true;
-        $scope.showContactInformation();
+        $scope.showContactInformation('edit');
     };
 
     $scope.saveContact = function (force) {
@@ -1447,6 +1460,21 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         localStorage.removeItem($scope.app.origin);
     };
 
+    $scope.online = window.navigator.onLine;
+    // Is offline
+    $window.addEventListener("offline", function () {
+        $scope.$apply(function() {
+            console.log("Offline -- lost connection");
+        });
+    }, false);
+    // Is online
+    $window.addEventListener("online", function () {
+        $scope.$apply(function() {
+            console.log("Online -- connection restored");
+            $scope.setupWebSockets();
+        });
+    }, false);
+
     // initialize by retrieving user info from localStorage
     $scope.init();
     if (localStorage.getItem($scope.app.origin)) {
@@ -1481,20 +1509,15 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         }
     }
 
-    $scope.online = window.navigator.onLine;
-    // Is offline
-    $window.addEventListener("offline", function () {
-        $scope.$apply(function() {
-            console.log("Offline -- lost connection");
-        });
-    }, false);
-    // Is online
-    $window.addEventListener("online", function () {
-        $scope.$apply(function() {
-            console.log("Online -- connection restored");
-            $scope.setupWebSockets();
-        });
-    }, false);
+    // view contact
+    if ($location.$$path && $location.$$path === '/contacts/view' && $location.$$search && $location.$$search.uri) {
+        if ($scope.contacts) {
+            // view
+            $scope.viewContact($location.$$search.uri);
+        } else {
+            // load
+        }
+    }
 });
 
 App.directive('contacts',function(){
