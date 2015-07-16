@@ -204,10 +204,6 @@ li {
   top: 3px;
 }
 
-.form-field {
-  margin-right: 40px!important;
-}
-
 .form-icon {
   display: block;
   position: relative;
@@ -244,6 +240,10 @@ li {
 }
 .dialog--s {
   left: 40%;
+}
+
+.mr\+\+\+\+ {
+  margin-right: 40px!important;
 }
 
 .grad-bg {

@@ -188,7 +188,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
     $scope.setupWebSockets = function() {
         if (!$scope.socketsStarted && $scope.my.config.workspaces && $scope.my.config.workspaces.length > 0) {
             for (var i in $scope.my.config.workspaces) {
-                var uri = $scope.my.config.workspaces[i];
+                var uri = $scope.my.config.workspaces[i].uri;
                 if (uri && uri.length > 0) {
                     $scope.connectToSocket(uri);
                 }
@@ -291,6 +291,8 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
     };
 
     $scope.saveContact = function (force) {
+        console.log($scope.contact);
+        return;
         // contact exists => patching it
         if ($scope.contact.uri !== undefined) {
             var query = $scope.updateContact($scope.contact, force).then(function (status) {
@@ -341,7 +343,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
 
             $http({
                 method: 'POST',
-                url: $scope.contact.workspace,
+                url: $scope.contact.workspace.uri,
                 withCredentials: true,
                 headers: {
                     "Content-Type": "text/turtle"
@@ -716,15 +718,6 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
                     $scope.my.config.availableWorkspaces = [];
                     var workspaces = g.statementsMatching(webidRes, PIM('workspace'), undefined);
                     if (workspaces && workspaces.length > 0) {
-                        // check if user has an app config workspace
-                        var configWs = g.statementsMatching(undefined, RDF('type'), PIM('PreferencesWorkspace'))[0];
-                        if (configWs) {
-                            $scope.my.config.appWorkspace = configWs.subject.value;
-                            // Also get app data config
-                            $scope.fetchAppConfig();
-                        } else {
-                            $scope.initialized = false;
-                        }
                         for (var i=0; i<workspaces.length; i++) {
                             var ws = workspaces[i];
                             // don't include the apps workspace in the suggestions list
@@ -740,6 +733,15 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
                                 name: (wsTitle)?wsTitle.value:'Untitled workspace'
                             });
                         };
+                        // check if user has an app config workspace
+                        var configWs = g.statementsMatching(undefined, RDF('type'), PIM('PreferencesWorkspace'))[0];
+                        if (configWs) {
+                            $scope.my.config.appWorkspace = configWs.subject.value;
+                            // Also get app data config
+                            $scope.fetchAppConfig();
+                        } else {
+                            $scope.initialized = false;
+                        }
                     } else {
                         //@@TODO no workspaces found
                         // write to a container in storage?
@@ -773,12 +775,18 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
                 }
                 var thisApp = g.statementsMatching(undefined, SOLID('homepage'), $rdf.sym($scope.app.homepage))[0];
                 if (thisApp) {
+                    $scope.my.config.appConfigURI = thisApp.subject.value;
                     var dataSources = g.statementsMatching(thisApp.subject, SOLID('dataSource'), undefined);
                     if (dataSources.length > 0) {
                         $scope.sourcesToLoad = dataSources.length;
                         dataSources.forEach(function(source) {
                             if (source.object.value.length > 0) {
-                                $scope.my.config.workspaces.push(source.object.value);
+                                // Check if inside own workspace
+                                var workspace = {};
+                                workspace.uri = source.object.value;
+                                workspace.checked = true;
+                                $scope.my.config.workspaces.push(workspace);
+                                $scope.setParentWorkspace(source.object.value);
                                 // Load contacts from sources
                                 $scope.loadContacts(source.object.value);
                             }
@@ -819,7 +827,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
                     var contact = {};
                     contact.id = i;
                     contact.uri = subject.value;
-                    contact.workspace = uri;
+                    contact.workspace = { uri: uri };
 
                     // save list of URIs to check if some must be removed
                     $scope.refreshContacts.push(contact.uri);
@@ -872,6 +880,17 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
             $scope.$apply();
         });
     };
+
+    $scope.setParentWorkspace = function (uri) {
+        for (var i in $scope.my.config.availableWorkspaces) {
+            var ws = $scope.my.config.availableWorkspaces[i];
+            if (uri.indexOf(ws.uri) >= 0) {
+                ws.checked = true;
+                ws.dataSource = uri;
+            }
+        }
+        return '';
+    }
 
     $scope.removeContactsAfterRefresh = function() {
         if ($scope.contacts && $scope.refreshContacts) {
@@ -1046,7 +1065,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
     };
 
     // LDP helper function
-    $scope.newContainer = function(uri, slug, type) {
+    $scope.newContainer = function(uri, slug, metadata, type, rdfType) {
         return new Promise(function(resolve) {
             var containerURI = uri;
             var linkHeader = (type==='ldpc')?'<http://www.w3.org/ns/ldp#BasicContainer>; rel="type"':'<http://www.w3.org/ns/ldp#Resource>; rel="type"';
@@ -1054,27 +1073,46 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
                 code: 0,
                 location: '',
             };
-            $http({
-                method: 'POST',
-                url: uri,
-                headers: {
-                    'Content-Type': 'text/turtle',
-                    'Link': linkHeader,
-                    'Slug': slug
-                },
-                withCredentials: true,
-                data: ''
-            }).success(function(data, status, headers) {
-                if (headers("Location") && headers("Location").length > 0) {
-                    containerURI = headers("Location");
+            var g = new $rdf.graph();
+            var f = new $rdf.fetcher(g, TIMEOUT);
+
+            // Fetch user data
+            f.nowOrWhenFetched(uri,undefined,function(ok, body, xhr) {
+                resp.code = xhr.status;
+                if (ok) {
+                    var exists = [];
+                    if (rdfType) {
+                        exists = g.statementsMatching(undefined, RDF('type'), $rdf.sym(rdfType));
+                    }
+                    if (exists.length > 0) {
+                        resp.location = exists[0].subject.value;
+                        resolve(resp);
+                    } else {
+                        // just go ahead and create a new container
+                        $http({
+                            method: 'POST',
+                            url: uri,
+                            headers: {
+                                'Content-Type': 'text/turtle',
+                                'Link': linkHeader,
+                                'Slug': slug
+                            },
+                            withCredentials: true,
+                            data: metadata
+                        }).success(function(data, status, headers) {
+                            if (headers("Location") && headers("Location").length > 0) {
+                                containerURI = headers("Location");
+                            }
+                            resp.code = status;
+                            resp.location = containerURI;
+                            resolve(resp);
+                        }).error(function(data, status, headers) {
+                            resp.code = status;
+                            resp.location = containerURI;
+                            resolve(resp);
+                        });
+                    }
                 }
-                resp.code = status;
-                resp.location = containerURI;
-                resolve(resp);
-            }).error(function(data, status, headers) {
-                resp.code = status;
-                resp.location = containerURI;
-                resolve(resp);
             });
         });
     }
@@ -1113,13 +1151,14 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
                 if (headers('Location')) {
                     $scope.my.config.uri = headers('Location');
                 } else {
-                    $scope.my.config.uri = $scope.my.config.appWorkspace + "contacts";
+                    $scope.my.config.uri = $scope.my.config.appWorkspace + "Contacts";
                 }
                 // create containers
                 $scope.notify('success', 'Created config file');
+                $scope.my.config.appConfigURI = $scope.my.config.uri+"#conf";
                 $scope.my.toInit = toBeCreated.length;
                 for (var i=0; i<toBeCreated.length; i++) {
-                    $scope.initDataContainers(toBeCreated[i], "contacts", 0);
+                    $scope.initDataContainer(toBeCreated[i]);
                 }
                 $scope.contacts = {};
             }).
@@ -1134,14 +1173,14 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
     $scope.initAppWorkspace = function() {
         if ($scope.storageURI.checked) {
             var uri = $scope.storageURI.checked;
-            $scope.newContainer(uri, 'Applications', 'ldpc').then(function(status) {
+            $scope.newContainer(uri, 'Applications', '', 'ldpc').then(function(status) {
                 if (status.code == 201 && status.location && status.location.length > 0) {
                     if ($scope.my.config.preferencesFile) {
                         // Add new workspace triples to the preferencesFile
-                        var query = "INSERT DATA { " + $scope.newStatement($rdf.sym($scope.my.webid), PIM('workspace'), $rdf.sym(status.location)) + " } ;\n";
-                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(status.location), RDF('type'), PIM('Workspace')) + " } ;\n";
-                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(status.location), RDF('type'), PIM('PreferencesWorkspace')) + " } ;\n";
-                        query += "INSERT DATA { " + $scope.newStatement($rdf.sym(status.location), DCT('title'), $rdf.lit("App configuration workspace")) + " }";
+                        var query = "INSERT DATA { " + $scope.rdfStatementToNT($rdf.sym($scope.my.webid), PIM('workspace'), $rdf.sym(status.location)) + " } ;\n";
+                        query += "INSERT DATA { " + $scope.rdfStatementToNT($rdf.sym(status.location), RDF('type'), PIM('Workspace')) + " } ;\n";
+                        query += "INSERT DATA { " + $scope.rdfStatementToNT($rdf.sym(status.location), RDF('type'), PIM('PreferencesWorkspace')) + " } ;\n";
+                        query += "INSERT DATA { " + $scope.rdfStatementToNT($rdf.sym(status.location), DCT('title'), $rdf.lit("App configuration workspace")) + " }";
                         $scope.sendSPARQLPatch($scope.my.config.preferencesFile, query).then(function(result) {
                             // all done
                             $scope.my.config.appWorkspace = status.location;
@@ -1159,37 +1198,46 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         }
     };
 
-    $scope.initDataContainers = function(workspace, name) {
+    $scope.initDataContainer = function(workspace, name) {
         if (!workspace || workspace.length === 0) {
             console.log("Must provide workspace URI! Got:", workspace);
             return;
         }
-        $scope.newContainer(workspace, name, 'ldpc').then(function(status) {
+        if (!name || name.length === 0) {
+            name = 'contacts';
+        }
+        console.log("Init data container in:",workspace);
+        // Add type for the data source container
+        var triples, g = new $rdf.graph();
+        g.add($rdf.sym(''), RDF('type'), VCARD('AddressBook'));
+        triples = new $rdf.Serializer(g).toN3(g);
+
+        $scope.newContainer(workspace, name, triples, 'ldpc', VCARD('AddressBook').value).then(function(status) {
             console.log("Status:",status);
-            if (status.code === 201) {
+            if (status.code === 200 || status.code === 201) {
                 $scope.my.toInit--;
                 if ($scope.my.toInit >= 0 && status.location && status.location.length > 0) {
                     if (status.location.slice(status.location.length - 1) !== '/') {
                         status.location += '/';
                     }
 
-                    var query = "INSERT DATA { " + $scope.newStatement($rdf.sym('#conf'), SOLID('dataSource'), $rdf.sym(status.location)) + " }";
-                    $scope.sendSPARQLPatch($scope.my.config.uri, query).then(function(result) {
+                    var query = "INSERT DATA { " + $scope.rdfStatementToNT($rdf.sym($scope.my.config.appConfigURI), SOLID('dataSource'), $rdf.sym(status.location)) + " }";
+                    $scope.sendSPARQLPatch($scope.my.config.appConfigURI, query).then(function(result) {
                         // all done
-                        $scope.notify('success', 'Data sources created');
-                        $scope.my.config.workspaces.push(status.location);
+                        $scope.notify('success', 'Data source created');
+                        $scope.my.config.workspaces.push({ uri: status.location });
+                        $scope.setParentWorkspace(status.location);
                         $scope.initialized = true;
                         $scope.saveLocalStorage();
                         $scope.$apply();
                     });
                 }
                 if ($scope.my.toInit === 0) {
-                    $scope.initialized = true;
                     $scope.my.config.loaded = true;
                 }
             } else if (status.code === 406) {
                 console.log("HTTP " + status + ": failed to create ldpc in "+workspace+". Retrying with "+name+attempt.toString());
-                $scope.initDataContainers(workspace, name+attempt.toString(), attempt);
+                $scope.initDataContainer(workspace);
             } else {
                 // error creating containers for contacts in workspace
                 $scope.notify('error', 'Failed to create LDPC -- HTTP '+status);
@@ -1198,7 +1246,64 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         });
     };
 
-    $scope.newStatement = function(s, p, o) {
+    $scope.addRemoteSource = function () {
+        if (!$scope.remoteSources) {
+            $scope.remoteSources = [];
+        }
+        $scope.remoteSources.push({uri: ''});
+        $scope.focusElement('source-'+String($scope.remoteSources.length-1));
+    }
+
+    $scope.savePreferences = function () {
+        var toDelete = [];
+        var toAdd = [];
+        for (var i=0; i < $scope.my.config.availableWorkspaces.length; i++) {
+            var ws = $scope.my.config.availableWorkspaces[i];
+            console.log(ws.uri, ws.checked);
+            // remove datasources
+            if (!ws.checked && ws.dataSource) {
+                toDelete.push(ws.dataSource);
+            }
+            if (ws.checked && !ws.dataSource) {
+                toAdd.push(ws.uri);
+            }
+            // $scope.my.config.workspaces.forEach(function (w) {
+            //     if (!ws.checked && )
+            // });
+            // create new datasource ldpc
+        }
+        // also add remote sources
+        if ($scope.remoteSources && $scope.remoteSources.length > 0) {
+            $scope.remoteSources.forEach(function (src) {
+                if (src.uri && src.uri.length > 0) {
+                    toAdd.push(src.uri);
+                }
+            });
+        }
+
+        // delete dataSources
+        var query = '';
+        for (var i=0; i < toDelete.length; i++) {
+            query += "DELETE DATA { " + $scope.rdfStatementToNT($rdf.sym($scope.my.config.appConfigURI), SOLID('dataSource'), $rdf.sym(toDelete[i])) + " }";
+            if (i < toDelete.length - 1 || (i === toDelete.length - 1 && toDelete.length > 0)) {
+                query += " ;\n";
+            }
+            console.log(query);
+        }
+        $scope.sendSPARQLPatch($scope.my.config.appConfigURI, query).then(function(result) {
+            // deleted old dataSources, time to create new ones
+            $scope.saveLocalStorage();
+            $scope.my.toInit = toAdd.length;
+            for (var i=0; i < toAdd.length; i++) {
+                $scope.initDataContainer(toAdd[i]);
+            }
+            // close dialog
+            $scope.notify('success', 'Preferences updated');
+            LxDialogService.close('preferences');
+        });
+    };
+
+    $scope.rdfStatementToNT = function(s, p, o) {
         return new $rdf.st(s, p , o).toNT();
     };
 
