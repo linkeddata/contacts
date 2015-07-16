@@ -1514,7 +1514,6 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
     }
 
     // view contact
-    console.log($location.$$path, $location.$$search);
     if ($location.$$path && $location.$$path === '/contacts/view' && $location.$$search && $location.$$search.uri) {
         var uri = $location.$$search.uri;
         if ($scope.contacts && $scope.contacts[uri]) {
