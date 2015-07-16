@@ -95,8 +95,6 @@ App.filter('toProfileViewer', function() {
 });
 
 App.controller('Main', function ($scope, $http, $timeout, $window, $location, LxNotificationService, LxDialogService) {
-    console.log($location);
-
     $scope.app = {};
     $scope.app.origin = window.location.origin;
     $scope.app.homepage = "https://linkeddata.github.io/contacts/";
@@ -131,8 +129,8 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
 
     // set init variables
     $scope.init = function () {
-        $scope.initialized = true;
         $scope.loggedIn = false;
+        $scope.initialized = true;
         $scope.loginTLSButtonText = "Login";
         // display elements object
         $scope.show = {
@@ -265,7 +263,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
         if (!action) {
             action = 'view';
         }
-        $location.path('/contact/'+action).search({ uri: $scope.contact.uri }).replace();
+        $location.path('/contacts/'+action).search({ uri: $scope.contact.uri }).replace();
         $scope.show.posClass = 'slide-in';
         $scope.show.contact = true;
         $scope.show.list = false;
@@ -285,22 +283,26 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
         $scope.show.topbar = true;
     };
 
-    $scope.viewContact = function (id) {
-        delete $scope.contact;
-        $scope.contact = angular.copy($scope.contacts[id]);
-        $scope.contact.editing = false;
-        $scope.showContactInformation('view');
+    $scope.viewContact = function (uri) {
+        if ($scope.contacts[uri]) {
+            delete $scope.contact;
+            $scope.contact = angular.copy($scope.contacts[uri]);
+            $scope.contact.editing = false;
+            $scope.showContactInformation('view');
+        }
     };
 
-    $scope.editContact = function (id) {
-        delete $scope.contact;
-        if (id !== undefined) {
-            $scope.contact = angular.copy($scope.contacts[id]);
-        } else {
-            $scope.resetContact();
+    $scope.editContact = function (uri) {
+        if ($scope.contacts[uri]) {
+            delete $scope.contact;
+            if (uri !== undefined) {
+                $scope.contact = angular.copy($scope.contacts[uri]);
+            } else {
+                $scope.resetContact();
+            }
+            $scope.contact.editing = true;
+            $scope.showContactInformation('edit');
         }
-        $scope.contact.editing = true;
-        $scope.showContactInformation('edit');
     };
 
     $scope.saveContact = function (force) {
@@ -827,69 +829,72 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
     $scope.loadContacts = function(uri, refresh) {
         var g = new $rdf.graph();
         var f = new $rdf.fetcher(g, TIMEOUT);
-        $scope.loadingText = "...Loading contacts";
-        f.nowOrWhenFetched(uri+'*',undefined,function(ok, body, xhr) {
-            if (!$scope.refreshContacts) {
-                $scope.refreshContacts = [];
-            }
-            var contacts = g.statementsMatching(undefined, RDF('type'), VCARD('Individual'));
-            if (contacts && contacts.length > 0) {
-                for (var i=0; i<contacts.length; i++) {
-                    var subject = contacts[i].subject;
-                    var contact = {};
-                    contact.id = i;
-                    contact.uri = subject.value;
-                    contact.datasource = { uri: uri };
-
-                    // save list of URIs to check if some must be removed
-                    $scope.refreshContacts.push(contact.uri);
-                    // create a new element for a contact
-                    var newElement = function(arr, elem) {
-                        if (arr.length > 0) {
-                            contact[elem.name] = [];
-                            for (var i=0; i<arr.length; i++) {
-                                // Set the right why value to subject value if it's an ldp#resource
-                                var ldpRes = g.statementsMatching($rdf.sym(uri+'*'), LDP('contains'), subject);
-                                if (ldpRes.length > 0) {
-                                    arr[i].why.uri = arr[i].why.value = subject.value;
-                                }
-                                contact[elem.name].push($scope.ContactElement(arr[i], true));
-                            }
-                        }
-                    };
-
-                    $scope.vcardElems.forEach(function(elem) {
-                        newElement(g.statementsMatching(subject, VCARD(elem.name), undefined), elem);
-                    });
-
-                    // set favorite value
-                    var fav = g.statementsMatching($rdf.sym($scope.my.webid), FAV('hasFavorite'), subject);
-                    if (fav.length > 0) {
-                        var ldpRes = g.statementsMatching($rdf.sym(uri+'*'), LDP('contains'), subject);
-                        if (ldpRes.length > 0) {
-                            var why = subject.value;
-                        } else {
-                            var why = contacts[i].why.value;
-                        }
-                        contact['hasFavorite'] = [ $scope.ContactElement(
-                                new $rdf.st($rdf.sym($scope.my.webid), FAV('hasFavorite'), subject, $rdf.sym(why)),
-                                true
-                            ) ];
-                    }
-
-                    // push contact to list
-                    $scope.contacts[contact.uri] = contact;
+        $scope.loadingText = "...Loading contacts form "+uri;
+        return new Promise(function(resolve) {
+            f.nowOrWhenFetched(uri+'*',undefined,function(ok, body, xhr) {
+                if (!$scope.refreshContacts) {
+                    $scope.refreshContacts = [];
                 }
-            }
-            $scope.sourcesToLoad--;
-            if ($scope.sourcesToLoad===0) {
-                $scope.my.config.loaded = true;
-                $scope.removeContactsAfterRefresh(uri);
-            } else if (refresh) {
-                $scope.removeContactsAfterRefresh(uri);
-            }
-            $scope.saveLocalStorage();
-            $scope.$apply();
+                var contacts = g.statementsMatching(undefined, RDF('type'), VCARD('Individual'));
+                if (contacts && contacts.length > 0) {
+                    for (var i=0; i<contacts.length; i++) {
+                        var subject = contacts[i].subject;
+                        var contact = {};
+                        contact.id = i;
+                        contact.uri = subject.value;
+                        contact.datasource = { uri: uri };
+
+                        // save list of URIs to check if some must be removed
+                        $scope.refreshContacts.push(contact.uri);
+                        // create a new element for a contact
+                        var newElement = function(arr, elem) {
+                            if (arr.length > 0) {
+                                contact[elem.name] = [];
+                                for (var i=0; i<arr.length; i++) {
+                                    // Set the right why value to subject value if it's an ldp#resource
+                                    var ldpRes = g.statementsMatching($rdf.sym(uri+'*'), LDP('contains'), subject);
+                                    if (ldpRes.length > 0) {
+                                        arr[i].why.uri = arr[i].why.value = subject.value;
+                                    }
+                                    contact[elem.name].push($scope.ContactElement(arr[i], true));
+                                }
+                            }
+                        };
+
+                        $scope.vcardElems.forEach(function(elem) {
+                            newElement(g.statementsMatching(subject, VCARD(elem.name), undefined), elem);
+                        });
+
+                        // set favorite value
+                        var fav = g.statementsMatching($rdf.sym($scope.my.webid), FAV('hasFavorite'), subject);
+                        if (fav.length > 0) {
+                            var ldpRes = g.statementsMatching($rdf.sym(uri+'*'), LDP('contains'), subject);
+                            if (ldpRes.length > 0) {
+                                var why = subject.value;
+                            } else {
+                                var why = contacts[i].why.value;
+                            }
+                            contact['hasFavorite'] = [ $scope.ContactElement(
+                                    new $rdf.st($rdf.sym($scope.my.webid), FAV('hasFavorite'), subject, $rdf.sym(why)),
+                                    true
+                                ) ];
+                        }
+
+                        // push contact to list
+                        $scope.contacts[contact.uri] = contact;
+                    }
+                }
+                $scope.sourcesToLoad--;
+                if ($scope.sourcesToLoad===0) {
+                    $scope.my.config.loaded = true;
+                    $scope.removeContactsAfterRefresh(uri);
+                } else if (refresh) {
+                    $scope.removeContactsAfterRefresh(uri);
+                }
+                $scope.saveLocalStorage();
+                $scope.$apply();
+                resolve(contacts.length);
+            });
         });
     };
 
@@ -929,7 +934,6 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
         var webid = angular.copy($scope.my.webid);
         // $scope.init();
         $scope.my.config = {};
-        $scope.loggedIn = true;
         $scope.getProfile(webid);
     };
 
@@ -1431,8 +1435,8 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
           var user = headers('User');
           console.log("USER:",user);
           if (user && user.length > 0 && user.slice(0,4) == 'http') {
-            $scope.getProfile(user);
             $scope.loggedIn = true;
+            $scope.getProfile(user);
           } else {
             LxNotificationService.error('WebID-TLS authentication failed.');
             console.log('WebID-TLS authentication failed.');
@@ -1458,6 +1462,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
         $scope.init();
         // clear localstorage
         localStorage.removeItem($scope.app.origin);
+        $scope.loggedIn = false;
     };
 
     $scope.online = window.navigator.onLine;
@@ -1484,7 +1489,6 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
             var dateValid = data.profile.loadDate + 1000 * 60 * 60 * 24;
             if (Date.now() < dateValid) {
                 $scope.my = data.profile;
-                $scope.loggedIn = true;
                 if (!$scope.my.config.appWorkspace || $scope.my.config.appWorkspace.length === 0) {
                     $scope.initialized = false;
                 }
@@ -1493,6 +1497,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
                 }
                 $scope.contacts = data.contacts;
                 $scope.my.config.loaded = true;
+                $scope.loggedIn = true;
 
                 $scope.setupWebSockets();
 
@@ -1500,7 +1505,6 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
             } else {
                 console.log("Deleting profile data because it expired");
                 localStorage.removeItem($scope.app.origin);
-                // prompt for login
             }
         } else {
             // clear sessionStorage in case there was a change to the data structure
@@ -1510,12 +1514,21 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
     }
 
     // view contact
+    console.log($location.$$path, $location.$$search);
     if ($location.$$path && $location.$$path === '/contacts/view' && $location.$$search && $location.$$search.uri) {
-        if ($scope.contacts) {
+        var uri = $location.$$search.uri;
+        if ($scope.contacts && $scope.contacts[uri]) {
             // view
-            $scope.viewContact($location.$$search.uri);
+            $scope.viewContact(uri);
         } else {
             // load
+            $scope.sourcesToLoad = 1;
+            $scope.loggedIn = true;
+            $scope.loadContacts(uri).then(function(res) {
+                if (res > 0) {
+                    $scope.viewContact(uri);
+                }
+            });
         }
     }
 });
