@@ -16,7 +16,7 @@
       </button>
     </div>
 
-    <div ng-if="my.config.appWorkspace && my.config.appWorkspace.length>0 && my.config.workspaces.length===0" class="align-left">
+    <div ng-if="my.config.appWorkspace && my.config.appWorkspace.length>0 && my.config.datasources.length===0" class="align-left">
       <p class="mt">I managed to find the following workspaces in your profile information. Please select those in which you would like to store contact data:</p>
       <ul class="list">
         <li class="list-row list-row--has-separator" ng-repeat="workspace in my.config.availableWorkspaces">

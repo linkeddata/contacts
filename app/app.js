@@ -783,8 +783,9 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
                                 var dataSource = {};
                                 dataSource.uri = source.object.value;
                                 dataSource.checked = true;
-                                $scope.my.config.datasources.push(dataSource);
+                                dataSource.name = $scope.getNameFromParentWS(source.object.value);
                                 $scope.setParentWorkspace(source.object.value);
+                                $scope.my.config.datasources.push(dataSource);
                                 // Load contacts from sources
                                 $scope.loadContacts(source.object.value);
                             }
@@ -888,7 +889,17 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
             }
         }
         return '';
-    }
+    };
+
+    $scope.getNameFromParentWS = function (uri) {
+        for (var i in $scope.my.config.availableWorkspaces) {
+            var ws = $scope.my.config.availableWorkspaces[i];
+            if (uri.indexOf(ws.uri) >= 0) {
+                return ws.name;
+            }
+        }
+        return uri;
+    };
 
     $scope.removeContactsAfterRefresh = function(dataSource) {
         if ($scope.contacts && $scope.refreshContacts) {
