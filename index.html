@@ -72,7 +72,7 @@
                 <!-- <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-cloud-download mr"></span>Import vCards</a></li>
                 <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li> -->
                 <li><a class="dropdown-link" ng-click="refresh()"><span aria-hidden="true" class="mdi mdi-refresh mr"></span>Refresh</a></li>
-                <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-settings mr"></span>Preferences</a></li>
+                <li><a class="dropdown-link" ng-click="openDialog('preferences')"><span aria-hidden="true" class="mdi mdi-settings mr"></span>Preferences</a></li>
                 <li><a class="dropdown-link" ng-click="openDialog('about')"><span aria-hidden="true" class="mdi mdi-information-outline mr"></span>About</a></li>
                 <li class="dropdown-divider"></li>
                 <li><a class="dropdown-link" ng-click="logOut()"><span aria-hidden="true" class="mdi mdi-exit-to-app mr"></span>Logout</a></li>
@@ -168,12 +168,55 @@
     </div>
   </lx-dialog>
 
+  <!-- Preferences -->
+  <lx-dialog class="dialog dialog--l" auto-close="true" id="preferences">
+    <div class="dialog__header">
+      <div class="toolbar bgc-blue-A700 pl+">
+        <span class="toolbar__label tc-white fs-title">
+          Preferences
+        </span>
+        <div class="toolbar__right">
+          <button class="btn btn--l btn--white btn--icon" lx-ripple lx-dialog-close>
+            <span aria-hidden="true" class="mdi mdi-close"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="dialog__content p+">
+      <h4>Data sources</h4>
+      <div>
+        <ul class="list">
+          <li class="list-row list-row--has-separator" ng-repeat="workspace in my.config.availableWorkspaces">
+            <div class="checkbox mt">
+              <input type="checkbox" id="ws-{{$index}}" class="checkbox__input" ng-model="workspace.checked">
+              <label for="ws-{{$index}}" class="checkbox__label">{{workspace.name}}</label>
+              <span class="checkbox__help ml" ng-if="workspace.datasource">Location: {{workspace.datasource}}</span>
+            </div>
+          </li>
+        </ul>
+      </div>
+      <!-- <h4 class="mt++">Add a remote source</h4>
+      <div ng-repeat="source in remoteSources" flex-item>
+        <lx-text-field class="form-field" label="URL" fixed-label="true">
+          <input id="source-{{$index}}" type="uri" ng-model="source.uri" ng-click="focusElement('source-'+String($index))" ng-change="focusElement('source-'+String($index))">
+        </lx-text-field>
+      </div>
+      <button class="btn btn--l btn--green btn--fab" lx-ripple ng-click="addRemoteSource()">
+        <span aria-hidden="true" class="mdi mdi-plus"></span>
+      </button> -->
+    </div>
+    <div class="dialog__actions">
+      <button class="btn btn--m btn--black btn--flat" lx-ripple ng-click="savePreferences()">Save</button>
+      <button class="btn btn--m btn--black btn--flat" lx-ripple lx-dialog-close>Close</button>
+    </div>
+  </lx-dialog>
+
   <!-- About -->
   <lx-dialog class="dialog dialog--l" auto-close="true" id="about">
     <div class="dialog__header">
       <div class="toolbar bgc-blue-A700 pl+">
         <span class="toolbar__label tc-white fs-title">
-          About Contacts
+          About this app
         </span>
         <div class="toolbar__right">
           <button class="btn btn--l btn--white btn--icon" lx-ripple lx-dialog-close>

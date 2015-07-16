@@ -8,7 +8,7 @@
         <div class="radio-button" ng-repeat="storage in my.config.storages">
             <input type="radio" id="radio-{{$index}}" ng-model="storageURI.checked" value="{{storage.uri}}" class="radio-button__input">
             <label for="radio-{{$index}}" class="radio-button__label">Storage {{$index+1}}</label>
-            <span class="radio-button__help">Location: {{storage.uri}}</span>
+            <span class="radio-button__help ml">Location: {{storage.uri}}</span>
         </div>
       </div>
       <button class="btn btn--l btn--blue btn--raised mt++" lx-ripple aria-label="Save preferences" ng-click="initAppWorkspace()" ng-disabled="!storageURI.checked">
@@ -23,7 +23,7 @@
           <div class="checkbox mt">
             <input type="checkbox" id="ws-{{$index}}" class="checkbox__input" ng-model="workspace.checked">
             <label for="ws-{{$index}}" class="checkbox__label">{{workspace.name}}</label>
-            <span class="checkbox__help">Location: {{workspace.uri}}</span>
+            <span class="checkbox__help ml">Location: {{workspace.uri}}</span>
           </div>
         </li>
       </ul>

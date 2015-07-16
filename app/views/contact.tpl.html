@@ -35,7 +35,6 @@
             </div>
           </div>
         </div>
-
         <div ng-if="!contact.editing" class="profile-picture">
           <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center img-round"/>
             <img ng-if="!contact.hasPhoto[0].value || contact.hasPhoto[0].value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
@@ -47,13 +46,12 @@
           <div ng-if="elem.display" ng-repeat="item in contact[elem.name]">
             <div ng-if="!item.hidden">
               <div class="long-label">{{elem.label}}</div>
-              <lx-text-field ng-if="!elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
+              <lx-text-field ng-if="!elem.textarea" class="form-field mr+++" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
                 <input id="{{elem.name + $index}}" ng-change="space2dash(elem.name, item)" type="{{elem.type}}" ng-model="item.value" ng-click="focusElement(elem.name + $index)" ng-change="focusElement(elem.name + $index)">
               </lx-text-field>
-              <lx-text-field ng-if="elem.textarea" class="form-field" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
+              <lx-text-field ng-if="elem.textarea" class="form-field mr+++" label="{{elem.label}}" fixed-label="true" icon="{{elem.icon}}">
                 <textarea id="{{elem.name + $index}}" ng-model="item.value" ng-click="focusElement(elem.name + $index)" ng-change="focusElement(elem.name + $index)"></textarea>
               </lx-text-field>
-
               <button class="btn btn--l btn--grey btn--icon form-icon" lx-ripple ng-click="deleteContactField(elem.name, contact[elem.name].indexOf(item))">
                 <span aria-hidden="true" class="mdi mdi-close"></span>
               </button>
@@ -103,17 +101,17 @@
     </div>
   </div>
   <div ng-if="contact.editing" class="dialog__actions">
-    <div ng-if="!contact.uri && my.config.workspaces.length > 1">
+    <div ng-if="!contact.uri && my.config.datasources.length > 1">
       <lx-dropdown>
         <a class="btn btn--l btn--black initial" lx-ripple lx-dropdown-toggle aria-label="Select fields to add">
           <span>Workspace</span>
-          <span ng-if="contact.workspace">{{contact.workspace}}</span>
-          <span ng-if="!contact.workspace">{{selects.workspace}}</span>
+          <span ng-if="contact.datasource">{{contact.datasource.uri}}</span>
+          <span ng-if="!contact.datasource">{{selects.datasource.uri}}</span>
           <span aria-hidden="true" class="mdi mdi-chevron-down tc-grey-800"></span>
         </a>
         <lx-dropdown-menu>
           <ul>
-            <li ng-repeat="ws in my.config.workspaces"><a class="dropdown-link" ng-click="selectWorkspace(ws)">{{ws}}</a></li>
+            <li ng-repeat="ds in my.config.datasources"><a class="dropdown-link" ng-click="selectDatasource(ds)">{{ds.uri}}</a></li>
           </ul>
         </lx-dropdown-menu>
       </lx-dropdown>
