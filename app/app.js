@@ -1344,18 +1344,25 @@ App.controller('Main', function ($scope, $http, $timeout, $window, LxNotificatio
         }
     };
 
-    $scope.manageSelection = function(id, force) {
-        if ($scope.contacts[id].checked || force === true) {
-            $scope.contacts[id].checked = true;
+    $scope.manageSelection = function(uri, force) {
+        if ($scope.contacts[uri].checked || force === true) {
+            $scope.contacts[uri].checked = true;
             // add to selection list
-            $scope.selects.contacts.push(id);
+            $scope.selects.contacts.push(uri);
         } else {
             // remove from selection list
             for(var i = $scope.selects.contacts.length - 1; i >= 0; i--) {
-                if ($scope.selects.contacts[i] === id) {
+                if ($scope.selects.contacts[i] === uri) {
                     $scope.selects.contacts.splice(i, 1);
                 }
             }
+        }
+    };
+
+    $scope.selectOne = function (contact) {
+        if ($scope.selects.contacts.length > 0) {
+            contact.checked = !contact.checked;
+            $scope.manageSelection(contact.uri);
         }
     };
 
