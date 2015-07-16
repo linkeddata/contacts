@@ -104,14 +104,14 @@
     <div ng-if="!contact.uri && my.config.datasources.length > 1">
       <lx-dropdown>
         <a class="btn btn--l btn--black initial" lx-ripple lx-dropdown-toggle aria-label="Select fields to add">
-          <span>Workspace</span>
-          <span ng-if="contact.datasource">{{contact.datasource.uri}}</span>
-          <span ng-if="!contact.datasource">{{selects.datasource.uri}}</span>
+          <span>Save in</span>
+          <span ng-if="contact.datasource">{{contact.datasource.name}}</span>
+          <span ng-if="!contact.datasource">{{selects.datasource.name}}</span>
           <span aria-hidden="true" class="mdi mdi-chevron-down tc-grey-800"></span>
         </a>
         <lx-dropdown-menu>
           <ul>
-            <li ng-repeat="ds in my.config.datasources"><a class="dropdown-link" ng-click="selectDatasource(ds)">{{ds.uri}}</a></li>
+            <li ng-repeat="ds in my.config.datasources"><a class="dropdown-link" ng-click="selectDatasource(ds)">{{ds.name}}</a></li>
           </ul>
         </lx-dropdown-menu>
       </lx-dropdown>
