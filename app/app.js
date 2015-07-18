@@ -9,6 +9,7 @@
 
 var AUTHENDPOINT = "https://databox.me/";
 var PROXY = "https://rww.io/proxy.php?uri={uri}";
+var AUTHPROXY = "https://deiu.me/,delegate?uri=";
 var TIMEOUT = 5000;
 var DEBUG = true;
 // Namespaces
@@ -23,6 +24,7 @@ var LDP = $rdf.Namespace("http://www.w3.org/ns/ldp#");
 var SOLID = $rdf.Namespace("http://www.w3.org/ns/solid/app#");
 var VCARD = $rdf.Namespace("http://www.w3.org/2006/vcard/ns#");
 var FAV = $rdf.Namespace("http://www.eclap.eu/schema/eclap/");
+var ACL = $rdf.Namespace("http://www.w3.org/ns/auth/acl#");
 
 var scope = {};
 var gg;
@@ -657,6 +659,14 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
                 // set time of loading
                 if (!$scope.my.loadDate) {
                     $scope.my.loadDate = Date.now();
+                }
+
+                // user supports WebID delegation; pass all future requests through the AUTHPROXY
+                var delegates = g.statementsMatching(webidRes, ACL('delegates'), undefined);
+                if (delegates.length > 0 && AUTHPROXY && AUTHPROXY.length > 0) {
+                    jQuery.ajaxPrefilter(function(options) {
+                        options.url = AUTHPROXY + encodeURIComponent(options.url);
+                    });
                 }
 
                 // Load additional data from sameAs, seeAlso and preferenceFile
