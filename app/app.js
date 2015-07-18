@@ -1424,6 +1424,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
 
     // Login
     $scope.TLSlogin = function() {
+        $location.path('/').search({}).replace();
         $scope.loginTLSButtonText = 'Logging in...';
         console.log("AUTH:",AUTHENDPOINT);
         $http({
