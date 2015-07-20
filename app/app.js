@@ -293,16 +293,14 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
     };
 
     $scope.editContact = function (uri) {
-        if ($scope.contacts[uri]) {
-            delete $scope.contact;
-            if (uri !== undefined) {
-                $scope.contact = angular.copy($scope.contacts[uri]);
-            } else {
-                $scope.resetContact();
-            }
-            $scope.contact.editing = true;
-            $scope.showContactInformation('edit');
+        delete $scope.contact;
+        if (uri !== undefined) {
+            $scope.contact = angular.copy($scope.contacts[uri]);
+        } else {
+            $scope.resetContact();
         }
+        $scope.contact.editing = true;
+        $scope.showContactInformation('edit');
     };
 
     $scope.saveContact = function (force) {
