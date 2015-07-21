@@ -216,6 +216,20 @@ li {
   top: 15px;
 }
 
+.vcard-picker {
+  text-align: center;
+  margin-top: 10px;
+  padding-top: 30px;
+  width: 300px;
+  height: 150px;
+  border: 3px dotted #ddd;
+}
+
+.dragover {
+  background-color: #F0F0F0;
+  border: 3px dotted #8BDF82!important;
+}
+
 .checkbox-workspace {
   position: relative;
   top: 10px;

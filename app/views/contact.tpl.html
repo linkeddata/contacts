@@ -7,7 +7,7 @@
       </a>
     </div>
     <div class="toolbar__right">
-      <a ng-if="contact.editing && contact.fn[0].value.length > 0" class="btn btn--l" aria-label="Save changes" lx-ripple ng-click="saveContact()">
+      <a ng-if="contact.editing && contact.fn[0].value.length > 0" class="btn btn--l" aria-label="Save changes" lx-ripple ng-click="saveContact(contact)">
         <span aria-hidden="true" class="mdi mdi-check"></span>
         Save
       </a>
@@ -27,7 +27,6 @@
             <img ng-if="contact.hasPhoto[0].value" ng-src="{{contact.hasPhoto[0].value}}" class="newimg align-center"/>
             <img ng-if="!contact.hasPhoto[0].value || contact.hasPhoto[0].value.length == 0" src="images/generic_photo.png" class="newimg align-center img-round"/>
             <div class="valign align-center">
-              <spinner class="valign spinner" ng-show="contact.hasPhoto.uploading"></spinner>
               <button class="btn btn--l btn--black" lx-ripple>
                 <span aria-hidden="true" class="mdi mdi-camera"></span>
                 <span class="valign">Change photo</span>
@@ -93,7 +92,7 @@
           </a>
         <lx-dropdown-menu>
           <ul>
-            <li ng-repeat="elem in vcardElems|filter:{display: true}"><a class="dropdown-link" ng-click="addContactField(elem.name)"><span aria-hidden="true" class="mr mdi mdi-{{elem.icon}}"></span>{{elem.label}}</a></li>
+            <li ng-repeat="elem in vcardElems|filter:{display: true}"><a class="dropdown-link" ng-click="addContactField(contact, elem.name, true)"><span aria-hidden="true" class="mr mdi mdi-{{elem.icon}}"></span>{{elem.label}}</a></li>
           </ul>
         </lx-dropdown-menu>
       </lx-dropdown>

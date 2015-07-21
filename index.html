@@ -69,9 +69,9 @@
             </button>
             <lx-dropdown-menu>
               <ul>
-                <!-- <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-cloud-download mr"></span>Import vCards</a></li>
-                <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-cloud-upload mr"></span>Export vCards</a></li> -->
+                <!-- <li><a class="dropdown-link"><span aria-hidden="true" class="mdi mdi-cloud-dlownload mr"></span>Export vCards</a></li> -->
                 <li><a class="dropdown-link" ng-click="refresh()"><span aria-hidden="true" class="mdi mdi-refresh mr"></span>Refresh</a></li>
+                <li><a class="dropdown-link" ng-click="openDialog('import')"><span aria-hidden="true" class="mdi mdi-cloud-upload mr"></span>Import vCards</a></li>
                 <li><a class="dropdown-link" ng-click="openDialog('preferences')"><span aria-hidden="true" class="mdi mdi-settings mr"></span>Preferences</a></li>
                 <li><a class="dropdown-link" ng-click="openDialog('about')"><span aria-hidden="true" class="mdi mdi-information-outline mr"></span>About</a></li>
                 <li class="dropdown-divider"></li>
@@ -147,10 +147,67 @@
     </div>
   </div>
 
-  <!-- Dialogues -->
+  <!-- Dialogs -->
+
+  <!-- Import vcard -->
+  <lx-dialog class="dialog dialog--l" auto-close="true" id="import">
+    <div class="dialog__header">
+      <div class="toolbar bgc-blue-A700 pl+">
+        <span class="toolbar__label tc-white fs-title">
+          Import vCards
+        </span>
+        <div class="toolbar__right">
+          <button class="btn btn--l btn--white btn--icon" lx-ripple ng-click="clearImport()">
+            <span aria-hidden="true" class="mdi mdi-close"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+    <div class="dialog__content p">
+      <div ng-if="importedContacts.length === 0" class="align-center">
+        <p ng-if="!selects.datasource.name">You must first select which workspace to use for new contacts.<br></p>
+        <lx-dropdown>
+          <a class="btn btn--l btn--black initial" lx-ripple lx-dropdown-toggle aria-label="Select workspace">
+            <span ng-if="!selects.datasource.name">Available workspaces</span>
+            <span ng-if="selects.datasource.name">Saving to {{selects.datasource.name}}</span>
+            <span aria-hidden="true" class="mdi mdi-chevron-down tc-grey-800"></span>
+          </a>
+          <lx-dropdown-menu>
+            <ul>
+              <li ng-repeat="ds in my.config.datasources"><a class="dropdown-link" ng-click="selectDatasource(ds)">{{ds.name}}</a></li>
+            </ul>
+          </lx-dropdown-menu>
+        </lx-dropdown>
+      </div>
+
+      <div ng-if="selects.datasource.name && importedContacts.length === 0" ng-file-drop ng-model="uploads.vcard" drag-over-class="dragover" class="vcard-picker align-center" ng-multiple="false" allow-dir="false" ng-accept="'.vcf'">
+          <div ng-file-select ng-model="uploads.vcard" ng-accept="'.vcf'" ng-multiple="true">
+            <div>
+              <button class="btn btn--l btn--black" lx-ripple>
+                <span aria-hidden="true" class="mdi mdi-cloud-upload"></span>
+                <span class="valign">Click to browse files</span>
+              </button>
+            </div>
+            <div>or just drop files here</div>
+          </div>
+      </div>
+
+      <div ng-if="importedContacts.length > 0" class="align-center">
+        <br>
+        <h4>Found contacts in file(s): <strong>{{importedContacts.length}}</strong></h4>
+        <br>
+        <p>Click the "Import" button below to finish importing the contacts.</p>
+      </div>
+    </div>
+    <div class="dialog__actions">
+      <div flex-item>
+        <button class="btn btn--m btn--black btn--flat" lx-ripple ng-click="clearImport()">Cancel</button>
+        <button class="btn btn--m btn--black btn--flat" lx-ripple ng-click="saveImported()">Import</button>
+      </div>
+    </div>
+  </lx-dialog>
 
   <!-- Picture cropper -->
-
   <lx-dialog class="dialog dialog--s" auto-close="true" id="picture-cropper">
     <div class="dialog__content p">
       <div class="crop-area">
@@ -245,6 +302,7 @@
   <script src="bower_components/lumx/dist/lumx.min.js"></script>
   <script src="bower_components/ng-file-upload/angular-file-upload.js"></script>
   <script src="bower_components/ngImgCrop/compile/minified/ng-img-crop.js"></script>
+  <script src="vendor/vcardjs-0.3.js"></script>
   <script src="vendor/rdflib.min.js"></script>
   <script src="vendor/common.js"></script>
   <!-- App -->

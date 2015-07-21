@@ -107,13 +107,15 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
 
     // map of vocabularies used for vcard data
     $scope.vcardElems = [
-        { name: 'fn', label: 'Full name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true },
+        { name: 'fn', vname: 'fn', label: 'Full name', icon: 'account', type: 'text', link: false, textarea: false, display: true, unique: true },
+        { name: 'hasNickname', vname: 'nickname', label: 'Nickname', icon: 'account-outline', link: false, textarea: false, display: true, unique: false },
+        { name: 'hasUID', vname: 'uid', label: 'UID', icon: 'web', link: false, textarea: false, display: false, unique: true },
         { name: 'hasWebID', label: 'WebID', icon: 'web', type: 'url', link: true, textarea: false, display: true, unique: true },
-        { name: 'hasPhoto', label: 'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true },
-        { name: 'hasEmail', label: 'Email', icon: 'email', type: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false},
-        { name: 'hasTelephone', label: 'Phone', icon: 'phone', type: 'tel', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false},
-        { name: 'hasURL', label: 'URL', icon: 'link', type: 'url', link: true, textarea: false, display: true, unique: false},
-        { name: 'hasNote', label: 'Note', icon: 'file-document', link: false, textarea: true, display: true, unique: true },
+        { name: 'hasPhoto', vname: 'photo', label: 'Photo', icon: 'camera', link: true, textarea: false, display: false, unique: true },
+        { name: 'hasEmail', vname: 'email', label: 'Email', icon: 'email', type: 'email', prefixURI: 'mailto:', link: true, textarea: false, display: true, unique: false},
+        { name: 'hasTelephone', vname: 'tel', label: 'Phone', icon: 'phone', type: 'tel', prefixURI: 'tel:', link: true, textarea: false, display: true, unique: false},
+        { name: 'hasURL', vname: 'url', label: 'URL', icon: 'link', type: 'url', link: true, textarea: false, display: true, unique: false},
+        { name: 'hasNote', vname: 'note', label: 'Note', icon: 'file-document', link: false, textarea: true, display: true, unique: false },
         { name: 'hasFavorite', label: 'Favorite', icon: 'star-outline', link: true, textarea: false, display: false, unique: true }
     ];
     $scope.vcardElems.isUnique = function (name) {
@@ -146,6 +148,9 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
             contacts: []
         };
 
+        $scope.uploads = {};
+        $scope.uploads.vcard = undefined;
+
         // user model
         $scope.my = {
             config: {}
@@ -160,6 +165,9 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
 
         // list of contacts
         $scope.contacts = {};
+
+        // list of imported contacts
+        $scope.importedContacts = [];
     };
 
     $scope.connectToSocket = function(uri) {
@@ -229,29 +237,35 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
         }, 0);
     };
 
-    $scope.addContactField = function (name) {
-        if ($scope.contact[name] && $scope.contact[name].length > 0 && $scope.vcardElems.isUnique(name)) {
-            if ($scope.contact[name][0].hidden) {
-                $scope.contact[name][0].hidden = false;
+    $scope.addContactField = function (contact, name, focus) {
+        if (contact[name] && contact[name].length > 0 && $scope.vcardElems.isUnique(name)) {
+            if (contact[name][0].hidden) {
+                contact[name][0].hidden = false;
                 // focus new element
-                $scope.focusElement(name + '0');
+                focusElement(name + '0');
             }
             return;
         }
+        if (!contact.uri) {
+            contact.uri = '';
+        }
         var field, pos, statement = new $rdf.st(
-            $rdf.sym($scope.contact.uri),
+            $rdf.sym(contact.uri),
             VCARD(name),
             $rdf.sym(''),
             $rdf.sym('')
         );
-        if (!$scope.contact[name]) {
-            $scope.contact[name] = [];
+        if (!contact[name]) {
+            contact[name] = [];
         }
         field = $scope.ContactElement(statement);
-        $scope.contact[name].push(field);
-        pos = $scope.contact[name].length - 1;
+        contact[name].push(field);
         // focus new element
-        $scope.focusElement(name + pos);
+        if (focus) {
+            pos = contact[name].length - 1;
+            $scope.focusElement(name + pos);
+        }
+        return field;
     };
 
     $scope.deleteContactField = function (elem, item) {
@@ -297,24 +311,28 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
         if (uri !== undefined) {
             $scope.contact = angular.copy($scope.contacts[uri]);
         } else {
-            $scope.resetContact();
+            $scope.resetContact(true);
         }
         $scope.contact.editing = true;
         $scope.showContactInformation('edit');
     };
 
-    $scope.saveContact = function (force) {
+    $scope.saveContact = function (contact, force) {
+        if (!contact) {
+            console.log("Cannot save contact, missing contactact object!");
+            return;
+        }
         // contact exists => patching it
-        if ($scope.contact.uri !== undefined) {
-            var query = $scope.updateContact($scope.contact, force).then(function (status) {
+        if (contact.uri !== undefined) {
+            var query = $scope.updateContact(contact, force).then(function (status) {
                 if (status === -1) {
                     $scope.notify('error', 'Failed to update contact', status);
                 } else if (status >= 200 && status < 400) {
                     var uri;
                     for (uri in $scope.contacts) {
-                        if (uri === $scope.contact.uri) {
-                            delete $scope.contact.pictureFile;
-                            $scope.contacts[uri] = angular.copy($scope.contact);
+                        if (uri === contact.uri) {
+                            delete contact.pictureFile;
+                            $scope.contacts[uri] = angular.copy(contact);
                         }
                     }
                     $scope.saveLocalStorage();
@@ -333,8 +351,8 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
             g.add($rdf.sym(''), VCARD('hasIndividual'), $rdf.sym('#card')); // hasIndividual doesn't exist!
             g.add($rdf.sym('#card'), RDF('type'), VCARD('Individual'));
             $scope.vcardElems.forEach(function (elem) {
-                if ($scope.contact[elem.name] && $scope.contact[elem.name].length > 0) {
-                    $scope.contact[elem.name].forEach(function (item) {
+                if (contact[elem.name] && contact[elem.name].length > 0) {
+                    contact[elem.name].forEach(function (item) {
                         if (item.value.length > 0) {
                             var object, value = (elem.prefixURI) ? elem.prefixURI + item.value : item.value;
                             if (elem.link) {
@@ -344,7 +362,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
                             }
                             g.add($rdf.sym('#card'), VCARD(elem.name), object);
                         } else {
-                            delete $scope.contact[elem.name];
+                            delete contact[elem.name];
                         }
                     });
                 }
@@ -354,7 +372,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
 
             $http({
                 method: 'POST',
-                url: $scope.contact.datasource.uri,
+                url: contact.datasource.uri,
                 withCredentials: true,
                 headers: {
                     "Content-Type": "text/turtle"
@@ -363,27 +381,26 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
             }).
                 success(function (data, status, headers) {
                     if (headers('Location')) {
-                        $scope.contact.uri = headers('Location') + "#card";
-                        delete $scope.contact.pictureFile;
-                        $scope.contacts[$scope.contact.uri] = angular.copy($scope.contact);
+                        contact.uri = headers('Location') + "#card";
+                        delete contact.pictureFile;
+                        $scope.contacts[contact.uri] = angular.copy(contact);
                         $scope.hideContactInformation();
                         $scope.saveLocalStorage();
                         $scope.notify('success', 'Contact added');
                     }
                 }).
                 error(function (data, status, headers) {
-                    console.log('Error saving contact on sever - ' + status, data);
+                    console.log('Error saving contact on server - ' + status, data);
                     $scope.notify('error', 'Failed to write contact to server -- HTTP ' + status);
                 });
         }
     };
 
-    $scope.resetContact = function () {
-        delete $scope.contact;
-        $scope.contact = {};
-        $scope.contact.pictureFile = {};
-        $scope.contact.editing = true;
-        $scope.contact.datasource = $scope.my.config.datasources[0];
+    $scope.resetContact = function (setScope) {
+        var contact = {};
+        contact.pictureFile = {};
+        contact.editing = true;
+        contact.datasource = $scope.selects.datasource.uri;
         $scope.vcardElems.forEach(function (elem) {
             var statement = new $rdf.st(
                 $rdf.sym(''),
@@ -391,8 +408,14 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
                 $rdf.sym(''),
                 $rdf.sym('')
             );
-            $scope.contact[elem.name] = [ $scope.ContactElement(statement) ];
+            contact[elem.name] = [ $scope.ContactElement(statement) ];
         });
+
+        if (setScope) {
+            delete $scope.contact;
+            $scope.contact = angular.copy(contact);
+        }
+        return contact;
     };
 
     $scope.confirmDelete = function (ids) {
@@ -400,7 +423,8 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
         if (ids.length === 1) {
             plural = '';
             id = ids[0];
-            text = $scope.contacts[id].fn[0].value + ' ?';
+            text = ($scope.contacts[id].fn)?$scope.contacts[id].fn[0].value: ' this contact';
+            text += ' ?';
         } else if (ids.length > 1) {
             plural = 's';
             text = ids.length + ' contacts?';
@@ -478,7 +502,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
                 $scope.contact.uri = obj2.uri;
             }
             // add existing properties from obj2
-            for (p in obj2) {
+            for (var p in obj2) {
                 if (obj2.hasOwnProperty(p)) {
                     if (Object.prototype.toString.call(obj2[p]) === "[object Array]") {
                         for (var i in obj2[p]) {
@@ -493,7 +517,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
                             if (prop.value && prop.value.length > 0) {
                                 // iterate over first object props
                                 if ($scope.contact[p].length > 0) {
-                                    for (e in $scope.contact[p]) {
+                                    for (var e in $scope.contact[p]) {
                                         // add only new values
                                         if (uniq && $scope.contact[p][e] && $scope.contact[p][e].value.length < prop.value.length) {
                                             $scope.contact[p][e].prev = angular.copy($scope.contact[p][e].value);
@@ -535,7 +559,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
         for (var i in ids) {
             merge($scope.contacts[ids[i]]);
         }
-        $scope.saveContact(true);
+        $scope.saveContact($scope.contact, true);
 
         var toDelete = [];
         for (var i=0; i<ids.length; i++) {
@@ -568,6 +592,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
         }
     };
 
+    // create data to be put into a real image file
     $scope.dataURItoBlob = function(dataURI) {
         var data = dataURI.split(',')[1];
         // var binary = atob(data);
@@ -597,6 +622,105 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
             $scope.originalImage = undefined;
             $scope.croppedImage = {value: ''};
             $scope.handleFileSelect(newFile[0]);
+        }
+    });
+
+    // Import vCard
+    $scope.saveImported = function() {
+        if ($scope.importedContacts && $scope.importedContacts.length > 0) {
+            $scope.importedContacts.forEach(function(contact) {
+                $scope.saveContact(contact);
+            });
+        }
+        LxDialogService.close('import');
+        $scope.importedContacts = [];
+    }
+
+    $scope.vcard2contact = function(vcard) {
+        console.log("Formatted name", vcard.fn);
+        console.log(vcard);
+        var contact = {};
+        contact.datasource = { uri: $scope.selects.datasource.uri };
+        $scope.vcardElems.forEach(function (elem) {
+            if (elem.vname && elem.vname.length > 0) {
+
+                if (Object.prototype.toString.call(vcard[elem.vname]) === "[object Array]") {
+                    contact[elem.name] = [];
+                    vcard[elem.vname].forEach(function (val) {
+                        var value = undefined;
+                        if (Object.prototype.toString.call(val) === "[object Object]") {
+                            if (val.value && val.value.length > 0) {
+                                value = val.value;
+                            }
+                        } else {
+                            value = val;
+                        }
+                        console.log(value);
+                        var obj = (elem.link)?$rdf.sym(value):$rdf.lit(value);
+                        var field = $scope.ContactElement(
+                                new $rdf.st($rdf.sym(''), VCARD(elem.name), obj, $rdf.sym(''))
+                        );
+                        field.value = value;
+                        contact[elem.name].push(field);
+                    });
+                } else if (Object.prototype.toString.call(vcard[elem.vname]) === "[object Object]") {
+                    console.log("Processing object",elem.vname, vcard[elem.vname].value);
+                    if (vcard[elem.vname].value && vcard[elem.vname].value.length > 0) {
+                        contact[elem.name] = [];
+                        var obj = (elem.link)?$rdf.sym(vcard[elem.vname].value):$rdf.lit(vcard[elem.vname].value);
+                        var field = $scope.ContactElement(
+                                new $rdf.st($rdf.sym(''), VCARD(elem.name), obj, $rdf.sym(''))
+                        );
+                        field.value = vcard[elem.vname].value;
+                        contact[elem.name].push(field);
+                    }
+                } else {
+                    console.log("Processing",elem.vname, vcard[elem.vname]);
+                    if (vcard[elem.vname] && vcard[elem.vname].length > 0) {
+                        contact[elem.name] = [];
+                        var obj = (elem.link)?$rdf.sym(vcard[elem.vname]):$rdf.lit(vcard[elem.vname]);
+                        var field = $scope.ContactElement(
+                                new $rdf.st($rdf.sym(''), VCARD(elem.name), obj, $rdf.sym(''))
+                        );
+                        field.value = vcard[elem.vname];
+                        contact[elem.name].push(field);
+                    }
+                }
+            }
+        });
+        console.log(contact);
+        if (!$scope.importedContacts) {
+            $scope.importedContacts = [];
+        }
+        $scope.importedContacts.push(contact);
+    };
+
+    $scope.handleImport = function (files) {
+        if (files && files.length > 0) {
+            files.forEach(function (file) {
+                console.log(file);
+                var reader = new FileReader();
+                reader.onload = function (evt) {
+                    $scope.$apply(function($scope){
+                        VCF.parse(evt.target.result, function(vcard) {
+                          $scope.vcard2contact(vcard);
+                        });
+                    });
+                };
+                reader.readAsText(file);
+            });
+        }
+    };
+
+    $scope.clearImport = function () {
+        $scope.importedContacts = [];
+        $scope.selects.datasource = {};
+        LxDialogService.close('import');
+    };
+
+    $scope.$watch('uploads.vcard', function (newFile, oldFile) {
+        if (newFile !== undefined) {
+            $scope.handleImport(newFile);
         }
     });
 
@@ -1405,7 +1529,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
     // Dialogues
     $scope.openDialog = function(elem, reset) {
         if (reset) {
-            $scope.resetContact();
+            $scope.resetContact(true);
         }
         LxDialogService.open(elem);
         $(document).keyup(function(e) {
