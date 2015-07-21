@@ -478,7 +478,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
                 $scope.contact.uri = obj2.uri;
             }
             // add existing properties from obj2
-            for (p in obj2) {
+            for (var p in obj2) {
                 if (obj2.hasOwnProperty(p)) {
                     if (Object.prototype.toString.call(obj2[p]) === "[object Array]") {
                         for (var i in obj2[p]) {
@@ -493,7 +493,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
                             if (prop.value && prop.value.length > 0) {
                                 // iterate over first object props
                                 if ($scope.contact[p].length > 0) {
-                                    for (e in $scope.contact[p]) {
+                                    for (var e in $scope.contact[p]) {
                                         // add only new values
                                         if (uniq && $scope.contact[p][e] && $scope.contact[p][e].value.length < prop.value.length) {
                                             $scope.contact[p][e].prev = angular.copy($scope.contact[p][e].value);
