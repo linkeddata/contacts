@@ -6,7 +6,7 @@
     property: hasWebID
 
 */
-
+var SIGNUP = "https://solid.github.io/solid-idps/";
 var AUTHENDPOINT = "https://databox.me/";
 var PROXY = "https://rww.io/proxy.php?uri={uri}";
 var TIMEOUT = 5000;
@@ -1448,6 +1448,18 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
         });
     };
 
+    // Signup
+    $scope.signup = function() {
+        var leftPosition, topPosition;
+        var width = 1024;
+        var height = 600;
+        //Allow for borders.
+        leftPosition = (window.screen.width / 2) - ((width / 2) + 10);
+        //Allow for title and status bars.
+        topPosition = (window.screen.height / 2) - ((height / 2) + 50);
+        window.open(SIGNUP+"?origin="+encodeURIComponent(window.location.href), "Solid signup", "resizable,scrollbars,status,width="+width+",height="+height+",left="+ leftPosition + ",top=" + topPosition);
+    };
+
     $scope.saveLocalStorage = function() {
         var data = {
             profile: $scope.my,
@@ -1478,6 +1490,27 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
             $scope.setupWebSockets();
         });
     }, false);
+
+    // Listen to login messages from child window/iframe
+    var eventMethod = window.addEventListener ? "addEventListener" : "attachEvent";
+    var eventListener = window[eventMethod];
+    var messageEvent = eventMethod == "attachEvent" ? "onmessage" : "message";
+    eventListener(messageEvent,function(e) {
+        console.log(e);
+        var u = e.data;
+        if (u.slice(0,5) == 'User:') {
+            // add dir to local list
+            var user = u.slice(5, u.length);
+            console.log("USER:",user);
+            if (user && user.length > 0 && user.slice(0,4) == 'http') {
+                $scope.loggedIn = true;
+                $scope.getProfile(user);
+            } else {
+                LxNotificationService.error('WebID-TLS authentication failed.');
+                console.log('WebID-TLS authentication failed.');
+            }
+        }
+    },false);
 
     // initialize by retrieving user info from localStorage
     $scope.init();
