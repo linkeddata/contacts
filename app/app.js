@@ -1457,7 +1457,7 @@ App.controller('Main', function ($scope, $http, $timeout, $window, $location, Lx
         leftPosition = (window.screen.width / 2) - ((width / 2) + 10);
         //Allow for title and status bars.
         topPosition = (window.screen.height / 2) - ((height / 2) + 50);
-        window.open(SIGNUP+"?origin="+encodeURIComponent(window.location.href), "Solid signup", "resizable,scrollbars,status,width="+width+",height="+height+",left="+ leftPosition + ",top=" + topPosition);
+        window.open(SIGNUP+"?origin="+encodeURIComponent(window.location.origin), "Solid signup", "resizable,scrollbars,status,width="+width+",height="+height+",left="+ leftPosition + ",top=" + topPosition);
     };
 
     $scope.saveLocalStorage = function() {
