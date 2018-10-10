@@ -1,5 +1,7 @@
 # contacts
 
+## Warning : contacts app needs updating in order to work with the currently deployed 4.x version of node solid server
+
 [![Join the chat at https://gitter.im/linkeddata/contacts](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/linkeddata/contacts?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Address book-like application to manage contact information.
